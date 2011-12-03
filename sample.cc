@@ -85,7 +85,7 @@ private:
 int main(int argc, char const* argv[])
 {
     int historySize = 100;
-    bool ctrl_c = false;
+    bool ctrl_c = false; // false : ignore <CTRL-C> key.
     std::string historyFileName = ".cli_history";
 
     // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
