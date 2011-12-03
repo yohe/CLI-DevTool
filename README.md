@@ -1,30 +1,36 @@
-#######################################################################
-#                            CLI-DevTool                              #
-#######################################################################
+# CLI-DevTool
+## Author
+    Yohei.Sekiguchi <youhei.sekiguchi@gmail.com> 
 
-1. はじめに
-    本ソフトウェアはshellライクなコンソールを作成するツールです。
-    以下の機能を提供します。
-    
-    ・コマンド名の補完
-    ・コマンド毎にプログラミング可能なパラメータ補完
-    ・カーソルキーによるカーソル移動、コマンド履歴の利用
-    ・いくつかのBuiltInCommand
-      - helpコマンド : コマンドの help 表示
-      - historyコマンド : コマンド履歴の一覧、及び実行
-      - scriptコマンド : 操作ログ収集
+Software
+--------
+This software is Development tool for creating console. The created console has the following functions.
+ 
+* Command-Name complement
+* Parameter complement
+    - Parameter complement is programable at each command.
+* Command History
+* Some BuiltInCommands
+    1. help command : Display command help.
+    2. history command : Display of a history, and execution.
+    3. script command : Logging operation.
 
-    ・Support OS
-      - Linux
-      - Mac OS X
+* Support OS
+   - Linux
+   - Mac OS X
 
-    ・使用ライブラリ
-      - ncurses
+* Use liblary
+   - ncurses
 
-2. Author
-    Yohei.Sekiguchi <youhei.sekiguchi@gmail.com>
+Comple
+------
+* For sample
 
-3. License
+```bash
+$ g++ sample.cc -lncurses -o console
+```
+
+## License
     The MIT License
     Copyright (c) 2011 Yohei.Sekiguchi
 
@@ -45,4 +51,3 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
-
