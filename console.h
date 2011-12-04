@@ -66,7 +66,7 @@ public:
     FileListBehavior() {}
     virtual ~FileListBehavior() {}
 
-    virtual std::string printParamList(std::string& inputStr) const { system("ls -F"); return ""; }
+    virtual std::string printParamList(std::string& inputStr) const { system("ls -FA"); return ""; }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         FILE* in_pipe = NULL;
 
@@ -77,7 +77,7 @@ public:
             path = inputting.substr(0,inputting.rfind('/')+1);
         }
 
-        std::string cmd = "ls -F " + path;
+        std::string cmd = "ls -FA " + path;
         bool dir = false;
 
         in_pipe = popen(cmd.c_str(), "r");

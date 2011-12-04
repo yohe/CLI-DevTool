@@ -2,28 +2,30 @@
 ## Author
     Yohei.Sekiguchi <youhei.sekiguchi@gmail.com> 
 
-Software
---------
-This software is Development tool for creating console. The created console has the following functions.
+# Description of Software
+This software is development tool for creating console. The created console has the following functions.
  
 * Command-Name complement
 * Parameter complement
-    - Parameter complement is programable at each command.
+    - This is programable at each command.
 * Command History
 * Some BuiltInCommands
     1. help command : Display command help.
     2. history command : Display of a history, and execution.
     3. script command : Logging operation.
 
+----
+
 * Support OS
-   - Linux
-   - Mac OS X
+    * Linux
+    * Mac OS X
+
+----
 
 * Use liblary
-   - ncurses
+    * ncurses
 
-Comple
-------
+## Comple
 * For sample
 
 ```bash

@@ -106,6 +106,15 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
+    // SystemFuncCommand(std::string commandName, std::string commandOption, ParameterBehavior* p, HelpBehavior* h)
+    // 
+    // -G : Enable colorized for Mac OS X.
+    // --color=auto : Enable colorized for Linux.
+    if(console.installCommand(new SystemFuncCommand("ls", "-G", new FileListBehavior(), new ManBehavior("ls"))) == false) {
+        std::cout << "install false" << std::endl;
+        return -1;
+    }
+
     console.initialize();
     console.run();
 
