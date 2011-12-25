@@ -25,7 +25,7 @@ This software is development tool for creating console. The created console has 
 * Use liblary
     * ncurses
 
-## Comple
+## Compile
 * For sample
 
 ```bash
