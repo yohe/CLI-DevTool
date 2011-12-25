@@ -26,11 +26,9 @@ public:
     Command(){}
     virtual ~Command() {}
 
-    // Todo : printParamListをgetParamListへマージ
     virtual std::string getKey() const = 0;
     virtual std::string printHelp() const = 0;
     virtual std::string execute(std::string param) const = 0;
-    virtual std::string printParamList(std::string& inputStr) const = 0;
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const = 0;
     virtual bool isHistoryAdd() { return true; }
     virtual void setConsole(Console* console) { _console = console; }
@@ -48,7 +46,6 @@ public:
     ParameterBehavior() {}
     virtual ~ParameterBehavior() {}
 
-    virtual std::string printParamList(std::string& inputStr) const = 0;
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const = 0;
 };
 
@@ -57,7 +54,6 @@ public:
     NullParameterBehavior() {}
     virtual ~NullParameterBehavior() {}
 
-    virtual std::string printParamList(std::string& inputStr) const { return ""; }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const { return ; }
 };
 
@@ -66,7 +62,6 @@ public:
     FileListBehavior() {}
     virtual ~FileListBehavior() {}
 
-    virtual std::string printParamList(std::string& inputStr) const { system("ls -FA"); return ""; }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         FILE* in_pipe = NULL;
 
@@ -175,9 +170,6 @@ public:
         system(cmd.c_str()); 
         return "";
     }
-    virtual std::string printParamList(std::string& inputStr) const {
-        return _behavior->printParamList(inputStr);
-    }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _behavior->getParamList(inputtedList, inputting, matchList);
     }
@@ -206,7 +198,7 @@ public:
         ERROR,
     };
 
-    Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = ".cli_history") :
+    Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = "~/.cli_history") :
         _historyMax(histroySize),
         _historyFile(filename),
         _isCTRL_CPermit(isCTRL_CPermit),
@@ -479,10 +471,6 @@ public:
         }
         return cmd->printHelp();
     }
-    virtual std::string printParamList(std::string& inputStr) const {
-        _console->printAllCommandName();
-        return "";
-    }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _console->getCommandNameList(matchList);
     }
@@ -501,8 +489,7 @@ public:
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
         if(str.empty()) {
-            std::string dummy;
-            printParamList(dummy);
+            printHistory();
             return printHelp();
         }
 
@@ -513,33 +500,18 @@ public:
         if(cmd.empty()) {
             return "history: Error.";
         } else {
-            // ループ防止
-            //std::string tmp = cmd.substr(0, cmd.find(' '));
-            //if(tmp == "history") {
-            //    std::cout << "!!! The history-command cannot execute \"history\"." << std::endl;
-            //    return "";
-            //}
         }
         std::cout << "Execute : " << cmd << std::endl;
         std::cout << "-------------------";
         _console->execute(cmd);
         return "";
-        //std::string str = param;
-        //str = str.erase(0, str.find_first_not_of(" "));
-        //str = str.erase(str.find_last_not_of(" ")+1);
-        //Command* cmd = _console->getCommand(str);
-        //if(cmd == NULL) {
-        //    std::string ret = "help : Command[" + param + "] not found.";
-        //    return ret;
-        //}
-        //return cmd->printHelp();
     }
 
-    virtual std::string printParamList(std::string& inputStr) const {
+    virtual void printHistory() const {
         _console->printAllHistory();
-        return "";
     }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+        _console->printAllHistory();
     }
 
     virtual bool isHistoryAdd() { return false; }
@@ -547,7 +519,6 @@ public:
 
 class BuiltInScriptExitCommand : public Command {
     FileListBehavior _fileListBehavior;
-    //Console* _console;
     Command* _exit;
 public:
     BuiltInScriptExitCommand() : _exit(NULL) {}
@@ -566,9 +537,6 @@ public:
         
         return "";
     }
-    virtual std::string printParamList(std::string& inputStr) const {
-        return _fileListBehavior.printParamList(inputStr);
-    }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _fileListBehavior.getParamList(inputtedList, inputting, matchList);
     }
@@ -577,7 +545,6 @@ public:
 };
 class BuiltInScriptCommand : public Command {
     FileListBehavior _fileListBehavior;
-    //Console* _console;
     BuiltInScriptExitCommand* _scriptExitCmd;
 public:
     BuiltInScriptCommand() : _scriptExitCmd(new BuiltInScriptExitCommand())  {}
@@ -605,10 +572,6 @@ public:
             _console->installCommand(_scriptExitCmd);
         }
         
-        return "";
-    }
-    virtual std::string printParamList(std::string& inputStr) const {
-        _fileListBehavior.printParamList(inputStr);
         return "";
     }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
@@ -1066,7 +1029,12 @@ void Console::actionKeyTab() {
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
     if(tokenList->size() == 1) {
         std::cout << std::endl;
-        std::cout << cmd->printParamList(_inputString);
+
+        std::vector<std::string> argumentList;
+        std::string param = "";
+        std::vector<std::string> matchList;
+        cmd->getParamList(argumentList, param, matchList);
+        printStringList(matchList.begin(), matchList.end());
         std::cout << std::endl;
         printPrompt();
         std::cout << _inputString;
@@ -1430,9 +1398,6 @@ public:
         }
         system(cmd.c_str()); 
         return "";
-    }
-    virtual std::string printParamList(std::string& inputStr) const {
-        return _behavior->printParamList(inputStr);
     }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _behavior->getParamList(inputtedList, inputting, matchList);

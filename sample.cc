@@ -14,9 +14,6 @@ public:
     virtual std::string getKey() const { return "sample"; }
     virtual std::string printHelp() const { return "sample command."; }
     virtual std::string execute(std::string parameter) const { return parameter; }
-    virtual std::string printParamList(std::string& inputStr) const {
-        return "hoge  huga  hogehoge  hogehuga";
-    }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(std::find(inputtedList.begin(), inputtedList.end(), "hoge") == inputtedList.end()) {
             matchList.push_back("hoge");
@@ -57,9 +54,6 @@ public:
         return "";
     }
 
-    virtual std::string printParamList(std::string& inputStr) const {
-        return _behavior.printParamList(inputStr);
-    }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _behavior.getParamList(inputtedList, inputting, matchList);
     }
@@ -73,9 +67,6 @@ public:
     virtual std::string getKey() const { return "exit"; }
     virtual std::string printHelp() const { return "console exit."; }
     virtual std::string execute(std::string parameter) const { _console->unInitialize(); exit(1); return ""; }
-    virtual std::string printParamList(std::string& inputStr) const {
-        return "";
-    }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
     }
 
@@ -86,9 +77,9 @@ int main(int argc, char const* argv[])
 {
     int historySize = 100;
     bool ctrl_c = false; // false : ignore <CTRL-C> key.
-    std::string historyFileName = ".cli_history";
+    std::string historyFileName = "~/.cli_history";
 
-    // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
+    // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = "~/.cli_history"
     // Console console(history); 
     // Console console(history, ctrl_c);
     Console console(historySize, ctrl_c, historyFileName.c_str());
