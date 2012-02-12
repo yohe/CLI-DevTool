@@ -198,7 +198,7 @@ public:
         ERROR,
     };
 
-    Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = "~/.cli_history") :
+    Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = ".cli_history") :
         _historyMax(histroySize),
         _historyFile(filename),
         _isCTRL_CPermit(isCTRL_CPermit),
