@@ -287,7 +287,7 @@ public:
     // 処理ループ
     void run();
 
-    // CTRL-R を受け付けるか
+    // CTRL-C を受け付けるか
     bool isCTRL_CPermit() {
         return _isCTRL_CPermit;
     }
@@ -1252,8 +1252,8 @@ void Console::addHistory(std::string str, bool save) {
     }
     if(save) {
         std::ofstream ofs(_historyFile.c_str(), std::ios::trunc | std::ios::out);
-        for(std::deque<std::string>::iterator ite = _history.begin();
-                ite != _history.end();
+        for(std::deque<std::string>::reverse_iterator ite = _history.rbegin();
+                ite != _history.rend();
                 ++ite) {
             ofs << *ite << std::endl;
         }
