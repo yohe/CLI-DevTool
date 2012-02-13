@@ -330,7 +330,7 @@ public:
         }
  
         char* buf = new char[_after_fpos - _before_fpos + 1];
-        fpos_t size = _after_fpos - _before_fpos;
+        size_t size = _after_fpos - _before_fpos;
         if(fseek(_typeLog, _before_fpos, SEEK_SET) != 0) {
             assert(false);
         }
