@@ -19,27 +19,10 @@
 #include <unistd.h>
 #include <dirent.h>
 
-class Console;
+#include "command.h"
+#include "command_selector.h"
 
-class Command {
-public:
-    Command(){}
-    virtual ~Command() {}
-
-    virtual std::string getKey() const = 0;
-    virtual std::string printHelp() const = 0;
-    virtual std::string execute(std::string param) const = 0;
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const = 0;
-    virtual bool isHistoryAdd() { return true; }
-    virtual void setConsole(Console* console) { _console = console; }
-protected:
-    Console* _console;
-
-private:
-
-};
-
-
+//namespace console {
 
 class ParameterBehavior {
 public:
@@ -72,7 +55,7 @@ public:
             path = inputting.substr(0,inputting.rfind('/')+1);
         }
 
-        std::string cmd = "ls -FA " + path;
+        std::string cmd = "ls -Fa " + path;
         bool dir = false;
 
         in_pipe = popen(cmd.c_str(), "r");
@@ -175,10 +158,8 @@ public:
     }
 };
 
-
-
 class Console {
-    typedef std::map<std::string, Command*> CommandSet;
+    typedef CommandSelector::CommandSet CommandSet;
     
 public:
     enum KEY {
@@ -199,12 +180,15 @@ public:
     };
 
     Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = ".cli_history") :
+        _commandSelector(NULL),
         _historyMax(histroySize),
         _historyFile(filename),
         _isCTRL_CPermit(isCTRL_CPermit),
         _tmpCTRL_CPermit(isCTRL_CPermit),
         _isLogging(false)
     {
+        //_commandSelector = new DefaultCommandSelector();
+        _commandSelector = new AbbreviatedCommandSelector();
     }
     virtual ~Console() {
         unInitialize();
@@ -219,13 +203,7 @@ public:
         return true;
     }
     void unInitialize() {
-        for(CommandSet::iterator ite = _commandSet.begin();
-            ite != _commandSet.end();
-            ++ite) {
-            Command* cmd = ite->second;
-            delete cmd;
-        }
-        _commandSet.clear();
+        delete _commandSelector;
         _history.clear();
         _stringPos = 0;
         _inputString.clear();
@@ -249,36 +227,30 @@ public:
     // コマンド登録, 登録解除, 取得
     void execute(const std::string& inputStr);
     bool installCommand(Command* cmd) {
-        if(_commandSet.count(cmd->getKey()) == 1) {
+        if(!_commandSelector->registCommand(cmd)) {
             return false;
         }
 
         cmd->setConsole(this);
-        _commandSet.insert(std::pair<std::string, Command*>(cmd->getKey(), cmd));
         return true;
     }
     bool uninstallCommand(std::string key, bool isDelete = true) {
-        if(_commandSet.count(key) == 0) {
+        Command* cmd = _commandSelector->unregistCommand(key);
+        if(cmd == NULL) {
             return false;
         }
 
-        Command* cmd = _commandSet.find(key)->second;
-        _commandSet.erase(key);
         if(isDelete) {
             delete cmd;
         }
         return true;
     }
     Command* getCommand(std::string key) const {
-        if(_commandSet.count(key) == 0) {
-            return NULL;
-        }
-
-        return _commandSet.find(key)->second;
+        return _commandSelector->getCommand(key);
     }
     void getCommandNameList(std::vector<std::string>& nameList) {
-        for(CommandSet::iterator ite = _commandSet.begin();
-            ite != _commandSet.end();
+        for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
+            ite != _commandSelector->getCommandSet().end();
             ++ite) {
             nameList.push_back(ite->first);
         }
@@ -432,7 +404,7 @@ protected:
 
 protected:
 
-    CommandSet _commandSet;
+    CommandSelector* _commandSelector;
     struct termios _save_term;
     struct termios _term_setting;
     std::deque<std::string> _history;
@@ -711,7 +683,7 @@ void Console::run() {
 
 bool Console::completeCommand(std::string& key, std::vector<std::string>& matchList) {
     size_t min = -1;
-    CommandSet::iterator candidate;
+    CommandSet::const_iterator candidate;
     matchList.clear();
 
     // trim white space
@@ -720,8 +692,8 @@ bool Console::completeCommand(std::string& key, std::vector<std::string>& matchL
     str = str.erase(str.find_last_not_of(" ")+1);
 
     // search candidate
-    for(CommandSet::iterator ite = _commandSet.begin();
-            ite != _commandSet.end();
+    for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
+            ite != _commandSelector->getCommandSet().end();
             ++ite) {
 
         // find minimum size candidate
@@ -884,7 +856,7 @@ bool Console::actionKeyDelete() {
     }
     
     // カーソルが文字列内にあるか判定
-    if((0 <= _stringPos) && (_stringPos <= _inputString.size())) {
+    if(_stringPos <= _inputString.size()) {
         char* cmd = tigetstr(str);
         putp(cmd);
         return true;
@@ -923,7 +895,7 @@ void Console::execute(const std::string& inputString) {
     Command* cmd = getCommand(key);
     if(cmd == NULL && !key.empty()) {
         std::cout << std::endl;
-        std::cout << key << ": Command not found." << std::endl;
+        std::cout << _commandSelector->errorCause();
         addHistory(inputString);
     } else {
         executeCommand(cmd, argument);
@@ -966,8 +938,8 @@ void Console::executeCommand(const Command* cmd, const std::string& argument) {
 Command* Console::getCommandFromInputString(std::string& inputString) {
    Command* cmd = NULL;
    size_t max = 0;
-    for(CommandSet::iterator ite = _commandSet.begin();
-            ite != _commandSet.end();
+    for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
+            ite != _commandSelector->getCommandSet().end();
             ++ite) {
         size_t tmp = 0;
         tmp = inputString.find(ite->first);
@@ -1288,8 +1260,8 @@ void Console::loadHistory() {
 
 void Console::printAllCommandName() {
     size_t max=0;
-    for(CommandSet::iterator ite = _commandSet.begin();
-            ite != _commandSet.end();
+    for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
+            ite != _commandSelector->getCommandSet().end();
             ++ite) {
         if(max < ite->first.size()) {
             max = ite->first.size();
@@ -1298,8 +1270,8 @@ void Console::printAllCommandName() {
     max += 3;
     size_t num = 80/max;
     size_t i=0;
-    for(CommandSet::iterator ite = _commandSet.begin();
-            ite != _commandSet.end();
+    for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
+            ite != _commandSelector->getCommandSet().end();
             ++ite) {
         std::cout << std::left << std::setw(max) << ite->first;
         ++i;
@@ -1403,4 +1375,7 @@ public:
         _behavior->getParamList(inputtedList, inputting, matchList);
     }
 };
+
+//}
+
 #endif /* end of include guard */
