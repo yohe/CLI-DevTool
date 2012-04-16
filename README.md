@@ -1,6 +1,6 @@
 # CLI-DevTool
 ## Author
-    Yohei.Sekiguchi <sekiguchi.zzz@gmail.com> 
+    Yohei.Sekiguchi <ysekiguchi.zzz@gmail.com> 
 
 # Description of Software
 This software is development tool for creating console. The created console has the following functions.
