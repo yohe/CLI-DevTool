@@ -3,16 +3,16 @@
     Yohei.Sekiguchi <ysekiguchi.zzz@gmail.com> 
 
 # Description of Software
-This software is development tool for creating console. The created console has the following functions.
+This software is development tool for creating console. The created console has the following features.
  
-* Command-Name complement
-* Parameter complement
+* Command-Name completion by tab key
+* Parameter completion by tab key
     - This is programable at each command.
 * Command History
 * Some BuiltInCommands
     1. help command : Display command help.
     2. history command : Display of a history, and execution.
-    3. script command : Logging operation.
+    3. script command : Logging operation. (not cool)
 
 ----
 
