@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include <dirent.h>
 
+#include "action_code.h"
+#include "key_map.h"
 #include "command.h"
 #include "command_selector.h"
 
@@ -56,7 +58,6 @@ public:
         }
 
         std::string cmd = "ls -Fa " + path;
-        bool dir = false;
 
         in_pipe = popen(cmd.c_str(), "r");
         std::stringstream paramList("");
@@ -158,8 +159,11 @@ public:
     }
 };
 
+
 class Console {
+    typedef bool (Console::*Action)();
     typedef CommandSelector::CommandSet CommandSet;
+    typedef std::map<int, Action> ActionMap;
     
 public:
     enum KEY {
@@ -168,7 +172,7 @@ public:
         UP = 65,
         DOWN,
         LEFT,
-        RIGHT,
+        RIGHT
     };
 
     enum ComplementType {
@@ -176,7 +180,7 @@ public:
         PARTIAL_COMPLEMENT,
         NO_CHANGE,
         NO_CANDIDATE, 
-        ERROR,
+        ERROR
     };
 
     Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = ".cli_history") :
@@ -209,6 +213,9 @@ public:
         _inputString.clear();
         tcsetattr(fileno(stdin), TCSANOW, &_save_term);
     }
+
+    void keyMapInitialize();
+    void keyActionInitialize();
 
     // ヒストリ機能
     void printAllHistory();
@@ -258,6 +265,14 @@ public:
 
     // 処理ループ
     void run();
+    Action getAction(int actionCode) const {
+        ActionMap::const_iterator ite = _actionMap.find(actionCode);
+        if(ite == _actionMap.end()) {
+            return NULL;
+        }
+
+        return ite->second;
+    }
 
     // CTRL-C を受け付けるか
     bool isCTRL_CPermit() {
@@ -347,12 +362,17 @@ public:
 
 protected:
     // キー入力イベント
-    void actionKeyUpDown(int input);
-    void actionKeyLeftRight(int input);
+    bool actionKeyUp() { return selectHistory(true); }
+    bool actionKeyDown(){ return selectHistory(false); }
+    bool actionKeyRight() { return moveCursor(false); }
+    bool actionKeyLeft() { return moveCursor(true); }
     bool actionKeyDelete();
     bool actionKeyBackSpace();
-    void actionKeyEnter();
-    void actionKeyTab();
+    bool actionKeyEnter();
+    bool actionKeyTab();
+    bool actionKeyCTRL_A() { setCursorPos(0); _stringPos = 0; return true;}
+    bool actionKeyCTRL_C() { _consoleExit = true; return true;}
+    bool actionKeyCTRL_E() { setCursorPos(_inputString.size()); _stringPos = _inputString.size(); return true;}
 
     // 文字列分割
     std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
@@ -375,7 +395,7 @@ protected:
         _stringPos = 0;
         _inputString.clear();
     }
-    void moveCursol(int pos) {
+    void setCursorPos(int pos) {
         printf("\r");
         pos += 2;
         putp(tparm(parm_right_cursor, pos));
@@ -385,6 +405,7 @@ protected:
         _inputString.clear();
         _historyIndex = 0;
     }
+    bool moveCursor(bool left);
 
     // 補完機能
     ComplementType complementCommandName();
@@ -399,11 +420,17 @@ protected:
     // コマンド取得機能
     Command* getCommandFromInputString(std::string& inputString);
 
-    // Historyのロード
+    // History
     void loadHistory();
+    bool selectHistory(bool up);
 
+    bool isEnd() {
+        return !_consoleExit;
+    }
 protected:
 
+    KeyMap _keyMap;
+    ActionMap _actionMap;
     CommandSelector* _commandSelector;
     struct termios _save_term;
     struct termios _term_setting;
@@ -422,6 +449,8 @@ protected:
 
     std::string _inputString;
     size_t _stringPos;
+    
+    bool _consoleExit;
 };
 
 class BuiltInHelpCommand : public Command {
@@ -581,6 +610,10 @@ bool Console::initialize() {
         return false;
     }
 
+    // キーストロークの登録
+    keyMapInitialize();
+    // キーストロークに対応するアクションの登録
+    keyActionInitialize();
 
     installCommand(new BuiltInHelpCommand());
     installCommand(new BuiltInHistoryCommand());
@@ -589,94 +622,113 @@ bool Console::initialize() {
     // load History
     loadHistory();
 
+    _consoleExit = false;
     return true;
+}
+
+#define SEMICOLON_SPLIT_1(x) stroke.push_back(x);
+#define SEMICOLON_SPLIT_2(x) stroke.push_back(x); SEMICOLON_SPLIT_1
+#define SEMICOLON_SPLIT_3(x) stroke.push_back(x); SEMICOLON_SPLIT_2
+#define SEMICOLON_SPLIT_4(x) stroke.push_back(x); SEMICOLON_SPLIT_3
+
+#define KEY_STROKE_DEF(Num, Seq) \
+    SEMICOLON_SPLIT_##Num Seq;
+
+// strokeListは右詰めで記載
+#define ADD_KEY_MAP(name, code, strokeList) \
+    strokeList; \
+    _keyMap.addKeyStroke(name, stroke, code); \
+    stroke.clear();
+
+void Console::keyMapInitialize() {
+
+    std::vector<char> stroke;
+    ADD_KEY_MAP("BS", ActionCode::KEY_BS, KEY_STROKE_DEF(1, (8)));
+    ADD_KEY_MAP("BS2", ActionCode::KEY_BS, KEY_STROKE_DEF(1, (127)));
+    ADD_KEY_MAP("DEL", ActionCode::KEY_DEL, KEY_STROKE_DEF(4, (27) (91) (51) (126)));
+    ADD_KEY_MAP("CTRL-A", ActionCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
+    ADD_KEY_MAP("CTRL-C", ActionCode::KEY_CTRL_C, KEY_STROKE_DEF(1, (3)));
+    ADD_KEY_MAP("CTRL-E", ActionCode::KEY_CTRL_E, KEY_STROKE_DEF(1, (5)));
+    ADD_KEY_MAP("TAB", ActionCode::KEY_TAB, KEY_STROKE_DEF(1, (9)));
+    ADD_KEY_MAP("RETURN", ActionCode::KEY_CR, KEY_STROKE_DEF(1, (13)));
+    ADD_KEY_MAP("UP", ActionCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
+    ADD_KEY_MAP("DOWN", ActionCode::KEY_DOWN_ARROW, KEY_STROKE_DEF(3, (27) (91) (66) ));
+    ADD_KEY_MAP("RIGHT", ActionCode::KEY_RIGHT_ARROW, KEY_STROKE_DEF(3, (27) (91) (67) ));
+    ADD_KEY_MAP("LEFT", ActionCode::KEY_LEFT_ARROW, KEY_STROKE_DEF(3, (27) (91) (68) ));
+}
+void Console::keyActionInitialize() {
+
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_BS, &Console::actionKeyBackSpace));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DEL, &Console::actionKeyDelete));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_A, &Console::actionKeyCTRL_A));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_C, &Console::actionKeyCTRL_C));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_E, &Console::actionKeyCTRL_E));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_TAB, &Console::actionKeyTab));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CR, &Console::actionKeyEnter));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_UP_ARROW, &Console::actionKeyUp));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DOWN_ARROW, &Console::actionKeyDown));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_RIGHT_ARROW, &Console::actionKeyRight));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_LEFT_ARROW, &Console::actionKeyLeft));
 }
 
 void Console::run() {
     printTitle();
     printPrompt();
     _inputString ="";
-    //std::string::iterator pos = str.end();
     _stringPos=0;
     _historyIndex = 0;
-    while(true) {
+    bool isKeyStrokeBeginning = false;
+    const KeyStrokeEntry* entry = NULL;
+    while(isEnd()) {
         char input = fgetc(stdin);
-        //std::cout << (int)input << " "; // キー入力トレース用
-        if( input >= 0x20 && input <= 0x7E) {
-            _inputString.insert(_stringPos, 1, input);
-            ++_stringPos;
-            printPrompt();
-            std::cout << _inputString;
-            moveCursol(_stringPos);
-        } else if( input == 0x09 ) {
-            // input Tab
-            actionKeyTab();
-        } else if( input == 0x01 ) {
-            // input CTRL-A
-            moveCursol(0);
-            _stringPos = 0;
-        } else if( input == 0x05 ) {
-            // input CTRL-E
-            moveCursol(_inputString.size());
-            _stringPos = _inputString.size();
-        } else if( input == 0x0d ) {
-            // input Enter
-            actionKeyEnter();
-        } else if( input == 0x7f || input == 0x08) {
-            // input BS
-            if(!_inputString.empty()) {
-                if(actionKeyBackSpace()) {
-                    // 消去できた場合には文字列を更新
-                    _inputString.erase(_stringPos, 1);
-                }
-            } else {
-                // 入力文字列がない
-                beep();
-            }
-        } else if( input == 0x03 ) {
-            // input CTRL-C
-            if(isCTRL_CPermit()) {
-                return;
-            }
-        } else if( input == 0x1b ) {
-            // input ESC
-            // カーソルキー以外は無視 
-            int t1 = fgetc(stdin);
-            if(t1 == 91) {
-                int t2 = fgetc(stdin);
-                switch (t2) {
-                    case UP:
-                    case DOWN:
-                        actionKeyUpDown(t2);
-                        break;
-                    case LEFT:
-                    case RIGHT:
-                        //std::cout << _inputString << ":" << _stringPos << std::endl;
-                        actionKeyLeftRight(t2);
-                        break;
-                    case DEL_1:
-                        {
-                            int t3 = fgetc(stdin);
-                            if(t3 == DEL_2) {
-                                if(actionKeyDelete()) {
-                                    _inputString.erase(_stringPos, 1);
-                                } else {
-                                    beep();
-                                }
-                            } else {
-                                beep();
-                            }
-                        }
-                        break;
-                    default:
-                        beep();
-                        break;
-                }
-            } else {
-                // 91 以外は無視
-                beep();
+        //bool ret = userKeyHookProc(input);
+#ifdef KEY_TRACE
+        std::cout << (int)input << " "; // for key trace 
+        if(input == 3) {
+            return;
+        }
+#endif
+        if( !isKeyStrokeBeginning ) {
+            // space and symble or alphanumeric is output without do something.
+            if( input >= 0x20 && input <= 0x7E) {
+#ifndef KEY_TRACE
+                _inputString.insert(_stringPos, 1, input);
+                ++_stringPos;
+                printPrompt();
+                std::cout << _inputString;
+                setCursorPos(_stringPos);
+#endif
+                continue;
             }
         }
+        
+#ifndef KEY_TRACE
+        // Defined action execute if non alphanumeric charactor.
+        if( entry == NULL ) {
+            entry = _keyMap.getKeyStroke(input);
+        } else {
+            entry = entry->getKeyStroke(input);
+        }
+
+        if(entry == NULL) {
+            beep();
+            isKeyStrokeBeginning = false;
+            continue;
+        }
+
+        if(entry->isEntry()) {
+
+            int actionCode = entry->getActionCode();
+            Action action = getAction(actionCode);
+            (this->*action)();
+            entry = NULL;
+            isKeyStrokeBeginning = false;
+        } else {
+            isKeyStrokeBeginning = true;
+            continue;
+        }
+#endif
+
     }
 }
 
@@ -788,11 +840,11 @@ bool Console::completeStringList(std::string& inputStr, std::vector<std::string>
     return false;
 }
 
-void Console::actionKeyUpDown(int input) {
+bool Console::selectHistory(bool up) {
 
     bool isGetHistory=false;
 
-    if(input == UP) {
+    if(up) {
         if(!_history.empty() && _historyIndex < _history.size()) {
             _historyIndex++;
             isGetHistory=true;
@@ -813,11 +865,12 @@ void Console::actionKeyUpDown(int input) {
         _stringPos = _inputString.size();
     }
 
+    return true;
 }
 
-void Console::actionKeyLeftRight(int input) {
+bool Console::moveCursor(bool left) {
 
-    if(input == LEFT) {
+    if(!left) {
         char str[8] = "cuf1";
         if( _stringPos < _inputString.size() ) {
             char* cmd = tigetstr(str);
@@ -832,16 +885,21 @@ void Console::actionKeyLeftRight(int input) {
             putp(cmd);
         }
     }
+
+    return true;
 }
 
 bool Console::actionKeyBackSpace() {
-    if(_inputString.empty()){
+    if(_inputString.empty()) {
+        // 入力文字列がない
+        beep();
         return false;
     }
 
     if(_stringPos > 0) {
-        actionKeyLeftRight(RIGHT);
+        moveCursor(true);
         actionKeyDelete();
+        _inputString.erase(_stringPos, 1);
         return true;
     } else {
         beep();
@@ -852,6 +910,7 @@ bool Console::actionKeyBackSpace() {
 bool Console::actionKeyDelete() {
     char str[8] = "dch1";
     if(_inputString.empty() || _stringPos == _inputString.size()){
+        beep();
         return false;
     }
     
@@ -859,16 +918,21 @@ bool Console::actionKeyDelete() {
     if(_stringPos <= _inputString.size()) {
         char* cmd = tigetstr(str);
         putp(cmd);
+        _inputString.erase(_stringPos, 1);
         return true;
+    } else {
+        beep();
     }
     return false;
 }
 
-void Console::actionKeyEnter() {
+bool Console::actionKeyEnter() {
     execute(_inputString);
     std::cout << std::endl;
     clearStatus();
     printPrompt();
+
+    return true;
 }
 
 void Console::execute(const std::string& inputString) {
@@ -953,7 +1017,7 @@ Command* Console::getCommandFromInputString(std::string& inputString) {
     return cmd;
 }
 
-void Console::actionKeyTab() {
+bool Console::actionKeyTab() {
 
     // コマンド名を入力中であればコマンド名を補完する
     // コマンド名が確定している場合はパラメータ補完
@@ -970,7 +1034,7 @@ void Console::actionKeyTab() {
         // 入力されていないはずなので不要？
         _inputString.clear();
         _stringPos = 0;
-        return;
+        return true;
     }
 
     if(_inputString.find(" ") == std::string::npos) {
@@ -980,7 +1044,7 @@ void Console::actionKeyTab() {
 #ifdef DEBUG
         std::cout << std::endl << "--------- Point A -----------" << std::endl;
 #endif
-        return;
+        return true;
     }
 #ifdef DEBUG
     std::cout << std::endl << "--------- Point B -----------" << std::endl;
@@ -995,7 +1059,7 @@ void Console::actionKeyTab() {
     cmd = getCommand((*tokenList)[0]);
     if(cmd == NULL) {
         delete tokenList;
-        return;
+        return true;
     }
 
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
@@ -1010,7 +1074,7 @@ void Console::actionKeyTab() {
         std::cout << std::endl;
         printPrompt();
         std::cout << _inputString;
-        return;
+        return true;
     }
 
 
@@ -1045,7 +1109,7 @@ void Console::actionKeyTab() {
             printPrompt();
             std::cout << _inputString;
             _stringPos = _inputString.size();
-            return;
+            return true;
         } else {
             size_t pos = _inputString.rfind(param);
             if(pos != std::string::npos) {
@@ -1054,10 +1118,10 @@ void Console::actionKeyTab() {
                 printPrompt();
                 _stringPos = _inputString.size(); 
                 std::cout << _inputString;
-                return;
+                return true;
             } else {
                 beep();
-                return;
+                return true;
             }
         }
     } else {
@@ -1072,7 +1136,7 @@ void Console::actionKeyTab() {
                     clearLine(false);
                     std::cout << _inputString;
                     _stringPos = _inputString.size();
-                    return;
+                    return true;
                 } else {
                     size_t pos = _inputString.rfind(param);
                     if(pos != std::string::npos) {
@@ -1080,10 +1144,10 @@ void Console::actionKeyTab() {
                         clearLine(false);
                         std::cout << _inputString;
                         _stringPos = _inputString.size();
-                        return;
+                        return true;
                     } else {
                         beep();
-                        return;
+                        return true;
                     }
                 }
             } else {
@@ -1096,7 +1160,7 @@ void Console::actionKeyTab() {
                     _stringPos = _inputString.size();
                     clearLine(false);       
                     std::cout << _inputString;
-                    return;
+                    return true;
                 } else {
                     size_t pos = _inputString.rfind(param);
                     if(pos != std::string::npos) {
@@ -1104,22 +1168,22 @@ void Console::actionKeyTab() {
                         _stringPos = _inputString.size();
                         clearLine(false);       
                         std::cout << _inputString;
-                        return;
+                        return true;
                     } else {
                         beep();
                         printPrompt();
-                        return;
+                        return true;
                     }
                 }
             }
         } else {
             // 補完候補なし
             beep();
-            return;
+            return true;
         }
     }
     
-    return;
+    return true;
 }
 
 Console::ComplementType Console::complementCommandName() {
