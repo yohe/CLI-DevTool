@@ -29,7 +29,8 @@ This software is development tool for creating console. The created console has 
 * For sample
 
 ```bash
-$ g++ sample.cc -lncurses -o console
+$ make
+$ ./console
 ```
 
 ## License
