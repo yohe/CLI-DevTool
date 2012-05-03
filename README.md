@@ -57,15 +57,15 @@ $ ./console
 
 ## Issue
  
- # key storke can not use following pattern.
+ 1. key storke can not use following pattern.
   * Example
     This pattern issue is KeyCode(91)
     91 has a next key code, and 91 is a last key code. Both of these keystrokes can not be registed.
-  ```
-      KeyStroke | KeyCode  
-     -----------+----------
-      Up Key    | 27-91-65 
-      ALt-[ Key | 27-91    
-  ```
+
+     | KeyStroke | KeyCode  |
+     |-----------|----------|
+     | Up        | 27-91-65 |
+     | ALt-[     | 27-91    |
+
    this issues is small. You will not register the complex keystrokes, will you?
 
