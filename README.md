@@ -54,3 +54,18 @@ $ ./console
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
+
+## Issue
+ 
+ # key storke can not use following pattern.
+  * Example
+    This pattern issue is KeyCode(91)
+    91 has a next key code, and 91 is a last key code. Both of these keystrokes can not be registed.
+  ```
+      KeyStroke | KeyCode  
+     -----------+----------
+      Up Key    | 27-91-65 
+      ALt-[ Key | 27-91    
+  ```
+   this issues is small. You will not register the complex keystrokes, will you?
+
