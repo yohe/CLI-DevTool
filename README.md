@@ -58,8 +58,8 @@ $ ./console
 ## Issue
  
  1. key storke can not use following pattern.
-  * Example
-    This pattern issue is KeyCode(91)
+  * Example <BR>
+    This pattern issue is KeyCode(91).<BR>
     91 has a next key code, and 91 is a last key code. Both of these keystrokes can not be registed.
 
      | KeyStroke | KeyCode  |
