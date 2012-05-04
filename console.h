@@ -11,6 +11,9 @@
 #include <sstream>
 #include <fstream>
 #include <cstdio>
+
+#include <errno.h>
+#include <pwd.h>
 #include <assert.h>
 
 #include <termios.h>
@@ -166,14 +169,6 @@ class Console {
     typedef std::map<int, Action> ActionMap;
     
 public:
-    enum KEY {
-        DEL_1 = 51,
-        DEL_2 = 126,
-        UP = 65,
-        DOWN,
-        LEFT,
-        RIGHT
-    };
 
     enum ComplementType {
         FULL_COMPLEMENT = 1,
@@ -217,19 +212,37 @@ public:
     void keyMapInitialize();
     void keyActionInitialize();
 
+
+    // エラー
+    std::string getSystemError() {
+        return strerror(_systemErrorNumber);
+    }
+
     // ヒストリ機能
     void printAllHistory();
     std::string getHistory(size_t index); 
     void addHistory(std::string str, bool save = true);
 
     // 画面フォーマット出力
-    void printPromptImpl();
+    std::string printPromptImpl();
     void printTitle(); 
 
     void printAllCommandName();
     template <class Iterator>
     void printStringList(Iterator begin, Iterator end);
     void beep() { printf("\a"); }
+    std::string getUserName() const { return _user_name; }
+    std::string getCurrentDirectory() const {
+        size_t size = pathconf(".", _PC_PATH_MAX);
+        char* buf = new char[size];
+
+        if(getcwd(buf, size) == NULL) {
+            return "ERANGE";
+        }
+        std::string ret(buf);
+        delete[] buf;
+        return ret;
+    }
 
     // コマンド登録, 登録解除, 取得
     void execute(const std::string& inputStr);
@@ -252,9 +265,11 @@ public:
         }
         return true;
     }
+    
     Command* getCommand(std::string key) const {
         return _commandSelector->getCommand(key);
     }
+
     void getCommandNameList(std::vector<std::string>& nameList) {
         for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
             ite != _commandSelector->getCommandSet().end();
@@ -298,14 +313,15 @@ public:
             _typeLog = NULL;
             _typeLogFd = 0;
             _typeLog = fopen(filename.c_str(), "w+");
-            _typeLogFd = fileno(_typeLog);
-            _typeLogName = filename;
-
             if(_typeLog == NULL) {
+                _systemErrorNumber = errno;
                 _isLogging = false;
                 setCTRL_CPermit(_tmpCTRL_CPermit);
                 return false;
             }
+            _typeLogFd = fileno(_typeLog);
+            _typeLogName = filename;
+
 
             // 標準出力 -> _typeLog
             _stdinBackup = dup(1);
@@ -361,26 +377,27 @@ public:
     }
 
 protected:
-    // キー入力イベント
-    bool actionKeyUp() { return selectHistory(true); }
-    bool actionKeyDown(){ return selectHistory(false); }
-    bool actionKeyRight() { return moveCursor(false); }
-    bool actionKeyLeft() { return moveCursor(true); }
-    bool actionKeyDelete();
-    bool actionKeyBackSpace();
-    bool actionKeyEnter();
-    bool actionKeyTab();
-    bool actionKeyCTRL_A() { setCursorPos(0); _stringPos = 0; return true;}
-    bool actionKeyCTRL_C() { _consoleExit = true; return true;}
-    bool actionKeyCTRL_E() { setCursorPos(_inputString.size()); _stringPos = _inputString.size(); return true;}
+    // 定義済みアクション
+    bool actionBackwardHistory() { return selectHistory(true); }
+    bool actionForwarddHistory(){ return selectHistory(false); }
+    bool actionMoveCursorRight() { return moveCursor(false); }
+    bool actionMoveCursorLeft() { return moveCursor(true); }
+    bool actionDeleteForwardCharacter();
+    bool actionDeleteBackwardCharacter();
+    bool actionEnter();
+    bool actionComplement();
+    bool actionMoveCursorTop() { setCursorPos(0); _stringPos = 0; return true;}
+    bool actionTerminate() { _consoleExit = true; return true;}
+    bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); _stringPos = _inputString.size(); return true;}
 
     // 文字列分割
     std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
 
     // ターミナル機能
-    void printPrompt() {
+    void  printPrompt() {
         printf("\r");
-        printPromptImpl();
+        std::string str = printPromptImpl();
+        std::cout << str;
     }
     void clearLine(bool clearString = true) {
         char str[8] = "dl1";
@@ -451,6 +468,10 @@ protected:
     size_t _stringPos;
     
     bool _consoleExit;
+    std::string _user_name;
+    long _user_uid;
+    std::string _user_homeDir;
+    int _systemErrorNumber;
 };
 
 class BuiltInHelpCommand : public Command {
@@ -501,6 +522,10 @@ public:
         if(cmd.empty()) {
             return "history: Error.";
         } else {
+            std::string key = cmd.substr(0, cmd.find(" "));
+            if(key == "history") {
+                return "history: History command can not execute oneself.";
+            }
         }
         std::cout << "Execute : " << cmd << std::endl;
         std::cout << "-------------------";
@@ -556,21 +581,26 @@ public:
     virtual std::string execute(std::string param) const {
 
         bool ret = false;
+        std::string filename;
         if(param.empty()) {
-            ret = _console->loggingMode(true);
+            filename = "typescript";
         } else {
             std::string str = param;
             str = str.erase(0, str.find_first_not_of(" "));
             str = str.erase(str.find_last_not_of(" ")+1);
-            str = str.substr(0, str.find(' '));
-            ret = _console->loggingMode(true, str);
+            filename = str.substr(0, str.find(' '));
         }
+        ret = _console->loggingMode(true, filename);
 
         if(ret) {
             Command* cmd = _console->getCommand("exit");
             _scriptExitCmd->setExitCommand(cmd);
             _console->uninstallCommand("exit", false);
             _console->installCommand(_scriptExitCmd);
+        } else {
+            
+            return ("script " + filename + ": "+ _console->getSystemError());
+
         }
         
         return "";
@@ -623,52 +653,11 @@ bool Console::initialize() {
     loadHistory();
 
     _consoleExit = false;
+    struct passwd* userInfo = getpwnam(getlogin());
+    _user_name = userInfo->pw_name;
+    _user_uid = userInfo->pw_uid;
+    _user_homeDir = userInfo->pw_dir;
     return true;
-}
-
-#define SEMICOLON_SPLIT_1(x) stroke.push_back(x);
-#define SEMICOLON_SPLIT_2(x) stroke.push_back(x); SEMICOLON_SPLIT_1
-#define SEMICOLON_SPLIT_3(x) stroke.push_back(x); SEMICOLON_SPLIT_2
-#define SEMICOLON_SPLIT_4(x) stroke.push_back(x); SEMICOLON_SPLIT_3
-
-#define KEY_STROKE_DEF(Num, Seq) \
-    SEMICOLON_SPLIT_##Num Seq;
-
-// strokeListは右詰めで記載
-#define ADD_KEY_MAP(name, code, strokeList) \
-    strokeList; \
-    _keyMap.addKeyStroke(name, stroke, code); \
-    stroke.clear();
-
-void Console::keyMapInitialize() {
-
-    std::vector<char> stroke;
-    ADD_KEY_MAP("BS", ActionCode::KEY_BS, KEY_STROKE_DEF(1, (8)));
-    ADD_KEY_MAP("BS2", ActionCode::KEY_BS, KEY_STROKE_DEF(1, (127)));
-    ADD_KEY_MAP("DEL", ActionCode::KEY_DEL, KEY_STROKE_DEF(4, (27) (91) (51) (126)));
-    ADD_KEY_MAP("CTRL-A", ActionCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
-    ADD_KEY_MAP("CTRL-C", ActionCode::KEY_CTRL_C, KEY_STROKE_DEF(1, (3)));
-    ADD_KEY_MAP("CTRL-E", ActionCode::KEY_CTRL_E, KEY_STROKE_DEF(1, (5)));
-    ADD_KEY_MAP("TAB", ActionCode::KEY_TAB, KEY_STROKE_DEF(1, (9)));
-    ADD_KEY_MAP("RETURN", ActionCode::KEY_CR, KEY_STROKE_DEF(1, (13)));
-    ADD_KEY_MAP("UP", ActionCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
-    ADD_KEY_MAP("DOWN", ActionCode::KEY_DOWN_ARROW, KEY_STROKE_DEF(3, (27) (91) (66) ));
-    ADD_KEY_MAP("RIGHT", ActionCode::KEY_RIGHT_ARROW, KEY_STROKE_DEF(3, (27) (91) (67) ));
-    ADD_KEY_MAP("LEFT", ActionCode::KEY_LEFT_ARROW, KEY_STROKE_DEF(3, (27) (91) (68) ));
-}
-void Console::keyActionInitialize() {
-
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_BS, &Console::actionKeyBackSpace));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DEL, &Console::actionKeyDelete));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_A, &Console::actionKeyCTRL_A));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_C, &Console::actionKeyCTRL_C));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_E, &Console::actionKeyCTRL_E));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_TAB, &Console::actionKeyTab));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CR, &Console::actionKeyEnter));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_UP_ARROW, &Console::actionKeyUp));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DOWN_ARROW, &Console::actionKeyDown));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_RIGHT_ARROW, &Console::actionKeyRight));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_LEFT_ARROW, &Console::actionKeyLeft));
 }
 
 void Console::run() {
@@ -720,7 +709,9 @@ void Console::run() {
 
             int actionCode = entry->getActionCode();
             Action action = getAction(actionCode);
-            (this->*action)();
+            if(action != NULL) {
+                (this->*action)();
+            }
             entry = NULL;
             isKeyStrokeBeginning = false;
         } else {
@@ -889,7 +880,7 @@ bool Console::moveCursor(bool left) {
     return true;
 }
 
-bool Console::actionKeyBackSpace() {
+bool Console::actionDeleteBackwardCharacter() {
     if(_inputString.empty()) {
         // 入力文字列がない
         beep();
@@ -898,7 +889,7 @@ bool Console::actionKeyBackSpace() {
 
     if(_stringPos > 0) {
         moveCursor(true);
-        actionKeyDelete();
+        actionDeleteForwardCharacter();
         _inputString.erase(_stringPos, 1);
         return true;
     } else {
@@ -907,7 +898,7 @@ bool Console::actionKeyBackSpace() {
     return false;
 }
 
-bool Console::actionKeyDelete() {
+bool Console::actionDeleteForwardCharacter() {
     char str[8] = "dch1";
     if(_inputString.empty() || _stringPos == _inputString.size()){
         beep();
@@ -926,7 +917,7 @@ bool Console::actionKeyDelete() {
     return false;
 }
 
-bool Console::actionKeyEnter() {
+bool Console::actionEnter() {
     execute(_inputString);
     std::cout << std::endl;
     clearStatus();
@@ -936,6 +927,18 @@ bool Console::actionKeyEnter() {
 }
 
 void Console::execute(const std::string& inputString) {
+
+    // コマンド名、引数に分離
+    size_t sp = inputString.find(' ');
+    std::string key = inputString.substr(0, sp);
+    std::string argument = "";
+    if(sp != std::string::npos) {
+        argument = inputString.substr(sp);
+    }
+
+    if(key.empty()) {
+        return;
+    }
 
     if(_isLogging && _logFlag == false) {
         _stdinBackup = dup(1);
@@ -948,26 +951,20 @@ void Console::execute(const std::string& inputString) {
         _before_fpos = ftell(_typeLog);
     }
 
-    // コマンド名、引数に分離
-    size_t sp = inputString.find(' ');
-    std::string key = inputString.substr(0, sp);
-    std::string argument = "";
-    if(sp != std::string::npos) {
-        argument = inputString.substr(sp);
-    }
-
     Command* cmd = getCommand(key);
-    if(cmd == NULL && !key.empty()) {
-        std::cout << std::endl;
-        std::cout << _commandSelector->errorCause();
-        addHistory(inputString);
-    } else {
-        executeCommand(cmd, argument);
-    }
+    executeCommand(cmd, argument);
 
     // 文字列が一文字以上であればヒストリに追加
-    if(!inputString.empty() && cmd != NULL && cmd->isHistoryAdd()) {
-        addHistory(inputString);
+    if(!inputString.empty()) {
+
+        // 実行したコマンドがある場合は、そのコマンドをヒストリに残すべきかを判定する.
+        //
+        // history コマンド自体を ヒストリに残さない. これは [history 0] などで history から historyを呼び出す再帰を防ぐため
+        if(cmd != NULL && cmd->isHistoryAdd()) {
+            addHistory(inputString);
+        } else {
+            addHistory(inputString);
+        }
     }
 
     if(_isLogging) {
@@ -979,24 +976,24 @@ void Console::execute(const std::string& inputString) {
 }
 
 void Console::executeCommand(const Command* cmd, const std::string& argument) {
-    if(cmd != NULL) {
-        std::cout << std::endl;
-        // ターミナル状態をもとに戻す
-        setTermIOS(_save_term);
+    std::cout << std::endl;
+    // ターミナル状態をもとに戻す
+    setTermIOS(_save_term);
 
-        std::string ret("");
-        if(_isLogging) {
-            ret = cmd->execute(argument);
-            std::cout << ret << std::flush;
-
-        } else {
-            ret = cmd->execute(argument);
-            std::cout << ret;
-        }
-        // ターミナル状態をもとに戻す
-        setTermIOS(_term_setting);
-        
+    std::string ret("");
+    if(cmd == NULL) {
+        ret =  _commandSelector->errorCause();
+    } else {
+        ret = cmd->execute(argument);
     }
+
+    std::cout << ret;
+    if(_isLogging) {
+        std::cout << std::flush;
+    }
+
+    // ターミナル状態をもとに戻す
+    setTermIOS(_term_setting);
 }
 
 Command* Console::getCommandFromInputString(std::string& inputString) {
@@ -1017,7 +1014,7 @@ Command* Console::getCommandFromInputString(std::string& inputString) {
     return cmd;
 }
 
-bool Console::actionKeyTab() {
+bool Console::actionComplement() {
 
     // コマンド名を入力中であればコマンド名を補完する
     // コマンド名が確定している場合はパラメータ補完
@@ -1041,14 +1038,8 @@ bool Console::actionKeyTab() {
         if(complementCommandName() == ERROR) {
             assert(false);
         }
-#ifdef DEBUG
-        std::cout << std::endl << "--------- Point A -----------" << std::endl;
-#endif
         return true;
     }
-#ifdef DEBUG
-    std::cout << std::endl << "--------- Point B -----------" << std::endl;
-#endif
 
     // 以降ではコマンド名が確定している場合の処理
     Command* cmd = NULL;
@@ -1114,8 +1105,9 @@ bool Console::actionKeyTab() {
             size_t pos = _inputString.rfind(param);
             if(pos != std::string::npos) {
                 _inputString.replace(pos, param.size(), after);
-                //_inputString += " ";
                 printPrompt();
+                //_inputString += " ";
+                //_stringPos += 1;
                 _stringPos = _inputString.size(); 
                 std::cout << _inputString;
                 return true;
@@ -1295,15 +1287,6 @@ void Console::addHistory(std::string str, bool save) {
         }
     }
 
-#ifdef DEBUG
-    // history print
-    std::cout << std::endl;
-    for(std::deque<std::string>::iterator ite = _history.begin();
-        ite != _history.end();
-        ++ite) {
-        std::cout << *ite << std::endl;
-    }
-#endif
 }
 
 void Console::loadHistory() {
@@ -1320,6 +1303,16 @@ void Console::loadHistory() {
         }
         addHistory(line, false);
     }
+
+#ifdef DEBUG
+    // history print
+    std::cout << std::endl;
+    for(std::deque<std::string>::iterator ite = _history.begin();
+        ite != _history.end();
+        ++ite) {
+        std::cout << *ite << std::endl;
+    }
+#endif
 }
 
 void Console::printAllCommandName() {

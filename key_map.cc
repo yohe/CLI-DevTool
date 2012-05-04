@@ -20,7 +20,9 @@ KeyMap::~KeyMap() {
 
 
 void KeyMap::addKeyStroke(std::string strokeName, std::vector<char> keyStroke, int actionCode) {
+#ifdef DEBUG
     std::cout << "[" << strokeName << "]" << "install start." << std::endl;
+#endif
 
     if(keyStroke.size() == 0) {
         return;
@@ -34,12 +36,17 @@ void KeyMap::addKeyStroke(std::string strokeName, std::vector<char> keyStroke, i
     if(entry == NULL) {
         if(keyStroke.size() == 1) {
             _keyMap.insert(std::pair<char, KeyStrokeEntry*>(*ite, new KeyStrokeEntry(*ite, strokeName, actionCode)));
+#ifdef DEBUG
             std::cout << "[" << strokeName << "]" << "installed." << std::endl;
+            std::cout << "[" << strokeName << "]" << "install end." << std::endl;
+#endif
             return;
         } else {
             entry = new KeyStrokeGroup(*ite);
             _keyMap.insert(std::pair<char, KeyStrokeEntry*>(*ite, entry));
+#ifdef DEBUG
             std::cout << "group add " << "keyCode = " << (int)*ite << std::endl;
+#endif
         }
     }
 
@@ -61,16 +68,23 @@ void KeyMap::addKeyStroke(std::string strokeName, std::vector<char> keyStroke, i
             // 途中のキーコードであれば KeyStrokeGroupe
             if(ite == endIte) {
                 group->addKeyStroke(new KeyStrokeEntry(*ite, strokeName, actionCode));
+#ifdef DEBUG
                 std::cout << "[" << strokeName << "]" << "installed." << std::endl;
+#endif
                 break;
             } else {
                 entry = new KeyStrokeGroup(*ite);
                 group->addKeyStroke(entry);
+#ifdef DEBUG
+                std::cout << "group add " << "keyCode = " << (int)*ite << std::endl;
+#endif
             }
         }
     }
 
+#ifdef DEBUG
     std::cout << "[" << strokeName << "]" << "install end." << std::endl;
+#endif
     _nameMap.insert(std::pair<std::string, std::vector<char> >(strokeName, keyStroke));
     return;
 }

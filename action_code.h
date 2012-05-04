@@ -4,7 +4,7 @@
 
 class ActionCode {
 public:
-    enum KeyEvent {
+    enum Code {
         // ascii 0-127
         KEY_BEL = 7,
         KEY_BS = 8,
