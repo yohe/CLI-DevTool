@@ -387,7 +387,7 @@ protected:
     bool actionEnter();
     bool actionComplement();
     bool actionMoveCursorTop() { setCursorPos(0); _stringPos = 0; return true;}
-    bool actionTerminate() { _consoleExit = true; return true;}
+    bool actionTerminate();
     bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); _stringPos = _inputString.size(); return true;}
 
     // 文字列分割
@@ -581,15 +581,14 @@ public:
     virtual std::string execute(std::string param) const {
 
         bool ret = false;
-        std::string filename;
-        if(param.empty()) {
+        std::string filename = param;
+        filename = filename.erase(0, filename.find_first_not_of(" "));
+        filename = filename.erase(filename.find_last_not_of(" ")+1);
+
+        if(filename.empty()) {
             filename = "typescript";
-        } else {
-            std::string str = param;
-            str = str.erase(0, str.find_first_not_of(" "));
-            str = str.erase(str.find_last_not_of(" ")+1);
-            filename = str.substr(0, str.find(' '));
         }
+
         ret = _console->loggingMode(true, filename);
 
         if(ret) {
@@ -924,6 +923,14 @@ bool Console::actionEnter() {
     printPrompt();
 
     return true;
+}
+
+bool Console::actionTerminate() {
+    if(isCTRL_CPermit()) {
+        _consoleExit = true; return true;
+    } else {
+        return false;
+    }
 }
 
 void Console::execute(const std::string& inputString) {

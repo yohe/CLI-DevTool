@@ -170,7 +170,7 @@ void Console::printTitle() {
 #define KEY_STROKE_DEF(Num, Seq) \
     SEMICOLON_SPLIT_##Num Seq;
 
-// strokeListは右詰めで記載
+// strokeListは KEY_STROKE_DEF を使用
 #define ADD_KEY_MAP(name, code, strokeList) \
     strokeList; \
     _keyMap.addKeyStroke(name, stroke, code); \
