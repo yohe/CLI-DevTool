@@ -188,11 +188,28 @@ public:
     {
         //_commandSelector = new DefaultCommandSelector();
         _commandSelector = new AbbreviatedCommandSelector();
+        initialize();
     }
     virtual ~Console() {
         unInitialize();
     }
 
+    // 定義済みアクション
+    bool actionBackwardHistory() { return selectHistory(true); }
+    bool actionForwardHistory(){ return selectHistory(false); }
+    bool actionMoveCursorRight() { return moveCursor(false); }
+    bool actionMoveCursorLeft() { return moveCursor(true); }
+    bool actionDeleteForwardCharacter();
+    bool actionDeleteBackwardCharacter();
+    bool actionEnter();
+    bool actionComplement();
+    bool actionMoveCursorTop() { setCursorPos(0); return true;}
+    bool actionTerminate();
+    bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); return true;}
+    bool actionClearLine() { clearLine(); return true; }
+    bool actionClearFromCursorToEnd();
+
+private:
     // 初期化
     bool initialize();
     bool setTermIOS(struct termios& setting) {
@@ -211,6 +228,8 @@ public:
 
     void keyMapInitialize();
     void keyActionInitialize();
+
+public:
 
 
     // エラー
@@ -298,60 +317,7 @@ public:
     }
 
     bool isLogging() { return _isLogging; }
-    bool loggingMode(bool flag, std::string filename = "typescript") {
-        if(_isLogging == flag) {
-            std::cout << "Now Logging." << std::endl;
-            return false;
-        }
-
-        // logging中はCTRL-Cは不可, 必ずexitを使用させる
-        // logging終了後は以前の状態に戻す
-        _isLogging = flag;
-        if(_isLogging) {
-            // ロギング開始
-            _before_fpos = _after_fpos = 0;
-            _typeLog = NULL;
-            _typeLogFd = 0;
-            _typeLog = fopen(filename.c_str(), "w+");
-            if(_typeLog == NULL) {
-                _systemErrorNumber = errno;
-                _isLogging = false;
-                setCTRL_CPermit(_tmpCTRL_CPermit);
-                return false;
-            }
-            _typeLogFd = fileno(_typeLog);
-            _typeLogName = filename;
-
-
-            // 標準出力 -> _typeLog
-            _stdinBackup = dup(1);
-            _stderrBackup = dup(2);
-            dup2(_typeLogFd, 1);
-            dup2(_typeLogFd, 2);
-            _logFlag = true;
-
-            std::cout << "Script started, output file is " << _typeLogName << "." << std::endl;
-            system("date");
-
-            setCTRL_CPermit(false);
-        } else {
-            std::cout << "Script done, output file is " << _typeLogName << "." << std::endl;
-            system("date");
-
-            dup2(_stdinBackup, 1);
-            dup2(_stderrBackup, 2);
-            std::cout << std::endl << "Script done, output file is " << _typeLogName << "." << std::endl;
-            //updateDisplayFromScriptLog();
-
-            fclose(_typeLog);
-            close(_stdinBackup);
-            close(_stderrBackup);
-
-            setCTRL_CPermit(_tmpCTRL_CPermit);
-        }
-
-        return true;
-    }
+    bool loggingMode(bool flag, std::string filename = "typescript"); 
     void updateDisplayFromScriptLog() {
 
         fseek(_typeLog, 0, SEEK_END);
@@ -376,19 +342,6 @@ public:
         std::cout << buf;
     }
 
-protected:
-    // 定義済みアクション
-    bool actionBackwardHistory() { return selectHistory(true); }
-    bool actionForwarddHistory(){ return selectHistory(false); }
-    bool actionMoveCursorRight() { return moveCursor(false); }
-    bool actionMoveCursorLeft() { return moveCursor(true); }
-    bool actionDeleteForwardCharacter();
-    bool actionDeleteBackwardCharacter();
-    bool actionEnter();
-    bool actionComplement();
-    bool actionMoveCursorTop() { setCursorPos(0); _stringPos = 0; return true;}
-    bool actionTerminate();
-    bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); _stringPos = _inputString.size(); return true;}
 
     // 文字列分割
     std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
@@ -412,8 +365,16 @@ protected:
         _stringPos = 0;
         _inputString.clear();
     }
+
+    int getCursorPosOnTerminal() const {
+        return _stringPos + 2;
+    }
+    int getCursorPosOnString() const {
+        return _stringPos;
+    }
     void setCursorPos(int pos) {
         printf("\r");
+        _stringPos = pos;
         pos += 2;
         putp(tparm(parm_right_cursor, pos));
     }
@@ -889,7 +850,7 @@ bool Console::actionDeleteBackwardCharacter() {
     if(_stringPos > 0) {
         moveCursor(true);
         actionDeleteForwardCharacter();
-        _inputString.erase(_stringPos, 1);
+        //_inputString.erase(_stringPos, 1);
         return true;
     } else {
         beep();
@@ -931,6 +892,16 @@ bool Console::actionTerminate() {
     } else {
         return false;
     }
+}
+
+bool Console::actionClearFromCursorToEnd() {
+    size_t cursorPos = getCursorPosOnString();
+    size_t strSize = _inputString.size();
+
+    putp(tparm(parm_dch, strSize-cursorPos));
+    _inputString.erase(cursorPos, strSize-cursorPos);
+
+    return true;
 }
 
 void Console::execute(const std::string& inputString) {
@@ -1344,6 +1315,60 @@ void Console::printAllCommandName() {
             i = 0;
         }
     }
+}
+bool Console::loggingMode(bool flag, std::string filename) {
+    if(_isLogging == flag) {
+        std::cout << "Now Logging." << std::endl;
+        return false;
+    }
+
+    // logging中はCTRL-Cは不可, 必ずexitを使用させる
+    // logging終了後は以前の状態に戻す
+    _isLogging = flag;
+    if(_isLogging) {
+        // ロギング開始
+        _before_fpos = _after_fpos = 0;
+        _typeLog = NULL;
+        _typeLogFd = 0;
+        _typeLog = fopen(filename.c_str(), "w+");
+        if(_typeLog == NULL) {
+            _systemErrorNumber = errno;
+            _isLogging = false;
+            setCTRL_CPermit(_tmpCTRL_CPermit);
+            return false;
+        }
+        _typeLogFd = fileno(_typeLog);
+        _typeLogName = filename;
+
+
+        // 標準出力 -> _typeLog
+        _stdinBackup = dup(1);
+        _stderrBackup = dup(2);
+        dup2(_typeLogFd, 1);
+        dup2(_typeLogFd, 2);
+        _logFlag = true;
+
+        std::cout << "Script started, output file is " << _typeLogName << "." << std::endl;
+        system("date");
+
+        setCTRL_CPermit(false);
+    } else {
+        std::cout << "Script done, output file is " << _typeLogName << "." << std::endl;
+        system("date");
+
+        dup2(_stdinBackup, 1);
+        dup2(_stderrBackup, 2);
+        std::cout << std::endl << "Script done, output file is " << _typeLogName << "." << std::endl;
+        //updateDisplayFromScriptLog();
+
+        fclose(_typeLog);
+        close(_stdinBackup);
+        close(_stderrBackup);
+
+        setCTRL_CPermit(_tmpCTRL_CPermit);
+    }
+
+    return true;
 }
 
 template <class Iterator>
