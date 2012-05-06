@@ -65,7 +65,7 @@ public:
 
     virtual std::string getKey() const { return "exit"; }
     virtual std::string printHelp() const { return "console exit."; }
-    virtual std::string execute(std::string parameter) const { _console->unInitialize(); exit(1); return ""; }
+    virtual std::string execute(std::string parameter) const { _console->actionTerminate(); return ""; }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
     }
 
@@ -88,16 +88,16 @@ public:
     }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(inputtedList.empty()) {
-            matchList.push_back("add");
-            matchList.push_back("branch");
-            matchList.push_back("checkout");
-            matchList.push_back("clone");
-            matchList.push_back("commit");
-            matchList.push_back("diff");
-            matchList.push_back("status");
-            matchList.push_back("pull");
-            matchList.push_back("push");
-            matchList.push_back("rm");
+            matchList.push_back("add ");
+            matchList.push_back("branch ");
+            matchList.push_back("checkout ");
+            matchList.push_back("clone ");
+            matchList.push_back("commit ");
+            matchList.push_back("diff ");
+            matchList.push_back("status ");
+            matchList.push_back("pull ");
+            matchList.push_back("push ");
+            matchList.push_back("rm ");
 
             return;
         }
@@ -144,7 +144,6 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
-    console.initialize();
     console.run();
 
     return 0;
@@ -167,6 +166,7 @@ void Console::printTitle() {
 // KEY_STROKE_DEF は Num に Asciiコード列長, Seq に Asciiコード列 を記載
 // Asciiコード列は、 (first) (second) (therd) のように各コードを () で括り記載する
 // Asciiコード列の調査は、make 時に作成される key_trace を使用する
+// 0x20 - 0x7F の間のAsciiコード( alphanumeric symbol )で始まるコード列は使用できません
 #define KEY_STROKE_DEF(Num, Seq) \
     SEMICOLON_SPLIT_##Num Seq;
 
@@ -189,6 +189,7 @@ void Console::keyMapInitialize() {
     ADD_KEY_MAP("CTRL-E", ActionCode::KEY_CTRL_E, KEY_STROKE_DEF(1, (5)));
     ADD_KEY_MAP("CTRL-H", ActionCode::KEY_CTRL_H, KEY_STROKE_DEF(1, (8)));
     ADD_KEY_MAP("CTRL-J", ActionCode::KEY_CTRL_J, KEY_STROKE_DEF(1, (10) ));
+    ADD_KEY_MAP("CTRL-K", ActionCode::KEY_CTRL_K, KEY_STROKE_DEF(1, (11) ));
 
     ADD_KEY_MAP("TAB", ActionCode::KEY_TAB, KEY_STROKE_DEF(1, (9)));
     ADD_KEY_MAP("RETURN", ActionCode::KEY_CR, KEY_STROKE_DEF(1, (13)));
@@ -202,9 +203,10 @@ void Console::keyMapInitialize() {
 // キーイベント発生時に実行する関数を登録
 void Console::keyActionInitialize() {
 
-    // BS, DEL
+    // Delete Character
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_BS, &Console::actionDeleteBackwardCharacter));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_K, &Console::actionClearFromCursorToEnd));
 
     // Complement
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_TAB, &Console::actionComplement));
@@ -212,7 +214,7 @@ void Console::keyActionInitialize() {
 
     // History select
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_UP_ARROW, &Console::actionBackwardHistory));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DOWN_ARROW, &Console::actionForwarddHistory));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DOWN_ARROW, &Console::actionForwardHistory));
 
     // cursor move
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));
@@ -220,8 +222,9 @@ void Console::keyActionInitialize() {
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_A, &Console::actionMoveCursorTop));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_E, &Console::actionMoveCursorBottom));
 
-    // command execute
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_J, &Console::actionEnter));
+
+    // command execute
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CR, &Console::actionEnter));
 
     // CTRL-C
