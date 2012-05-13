@@ -1,6 +1,6 @@
 
-#ifndef ACTION_CODE_H
-#define ACTION_CODE_H
+#ifndef CLI_DEV_ACTION_CODE_H
+#define CLI_DEV_ACTION_CODE_H
 
 class ActionCode {
 public:

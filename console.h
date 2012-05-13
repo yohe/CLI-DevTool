@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cstdio>
 
+#include <string.h>
 #include <errno.h>
 #include <pwd.h>
 #include <assert.h>
@@ -24,120 +25,10 @@
 
 #include "action_code.h"
 #include "key_map.h"
-#include "command.h"
-#include "command_selector.h"
+#include "command/command.h"
+#include "command/command_selector.h"
 
 //namespace console {
-
-class ParameterBehavior {
-public:
-    ParameterBehavior() {}
-    virtual ~ParameterBehavior() {}
-
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const = 0;
-};
-
-class NullParameterBehavior : public ParameterBehavior {
-public:
-    NullParameterBehavior() {}
-    virtual ~NullParameterBehavior() {}
-
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const { return ; }
-};
-
-class FileListBehavior : public ParameterBehavior {
-public:
-    FileListBehavior() {}
-    virtual ~FileListBehavior() {}
-
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        FILE* in_pipe = NULL;
-
-        std::string path("");
-        if(inputting.rfind('/') == std::string::npos) {
-            // nop
-        } else {
-            path = inputting.substr(0,inputting.rfind('/')+1);
-        }
-
-        std::string cmd = "ls -Fa " + path;
-
-        in_pipe = popen(cmd.c_str(), "r");
-        std::stringstream paramList("");
-        char buffer[512+1] = {0};
-        if(in_pipe != NULL) {
-            size_t readed_num = fread(buffer, sizeof(char), 512, in_pipe);
-            while(readed_num > 0) {
-                paramList.write(buffer, readed_num);
-                readed_num = fread(buffer, sizeof(char), 512, in_pipe);
-            }
-        }
-        pclose(in_pipe);
-        while(!paramList.eof()) {
-            std::string str;
-            paramList >> std::skipws >> str;
-            if(str.empty()) {
-                continue;
-            }
-            std::string name = path+str;
-            if(name.find(inputting) == std::string::npos) {
-                continue;
-            } else {
-                if(name[name.size()-1] == '*') {
-                    name.erase(name.size()-1);
-                } else if (name[name.size()-1] == '/') {
-                    // nop
-                } else if (name[name.size()-1] == '|') {
-                    name.erase(name.size()-1);
-                } else if(name[name.size()-1] == '@') {
-                    name[name.size()-1] = '/';
-                } else {
-                    // ファイルを補完する場合は スペースを追加することで、
-                    // シェルライクなファイル名補完になる
-                    name += " ";
-                }
-            }
-            matchList.push_back(name);
-        }
-        return ;
-    }
-};
-
-class HelpBehavior {
-public:
-    HelpBehavior() {}
-    virtual ~HelpBehavior() {}
-
-    virtual std::string printHelp() const = 0;
-};
-
-class ManBehavior : public HelpBehavior {
-    std::string _commandName;
-public:
-    ManBehavior(std::string commandName) : _commandName(commandName) {}
-    virtual ~ManBehavior() {}
-
-    virtual std::string printHelp() const {
-        std::string cmd = "man " + _commandName;
-        system(cmd.c_str());
-        return "";
-    }
-};
-
-class SystemFuncHelpBehavior : public HelpBehavior {
-    std::string _commandName;
-    std::string _helpOption;
-public:
-    SystemFuncHelpBehavior(std::string commandName, std::string helpOption) : _commandName(commandName), _helpOption(helpOption) {}
-    virtual ~SystemFuncHelpBehavior() {}
-
-    virtual std::string printHelp() const {
-        std::string cmd = _commandName + " " + _helpOption;
-        system(cmd.c_str());
-        return "";
-    }
-};
-
 
 class SystemFuncCommand : public Command {
     std::string _command;
