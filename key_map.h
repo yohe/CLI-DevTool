@@ -1,6 +1,6 @@
 
-#ifndef KEY_MAP_H
-#define KEY_MAP_H
+#ifndef CLI_DEV_KEY_MAP_H
+#define CLI_DEV_KEY_MAP_H
 
 #include <map>
 

@@ -1,6 +1,6 @@
 
-#ifndef KEY_STROKE_H
-#define KEY_STROKE_H
+#ifndef CLI_DEV_KEY_STROKE_H
+#define CLI_DEV_KEY_STROKE_H
 
 #include <string>
 #include <vector>
