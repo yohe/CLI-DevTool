@@ -1,5 +1,5 @@
-#ifndef _CONSOLE_H_
-#define _CONSOLE_H_
+#ifndef CLI_DEV_CONSOLE_H
+#define CLI_DEV_CONSOLE_H
 
 #include <iostream>
 #include <iomanip>
