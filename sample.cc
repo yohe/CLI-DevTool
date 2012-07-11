@@ -208,9 +208,9 @@ void Console::keyActionInitialize() {
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_K, &Console::actionClearFromCursorToEnd));
 
-    // Complement
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_TAB, &Console::actionComplement));
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_SPACE, &Console::actionComplement));
+    // Complete
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_TAB, &Console::actionComplete));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_SPACE, &Console::actionComplete));
 
     // History select
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_UP_ARROW, &Console::actionBackwardHistory));

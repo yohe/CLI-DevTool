@@ -61,9 +61,9 @@ class Console {
     
 public:
 
-    enum ComplementType {
-        FULL_COMPLEMENT = 1,
-        PARTIAL_COMPLEMENT,
+    enum CompletionType {
+        FULL_COMPLETE = 1,
+        PARTIAL_COMPLETE,
         NO_CHANGE,
         NO_CANDIDATE, 
         ERROR
@@ -93,7 +93,7 @@ public:
     bool actionDeleteForwardCharacter();
     bool actionDeleteBackwardCharacter();
     bool actionEnter();
-    bool actionComplement();
+    bool actionComplete();
     bool actionMoveCursorTop() { setCursorPos(0); return true;}
     bool actionTerminate();
     bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); return true;}
@@ -277,7 +277,7 @@ public:
     bool moveCursor(bool left);
 
     // 補完機能
-    ComplementType complementCommandName();
+    CompletionType completeCommandName();
     void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList);
     bool completeCommand(std::string& key, std::vector<std::string>& matchList);
     template <class Iterator>
@@ -883,7 +883,7 @@ Command* Console::getCommandFromInputString(std::string& inputString) {
     return cmd;
 }
 
-bool Console::actionComplement() {
+bool Console::actionComplete() {
 
     // コマンド名を入力中であればコマンド名を補完する
     // コマンド名が確定している場合はパラメータ補完
@@ -904,7 +904,7 @@ bool Console::actionComplement() {
     }
 
     if(_inputString.find(" ") == std::string::npos) {
-        if(complementCommandName() == ERROR) {
+        if(completeCommandName() == ERROR) {
             assert(false);
         }
         return true;
@@ -1047,7 +1047,7 @@ bool Console::actionComplement() {
     return true;
 }
 
-Console::ComplementType Console::complementCommandName() {
+Console::CompletionType Console::completeCommandName() {
 
     std::vector<std::string> matchList;
     std::string tmp = _inputString;
@@ -1060,7 +1060,7 @@ Console::ComplementType Console::complementCommandName() {
         _inputString = tmp + " ";
         _stringPos = tmp.size()+1;
         std::cout << _inputString;
-        return FULL_COMPLEMENT;
+        return FULL_COMPLETE;
     } else {
         // 一部補完 or 補完候補なし
         // matchList.size() > 0 である場合、一部補完と判断
@@ -1072,7 +1072,7 @@ Console::ComplementType Console::complementCommandName() {
                 _inputString = tmp;
                 _stringPos = tmp.size();
                 std::cout << _inputString;
-                return PARTIAL_COMPLEMENT;
+                return PARTIAL_COMPLETE;
             } else {
                 // 変更がないので候補表示
                 std::cout << std::endl;
