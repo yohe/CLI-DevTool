@@ -17,8 +17,8 @@ This software is development tool for creating console. The created console has 
 ----
 
 * Support OS
-    * Linux
     * Mac OS X
+    * Linux (maybe)
 
 ----
 
