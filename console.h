@@ -105,7 +105,9 @@ public:
                     if(ret == 0) {
                         _commandList.insert(namelist[i]->d_name);
                     }
+                    free(namelist[i]);
                 }
+                free(namelist);
             }
             _initFlag = true;
         }
