@@ -11,6 +11,7 @@
 #include <sstream>
 #include <fstream>
 #include <cstdio>
+#include <set>
 
 #include <string.h>
 #include <errno.h>
@@ -51,6 +52,71 @@ public:
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _behavior->getParamList(inputtedList, inputting, matchList);
     }
+};
+
+class ShellCommandExecutor : public Command {
+    std::string _command;
+    // 遅延評価させるための措置
+    mutable bool _initFlag;
+    mutable std::set<std::string> _commandList;
+    FileListBehavior _fileListBehavior;
+public:
+    ShellCommandExecutor(const std::string& commandName ) : _command(commandName), _initFlag(false) {
+    }
+
+    virtual ~ShellCommandExecutor() {
+    }
+
+    virtual std::string getKey() const { return _command; }
+    virtual std::string printHelp() const {
+        return "Usage : exe [command]";
+    }
+    virtual std::string execute(std::string param) const {
+        system(param.c_str()); 
+        return "";
+    }
+    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+        if(_initFlag == false) {
+            const char* c_env = getenv("PATH");
+            std::string env(c_env);
+            std::string::size_type pos = 0;
+            while(true) {
+                std::string::size_type findpos = env.find(':', pos);
+                std::string path = env.substr(pos, (findpos-pos));
+                if(findpos == std::string::npos || path.empty()) {
+                    //std::cout << "--------------------- END!!!!!!!!!!" << std::endl;
+                    break;
+                }
+                //std::cout << "---------------------" << path << std::endl;
+                pos = findpos+1;
+                struct dirent** namelist;
+                int entrySize = scandir(path.c_str(), &namelist, NULL, alphasort);
+                if( entrySize == -1 ) {
+                    continue;
+                }
+                //std::cout << "---------------------" << entrySize << std::endl;
+                if(path.at(path.length()-1) != '/') {
+                    path+='/';
+                }
+                for(int i=0; i < entrySize; ++i) {
+                    std::string fullPath = path + namelist[i]->d_name;
+                    //std::cout << "---------------------" << fullPath.c_str() << std::endl;
+                    int ret = access(fullPath.c_str(), X_OK);
+                    if(ret == 0) {
+                        _commandList.insert(namelist[i]->d_name);
+                    }
+                }
+            }
+            _initFlag = true;
+        }
+
+        if(inputtedList.empty()) {
+            matchList.insert(matchList.begin(), _commandList.begin(), _commandList.end());
+        } else {
+            _fileListBehavior.getParamList(inputtedList, inputting, matchList);
+        }
+    }
+
 };
 
 

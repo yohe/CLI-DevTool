@@ -135,6 +135,11 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
+    if(console.installCommand(new ShellCommandExecutor("exe")) == false) {
+        std::cout << "install false" << std::endl;
+        return -1;
+    }
+
     // SystemFuncCommand(std::string commandName, std::string commandOption, ParameterBehavior* p, HelpBehavior* h)
     // 
     // -G : Enable colorized for Mac OS X.
