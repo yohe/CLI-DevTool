@@ -176,7 +176,7 @@ void Console::printTitle() {
     _keyMap.addKeyStroke(name, stroke, code); \
     stroke.clear();
 
-// Asciiコード列に対応するキーイベントを設定する
+// Asciiコード列に対応するキーを設定する
 void Console::keyMapInitialize() {
 
     std::vector<char> stroke;
@@ -190,6 +190,8 @@ void Console::keyMapInitialize() {
     ADD_KEY_MAP("CTRL-H", ActionCode::KEY_CTRL_H, KEY_STROKE_DEF(1, (8)));
     ADD_KEY_MAP("CTRL-J", ActionCode::KEY_CTRL_J, KEY_STROKE_DEF(1, (10) ));
     ADD_KEY_MAP("CTRL-K", ActionCode::KEY_CTRL_K, KEY_STROKE_DEF(1, (11) ));
+    ADD_KEY_MAP("CTRL-N", ActionCode::KEY_CTRL_N, KEY_STROKE_DEF(1, (14) ));
+    ADD_KEY_MAP("CTRL-P", ActionCode::KEY_CTRL_P, KEY_STROKE_DEF(1, (16) ));
 
     ADD_KEY_MAP("TAB", ActionCode::KEY_TAB, KEY_STROKE_DEF(1, (9)));
     ADD_KEY_MAP("RETURN", ActionCode::KEY_CR, KEY_STROKE_DEF(1, (13)));
@@ -200,7 +202,7 @@ void Console::keyMapInitialize() {
 
 }
 
-// キーイベント発生時に実行する関数を登録
+// キー入力発生時に実行する関数を登録
 void Console::keyActionInitialize() {
 
     // Delete Character
@@ -214,7 +216,9 @@ void Console::keyActionInitialize() {
 
     // History select
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_UP_ARROW, &Console::actionBackwardHistory));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_P, &Console::actionBackwardHistory));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_DOWN_ARROW, &Console::actionForwardHistory));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_N, &Console::actionForwardHistory));
 
     // cursor move
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));
@@ -222,10 +226,10 @@ void Console::keyActionInitialize() {
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_A, &Console::actionMoveCursorTop));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_E, &Console::actionMoveCursorBottom));
 
-    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_J, &Console::actionEnter));
 
     // command execute
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CR, &Console::actionEnter));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_J, &Console::actionEnter));
 
     // CTRL-C
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_C, &Console::actionTerminate));

@@ -831,8 +831,6 @@ void Console::execute(const std::string& inputString) {
         // history コマンド自体を ヒストリに残さない. これは [history 0] などで history から historyを呼び出す再帰を防ぐため
         if(cmd != NULL && cmd->isHistoryAdd()) {
             addHistory(inputString);
-        } else {
-            addHistory(inputString);
         }
     }
 
