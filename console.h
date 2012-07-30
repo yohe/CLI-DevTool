@@ -457,6 +457,9 @@ public:
         _console->printAllHistory();
     }
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+        if(inputting.size() != 0 || !inputtedList.empty()) {
+            return;
+        }
         _console->printAllHistory();
     }
 
@@ -1052,9 +1055,11 @@ bool Console::actionComplete() {
             }
         }
     } else {
+        //std::cout << "Point A" << std::endl;
         // 一部補完 or 補完候補なし
         // matchList.size() > 0 である場合、一部補完と判断
         if(!argumentList.empty()) {
+            //std::cout << "Point B" << std::endl;
             // 補完が行われた場合は、そのまま表示
             // 変更がない場合は、候補を表示する。
             if(param != after) {
@@ -1104,6 +1109,7 @@ bool Console::actionComplete() {
                 }
             }
         } else {
+            //std::cout << "Point C" << std::endl;
             // 補完候補なし
             beep();
             return true;
