@@ -562,17 +562,29 @@ bool Console::initialize() {
         return false;
     }
 
+#ifdef DEBUG
+    std::cout << " ------------------ KeyMapSetting Start" << std::endl;
+#endif
     // キーストロークの登録
     keyMapInitialize();
     // キーストロークに対応するアクションの登録
     keyActionInitialize();
+#ifdef DEBUG
+    std::cout << " ------------------ KeyMapSetting End" << std::endl;
+#endif
 
     installCommand(new BuiltInHelpCommand());
     installCommand(new BuiltInHistoryCommand());
     installCommand(new BuiltInScriptCommand());
 
+#ifdef DEBUG
+    std::cout << " ------------------ Load History Start" << std::endl;
+#endif
     // load History
     loadHistory();
+#ifdef DEBUG
+    std::cout << " ------------------ Load History End" << std::endl;
+#endif
 
     _consoleExit = false;
     struct passwd* userInfo = getpwnam(getlogin());
@@ -1247,7 +1259,6 @@ void Console::loadHistory() {
 
 #ifdef DEBUG
     // history print
-    std::cout << std::endl;
     for(std::deque<std::string>::iterator ite = _history.begin();
         ite != _history.end();
         ++ite) {

@@ -190,8 +190,10 @@ void Console::keyMapInitialize() {
 
     ADD_KEY_MAP("CTRL-SPACE", ActionCode::KEY_CTRL_SPACE, KEY_STROKE_DEF(1, (0)));
     ADD_KEY_MAP("CTRL-A", ActionCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
+    ADD_KEY_MAP("CTRL-B", ActionCode::KEY_CTRL_B, KEY_STROKE_DEF(1, (2)));
     ADD_KEY_MAP("CTRL-C", ActionCode::KEY_CTRL_C, KEY_STROKE_DEF(1, (3)));
     ADD_KEY_MAP("CTRL-E", ActionCode::KEY_CTRL_E, KEY_STROKE_DEF(1, (5)));
+    ADD_KEY_MAP("CTRL-F", ActionCode::KEY_CTRL_F, KEY_STROKE_DEF(1, (6)));
     ADD_KEY_MAP("CTRL-H", ActionCode::KEY_CTRL_H, KEY_STROKE_DEF(1, (8)));
     ADD_KEY_MAP("CTRL-J", ActionCode::KEY_CTRL_J, KEY_STROKE_DEF(1, (10) ));
     ADD_KEY_MAP("CTRL-K", ActionCode::KEY_CTRL_K, KEY_STROKE_DEF(1, (11) ));
@@ -227,7 +229,9 @@ void Console::keyActionInitialize() {
 
     // cursor move
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_F, &Console::actionMoveCursorRight));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft));
+    _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_B, &Console::actionMoveCursorLeft));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_A, &Console::actionMoveCursorTop));
     _actionMap.insert(std::pair<int, Action>(ActionCode::KEY_CTRL_E, &Console::actionMoveCursorBottom));
 

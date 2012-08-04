@@ -13,6 +13,7 @@ This software is development tool for creating console. The created console has 
     1. help command : Display command help.
     2. history command : Display of a history, and execution.
     3. script command : Logging operation. (not cool)
+* Customizable key bindings.
 
 ----
 
@@ -27,6 +28,7 @@ This software is development tool for creating console. The created console has 
 
 ## Compile
 * For sample
+    - Please edit the Makefile if you want to change the compiler.
 
 ```bash
 $ make
