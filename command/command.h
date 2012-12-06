@@ -20,6 +20,9 @@ public:
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const = 0;
     virtual bool isHistoryAdd() { return true; }
     virtual void setConsole(Console* console) { _console = console; }
+    
+    virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
+    }
 protected:
     Console* _console;
 

@@ -13,6 +13,8 @@ public:
     virtual ~FileListBehavior() {}
 
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const ;
+    
+    virtual void stripParentPath(std::vector<std::string>& matchList) const;
 };
 
 void FileListBehavior::getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
@@ -67,4 +69,23 @@ void FileListBehavior::getParamList(std::vector<std::string>& inputtedList, std:
         return ;
 }
 
+void FileListBehavior::stripParentPath(std::vector<std::string>& matchList) const {
+    std::vector<std::string>::iterator it;
+    std::vector<std::string> after;
+    for(it = matchList.begin(); it != matchList.end(); ++it) {
+        size_t pos = it->find_last_of("/");
+        std::string name = it->substr(pos+1);
+        if(!name.empty()) {
+            after.push_back(name);
+        } else {
+            pos = it->find_last_of("/", it->length()-2);
+            name = it->substr(pos+1);
+            if(name == "./" || name == "../") {
+                continue;
+            }
+            after.push_back(name);
+        }
+    }
+    matchList.swap(after);
+}
 #endif /* end of include guard */

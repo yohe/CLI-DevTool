@@ -56,6 +56,10 @@ public:
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _behavior.getParamList(inputtedList, inputting, matchList);
     }
+
+    virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
+        _behavior.stripParentPath(matchList);
+    }
 };
 
 class ExitCommand : public Command {
@@ -102,6 +106,10 @@ public:
             return;
         }
         _fileBehavior.getParamList(inputtedList, inputting, matchList);
+    }
+    
+    virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
+        _fileBehavior.stripParentPath(matchList);
     }
 
 private:

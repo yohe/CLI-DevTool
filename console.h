@@ -115,7 +115,11 @@ public:
         if(inputtedList.empty()) {
             matchList.insert(matchList.begin(), _commandList.begin(), _commandList.end());
         } else {
-            _fileListBehavior.getParamList(inputtedList, inputting, matchList);
+            if(inputtedList[0] == "man") {
+                matchList.insert(matchList.begin(), _commandList.begin(), _commandList.end());
+            } else {
+                _fileListBehavior.getParamList(inputtedList, inputting, matchList);
+            }
         }
     }
 
@@ -1097,6 +1101,7 @@ bool Console::actionComplete() {
             } else {
                 // 変更がないので候補表示
                 std::cout << std::endl;
+                cmd->afterCompletionHook(argumentList);
                 printStringList(argumentList.begin(), argumentList.end());
                 std::cout << std::endl;
                 if(param.empty()) {
