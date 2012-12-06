@@ -58,7 +58,7 @@ public:
     }
 
     virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
-        _behavior.stripParentPath(matchList);
+        _behavior.stripFile(matchList);
     }
 };
 

@@ -1015,6 +1015,7 @@ bool Console::actionComplete() {
         std::string param = "";
         std::vector<std::string> matchList;
         cmd->getParamList(argumentList, param, matchList);
+        cmd->afterCompletionHook(matchList);
         printStringList(matchList.begin(), matchList.end());
         std::cout << std::endl;
         printPrompt();

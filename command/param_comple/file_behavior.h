@@ -15,6 +15,7 @@ public:
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const ;
     
     virtual void stripParentPath(std::vector<std::string>& matchList) const;
+    virtual void stripFile(std::vector<std::string>& matchList) const;
 };
 
 void FileListBehavior::getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
@@ -80,6 +81,21 @@ void FileListBehavior::stripParentPath(std::vector<std::string>& matchList) cons
         } else {
             pos = it->find_last_of("/", it->length()-2);
             name = it->substr(pos+1);
+            if(name == "./" || name == "../") {
+                continue;
+            }
+            after.push_back(name);
+        }
+    }
+    matchList.swap(after);
+}
+void FileListBehavior::stripFile(std::vector<std::string>& matchList) const {
+    std::vector<std::string>::iterator it;
+    std::vector<std::string> after;
+    for(it = matchList.begin(); it != matchList.end(); ++it) {
+        if(it->at(it->length()-1) == '/') {
+            size_t pos = it->find_last_of("/", it->length()-2);
+            std::string name = it->substr(pos+1);
             if(name == "./" || name == "../") {
                 continue;
             }
