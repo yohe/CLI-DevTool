@@ -28,7 +28,7 @@ void FileListBehavior::getParamList(std::vector<std::string>& inputtedList, std:
             path = inputting.substr(0,inputting.rfind('/')+1);
         }
 
-        std::string cmd = "ls -Fa " + path;
+        std::string cmd = "ls -Fa " + path + " 2> /dev/null";
 
         in_pipe = popen(cmd.c_str(), "r");
         std::stringstream paramList("");
