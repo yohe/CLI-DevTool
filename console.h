@@ -52,6 +52,10 @@ public:
     virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         _behavior->getParamList(inputtedList, inputting, matchList);
     }
+    virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
+        FileListBehavior fileListBehavior;
+        fileListBehavior.stripParentPath(matchList);
+    }
 };
 
 class ShellCommandExecutor : public Command {
