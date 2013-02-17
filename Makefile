@@ -15,7 +15,13 @@ console: sample.cc key_map.cc key_stroke.cc console.h command/command.h command/
 
 key_trace: sample.cc key_stroke.cc key_map.cc console.h command/command.h command/command_selector.h
 	$(CC) -DKEY_TRACE sample.cc key_map.cc key_stroke.cc -lncurses -o key_trace -I ./
+	
+
+.PHONY:test
+test:
+	@(cd test; make; make run)
 
 clean:
 	rm -f console
 	rm -f key_trace
+	@(cd test; make clean)
