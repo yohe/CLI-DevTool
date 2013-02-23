@@ -14,11 +14,13 @@ public:
     KeyMap() ;
     ~KeyMap();
 
-    void addKeyStroke(const std::string strokeName, const std::vector<char> keyStroke, int actionCode);
-    void deleteKeyStroke(const std::string strokeName);
+    void addKeyStroke(const std::string& strokeName, const std::vector<char> keyStroke, int actionCode);
+    void deleteKeyStroke(const std::string& strokeName);
 
-    KeyStrokeEntry* getKeyStroke(char keyCode) const;
+    KeyStrokeEntry* getKeyEntry(char keyCode) const;
+    KeyStrokeEntry* getKeyEntry(const std::string& strokeName) const;
 protected:
+    std::vector<char> getKeyStroke(const std::string& strokeName) const;
 
     GroupMap _keyMap;
     StrokeNameMap _nameMap;

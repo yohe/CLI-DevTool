@@ -19,7 +19,7 @@ KeyMap::~KeyMap() {
 }
 
 
-void KeyMap::addKeyStroke(std::string strokeName, std::vector<char> keyStroke, int actionCode) {
+void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keyStroke, int actionCode) {
 #ifdef DEBUG
     std::cout << "[ \"" << strokeName << "\" ]" << "install start." << std::endl;
 #endif
@@ -31,7 +31,7 @@ void KeyMap::addKeyStroke(std::string strokeName, std::vector<char> keyStroke, i
     KeyStrokeEntry* entry = NULL;
 
     std::vector<char>::iterator ite = keyStroke.begin(); 
-    entry = getKeyStroke(*ite);
+    entry = getKeyEntry(*ite);
 
     if(entry == NULL) {
         if(keyStroke.size() == 1) {
@@ -96,15 +96,54 @@ void KeyMap::addKeyStroke(std::string strokeName, std::vector<char> keyStroke, i
     return;
 }
 
-void KeyMap::deleteKeyStroke(std::string) {
+void KeyMap::deleteKeyStroke(const std::string& strokeName) {
+    StrokeNameMap::iterator ite = _nameMap.find(strokeName);
+    if( ite != _nameMap.end() ) {
+        return;
+    }
+    std::vector<char> keyStroke(ite->second);
+    _nameMap.erase(strokeName);
 
+    std::vector<char>::iterator keyIte = keyStroke.begin();
+    KeyStrokeEntry* entry = NULL;
+    getKeyEntry(*keyIte);
+    if(entry->isEntry()) {
+        delete entry;
+        _keyMap.erase(*keyIte);
+        return;
+    }
+    keyIte++;
+    for(; keyIte != keyStroke.end(); ++keyIte) {
+        KeyStrokeGroup* group = dynamic_cast<KeyStrokeGroup*>(entry);
+        entry = group->getKeyStroke(*keyIte);
+        if(entry->isEntry()) {
+            group->deleteKeyStroke(entry->getKeyCode());
+            break;
+        }
+    }
 }
 
-KeyStrokeEntry* KeyMap::getKeyStroke(char keyCode) const {
+KeyStrokeEntry* KeyMap::getKeyEntry(char keyCode) const {
     GroupMap::const_iterator ite = _keyMap.find(keyCode);
     if(ite == _keyMap.end()) {
         return NULL;
     }
 
     return ite->second;
+}
+KeyStrokeEntry* KeyMap::getKeyEntry(const std::string& strokeName) const {
+    StrokeNameMap::const_iterator ite = _nameMap.find(strokeName);
+    if( ite != _nameMap.end() ) {
+        return NULL;
+    }
+    
+    std::vector<char> keyStroke(ite->second);
+    std::vector<char>::iterator keyIte = keyStroke.begin();
+    KeyStrokeEntry* entry = getKeyEntry(*keyIte);
+    ++keyIte;
+    for(; keyIte != keyStroke.end(); ++keyIte) {
+        KeyStrokeGroup* group = dynamic_cast<KeyStrokeGroup*>(entry);
+        entry = group->getKeyStroke(*keyIte);
+    }
+    return entry;
 }

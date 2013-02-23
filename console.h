@@ -636,7 +636,7 @@ void Console::run() {
 #ifndef KEY_TRACE
         // Defined action execute if non alphanumeric charactor.
         if( entry == NULL ) {
-            entry = _keyMap.getKeyStroke(input);
+            entry = _keyMap.getKeyEntry(input);
         } else {
             entry = entry->getKeyStroke(input);
         }

@@ -6,6 +6,7 @@ CFLAGS=
 CC += $(CFLAGS)
 
 all: console key_trace
+	make test
 
 debug: 
 	make all "CFLAGS+=-DDEBUG"
