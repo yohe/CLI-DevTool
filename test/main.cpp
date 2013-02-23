@@ -8,12 +8,19 @@
 
 #include <fstream>
 
+#include "key_stroke.cpp"
+#include "key_map.cpp"
+
 using namespace iunit;
 
 int main(int argc, char const* argv[])
 {
     CppTestResultCollector collector;
     CppTestSuite suite("TestSuite", &collector);
+    suite.addTest(new KeyStrokeEntryTest());
+    suite.addTest(new KeyStrokeGroupTest());
+    suite.addTest(new KeyMapTest());
+
     suite.start();
 
     std::ofstream xml_ofs("result.xml");
