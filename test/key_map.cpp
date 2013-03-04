@@ -37,6 +37,8 @@ public:
         ADD_KEY_MAP("UP", ActionCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
     }
     virtual void teardown() {
+        keyMap.deleteKeyStroke("UP");
+        keyMap.deleteKeyStroke("CTRL-A");
     }
 
     virtual void test();
@@ -53,7 +55,8 @@ void KeyMapTest::test() {
     IUNIT_EQ(true, entry->isEntry());
     entry = keyMap.getKeyEntry(27);
     IUNIT_EQ(false, entry->isEntry());
-    keyMap.deleteKeyStroke("UP");
-    IUNIT_NULL(keyMap.getKeyEntry(3));
+    keyMap.deleteKeyStroke("CTRL-A");
+    IUNIT_NOT_NULL(keyMap.getKeyEntry(27));
+    IUNIT_NULL(keyMap.getKeyEntry(1));
 }
 

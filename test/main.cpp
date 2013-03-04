@@ -15,11 +15,14 @@ using namespace iunit;
 
 int main(int argc, char const* argv[])
 {
+    TestConfig config;
+    config.init(argc, argv);
     CppTestResultCollector collector;
     CppTestSuite suite("TestSuite", &collector);
     suite.addTest(new KeyStrokeEntryTest());
     suite.addTest(new KeyStrokeGroupTest());
     suite.addTest(new KeyMapTest());
+    suite.config(config);
 
     suite.start();
 

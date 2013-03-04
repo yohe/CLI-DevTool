@@ -1,4 +1,6 @@
 
+CFLAGS = -g 
+#-DDEBUG
 CINCLUDES = -I ../submod/iunit/cpp \
 			-I ../
 TARGET_SRC = ../key_stroke.cc \
@@ -12,7 +14,7 @@ default:
 	make test_main
 
 test_main: $(TARGET_SRC) $(TEST_SRC)
-	g++ $(CINCLUDES) main.cpp $(TARGET_SRC) -o test_main
+	g++ $(CFLAGS) $(CINCLUDES) main.cpp $(TARGET_SRC) -o test_main
 
 run: test_main
 	@./test_main

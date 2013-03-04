@@ -40,6 +40,7 @@ void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keySt
             std::cout << "[ \"" << strokeName << "\" ]" << "installed." << std::endl;
             std::cout << "[ \"" << strokeName << "\" ]" << "install end." << std::endl;
 #endif
+            _nameMap.insert(std::pair<std::string, std::vector<char> >(strokeName, keyStroke));
             return;
         } else {
             entry = new KeyStrokeGroup(*ite);
@@ -98,7 +99,7 @@ void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keySt
 
 void KeyMap::deleteKeyStroke(const std::string& strokeName) {
     StrokeNameMap::iterator ite = _nameMap.find(strokeName);
-    if( ite != _nameMap.end() ) {
+    if( ite == _nameMap.end() ) {
         return;
     }
     std::vector<char> keyStroke(ite->second);
@@ -106,7 +107,7 @@ void KeyMap::deleteKeyStroke(const std::string& strokeName) {
 
     std::vector<char>::iterator keyIte = keyStroke.begin();
     KeyStrokeEntry* entry = NULL;
-    getKeyEntry(*keyIte);
+    entry = getKeyEntry(*keyIte);
     if(entry->isEntry()) {
         delete entry;
         _keyMap.erase(*keyIte);
@@ -133,7 +134,7 @@ KeyStrokeEntry* KeyMap::getKeyEntry(char keyCode) const {
 }
 KeyStrokeEntry* KeyMap::getKeyEntry(const std::string& strokeName) const {
     StrokeNameMap::const_iterator ite = _nameMap.find(strokeName);
-    if( ite != _nameMap.end() ) {
+    if( ite == _nameMap.end() ) {
         return NULL;
     }
     
