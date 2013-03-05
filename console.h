@@ -210,7 +210,7 @@ public:
     void addHistory(std::string str, bool save = true);
 
     // 画面フォーマット出力
-    std::string printPromptImpl();
+    std::string printPromptImpl() const;
     void printTitle(); 
 
     void printAllCommandName();
@@ -218,6 +218,11 @@ public:
     void printStringList(Iterator begin, Iterator end);
     void beep() { printf("\a"); }
     std::string getUserName() const { return _user_name; }
+    std::string getHostName() const {
+        char buf[128];
+        gethostname(buf, 128);
+        return buf;
+    }
     std::string getCurrentDirectory() const {
         size_t size = pathconf(".", _PC_PATH_MAX);
         char* buf = new char[size];
@@ -317,7 +322,7 @@ public:
     void  printPrompt() {
         printf("\r");
         std::string str = printPromptImpl();
-        std::cout << str;
+        std::cout << "\x1b[36m" << str << "\x1b[39m";
     }
     void clearLine(bool clearString = true) {
         char str[8] = "dl1";
@@ -334,7 +339,7 @@ public:
     }
 
     int getCursorPosOnTerminal() const {
-        return _stringPos + 2;
+        return _stringPos + printPromptImpl().length();
     }
     int getCursorPosOnString() const {
         return _stringPos;
@@ -342,7 +347,7 @@ public:
     void setCursorPos(int pos) {
         printf("\r");
         _stringPos = pos;
-        pos += 2;
+        pos += printPromptImpl().length();
         putp(tparm(parm_right_cursor, pos));
     }
     void clearStatus() {

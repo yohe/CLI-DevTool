@@ -5,6 +5,7 @@
 #include <test_text_outputter.hpp>
 #include <test_junit_outputter.hpp>
 #include <test_macros.hpp>
+#include <test_config.hpp>
 
 #include <fstream>
 
