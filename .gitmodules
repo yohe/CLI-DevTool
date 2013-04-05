@@ -1,3 +1,3 @@
 [submodule "submod/iunit"]
 	path = submod/iunit
-	url = git://github.com/yohe/iunit
+	url = git://github.com/yohe/iunit.git
