@@ -878,7 +878,6 @@ bool Console::actionDeleteForwardCharacter() {
 
 bool Console::actionEnter() {
     execute(_inputString);
-    std::cout << std::endl;
     if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
         return false;
     }
@@ -1033,7 +1032,7 @@ bool Console::actionComplete() {
 
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
     if(tokenList->size() == 1) {
-        std::cout << std::endl << std::endl;
+        std::cout << std::endl;
 
         std::vector<std::string> argumentList;
         std::string param = "";
@@ -1041,7 +1040,6 @@ bool Console::actionComplete() {
         cmd->getParamList(argumentList, param, matchList);
         cmd->afterCompletionHook(matchList);
         printStringList(matchList.begin(), matchList.end());
-        std::cout << std::endl;
         printPrompt();
         std::cout << _inputString;
         return true;
@@ -1114,10 +1112,9 @@ bool Console::actionComplete() {
                 }
             } else {
                 // 変更がないので候補表示
-                std::cout << std::endl << std::endl;
+                std::cout << std::endl;
                 cmd->afterCompletionHook(argumentList);
                 printStringList(argumentList.begin(), argumentList.end());
-                std::cout << std::endl;
                 if(param.empty()) {
                     _inputString += after;
                     _stringPos = _inputString.size();
@@ -1376,8 +1373,9 @@ void Console::printStringList(Iterator lh, Iterator rh) {
         lh++;
     }
 
-    max += 3;
+    max += 2;
     size_t num = getTerminalColumnSize()/max;
+    num--;
     size_t i=0;
     lh = begin;
     rh = end;
