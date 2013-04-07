@@ -1,65 +1,141 @@
-<!doctype html>
-<html>
-    <head>
-        <meta charset='utf-8' />
-        <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-        <meta name="description" content="Cli-devtool : This software is development tool for making a command line tool." />
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bootstrap, from Twitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-        <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-        <title>Cli-devtool by yohe</title>
-        <link rel="stylesheet" href="stylesheets/styles.css">
-        <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-        <script src="javascripts/respond.js"></script>
-        <!--[if lt IE 9]>
-        <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-        <![endif]-->
-        <!--[if lt IE 8]>
-        <link rel="stylesheet" href="stylesheets/ie.css">
-        <![endif]-->
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
+      }
 
-    </head>
-    <body>
-        <div id="header">
-            <nav>
-            <li class="fork"><a href="https://github.com/yohe/CLI-DevTool">View On GitHub</a></li>
-            <li class="downloads"><a href="https://github.com/yohe/CLI-DevTool/zipball/master">ZIP</a></li>
-            <li class="downloads"><a href="https://github.com/yohe/CLI-DevTool/tarball/master">TAR</a></li>
-            <li class="title">DOWNLOADS</li>
-            </nav>
-        </div><!-- end header -->
+      @media (max-width: 980px) {
+        /* Enable use of floated navbar text */
+        .navbar-text.pull-right {
+          float: none;
+          padding-left: 5px;
+          padding-right: 5px;
+        }
+      }
+    </style>
+    <link href="css/bootstrap-responsive.css" rel="stylesheet">
 
-        <div class="wrapper">
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="../assets/js/html5shiv.js"></script>
+    <![endif]-->
 
-            <section>
-            <div id="title">
-                <h1>Cli-devtool</h1>
-                <p>This software is development tool for making a command line tool.</p>
-                <hr>
-                <span class="credits left">Project maintained by <a href="https://github.com/yohe">yohe</a></span>
-                <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
-            </div>
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
+                    <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
+                                   <link rel="shortcut icon" href="../assets/ico/favicon.png">
+  </head>
 
-            <h3>Getting Started.</h3>
-            <p>
-            <ol>
-            <li style="list-style-position: outside">Download this software from <a href="https://github.com/yohe/CLI-DevTool/zipball/master">here</a>.</li>
-            <li style="list-style-position: outside">Run make in CLI-DevTool directory. If compile occurred error, you check the required libraries.</li>
-            <li style="list-style-position: outside">You can change the behavior of the console by modifying the "sample.cc". You can see the <a href="https://github.com/yohe/CLI-DevTool/tutorial.html">tutorial.</a></li>
-            </ol>
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">CLI-DevTool</a>
+          <div class="nav-collapse collapse">
+            <p class="navbar-text pull-right">
+              Logged in as <a href="#" class="navbar-link">Username</a>
             </p>
-            <h3>Authors and Contributors</h3>
-
-            <p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-            <h3>Support or Contact</h3>
-
-            <p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-            </section>
-
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
         </div>
-        <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+      </div>
+    </div>
 
-    </body>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span3">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Sidebar</li>
+              <li class="active"><a href="#CLI-DevTool">Top</a></li>
+              <li><a href="#getting_started">Getting Started</a></li>
+              <li><a href="#defined_new_command">Defined new Command</a></li>
+              <li><a href="#using_console_functions">Using of the console functions.</a></li>
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+          <div class="hero-unit">
+            <h1>CLI-DevTool</h1>
+            <p>This software is development tool for making a command line tool.</p>
+            <p><a href="https://github.com/yohe/CLI-DevTool/zipball/master" class="btn btn-primary btn-large">Download</a></p>
+          </div>
+          <div class="row-fluid">
+            <div class="span9">
+                <p>
+            </div>
+            <div class="span9">
+              <h2 id="getting_started">Getting Started.</h2>
+              <p>
+              <ol type="1" style="list-style-position: outside">
+                  <li><a href="#compile">コンパイル</a></li>
+                  <li><a href="#change_prompt">プロンプト文字列変更</a></li>
+                  <li><a href="#regist_command">コマンド登録</a></li>
+                  <li><a href="#setting_console">コンソール</a></li>
+              </ol>
+              </p>
+
+              <p>
+              <h4 id="compile">コンパイル</h4>
+              <p>Execute "make" command in CLI-DevTool directory. If compile occurred error, you check the required libraries.<br>
+              <pre>$make</pre>
+              </p>
+              <h4 id="change_prompt">プロンプト文字列変更</h4>
+              <h4 id="regist_command">コマンド登録</h4>
+              <h4 id="setting_console">コンソール設定</h4>
+              </p>
+            </div><!--/span-->
+            <div class="span9">
+              <h2 id="defined_new_command">Defined new command.</h2>
+              <p>aaaaaaaaaaaaaaaaaa
+              </p>
+            </div><!--/span-->
+            <div class="span9">
+              <h2 id="using_console_functions">Using of the console functions.</h2>
+              <p></p>
+            </div><!--/span-->
+          </div><!--/row-fluid-->
+        </div><!--/span-->
+      </div><!--/row-->
+
+      <hr>
+
+      <footer>
+      <p>&copy; Yohei Sekiguchi <a href="mailto:ysekiguchi.zzz@gmail.com">ysekiguchi.zzz@gmail.com</a></p>
+      </footer>
+
+    </div><!--/.fluid-container-->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/bootstrap.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
 </html>
