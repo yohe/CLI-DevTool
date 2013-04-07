@@ -3,11 +3,11 @@ CFLAGS = -g
 #-DDEBUG
 CINCLUDES = -I ../submod/iunit/cpp \
 			-I ../
-TARGET_SRC = ../key_stroke.cc \
+TARGET_SRC = ../key_seq.cc \
 			 ../key_map.cc \
 
 TEST_SRC = main.cpp \
-		   key_stroke.cpp \
+		   key_seq.cpp \
 		   key_map.cpp \
 
 default:

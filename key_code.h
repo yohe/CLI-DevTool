@@ -2,7 +2,7 @@
 #ifndef CLI_DEV_ACTION_CODE_H
 #define CLI_DEV_ACTION_CODE_H
 
-class ActionCode {
+class KeyCode{
 public:
     enum Code {
         // ascii 0-127

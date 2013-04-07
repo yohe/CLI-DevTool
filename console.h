@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#include "action_code.h"
+#include "key_code.h"
 #include "key_map.h"
 #include "command/command.h"
 #include "command/command_selector.h"
@@ -133,7 +133,7 @@ public:
 class Console {
     typedef bool (Console::*Action)();
     typedef CommandSelector::CommandSet CommandSet;
-    typedef std::map<int, Action> ActionMap;
+    typedef std::map<int, Action> KeyBindMap;
     
 public:
 
@@ -194,7 +194,7 @@ private:
     }
 
     void keyMapInitialize();
-    void keyActionInitialize();
+    void keyBindInitialize();
 
 public:
 
@@ -272,8 +272,8 @@ public:
     // 処理ループ
     void run();
     Action getAction(int actionCode) const {
-        ActionMap::const_iterator ite = _actionMap.find(actionCode);
-        if(ite == _actionMap.end()) {
+        KeyBindMap::const_iterator ite = _keyBindMap.find(actionCode);
+        if(ite == _keyBindMap.end()) {
             return NULL;
         }
 
@@ -338,6 +338,8 @@ public:
         _inputString.clear();
     }
 
+    int getTerminalColumnSize() const ;
+    int getTerminalLineSize() const ;
     int getCursorPosOnTerminal() const {
         return _stringPos + printPromptImpl().length();
     }
@@ -380,7 +382,7 @@ public:
 protected:
 
     KeyMap _keyMap;
-    ActionMap _actionMap;
+    KeyBindMap _keyBindMap;
     CommandSelector* _commandSelector;
     struct termios _save_term;
     struct termios _term_setting;
@@ -550,14 +552,14 @@ bool Console::initialize() {
     if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
         return false;
     }
-    char str[8] = "clear";
-    char* cmd;
-    if((cmd = tigetstr(str)) == NULL) {
-        return false;
-    }
-    if(putp(cmd) == ERR) {
-        return false;
-    }
+    //char str[8] = "clear";
+    //char* cmd;
+    //if((cmd = tigetstr(str)) == NULL) {
+    //    return false;
+    //}
+    //if(putp(cmd) == ERR) {
+    //    return false;
+    //}
     if(tcgetattr(fileno(stdin), &_save_term) == -1) {
         return false;
     } else {
@@ -581,7 +583,7 @@ bool Console::initialize() {
     // キーストロークの登録
     keyMapInitialize();
     // キーストロークに対応するアクションの登録
-    keyActionInitialize();
+    keyBindInitialize();
 #ifdef DEBUG
     std::cout << " ------------------ KeyMapSetting End" << std::endl;
 #endif
@@ -614,7 +616,7 @@ void Console::run() {
     _stringPos=0;
     _historyIndex = 0;
     bool isKeyStrokeBeginning = false;
-    const KeyStrokeEntry* entry = NULL;
+    const KeySequenceEntry* entry = NULL;
     while(isEnd()) {
         char input = fgetc(stdin);
         //bool ret = userKeyHookProc(input);
@@ -630,9 +632,9 @@ void Console::run() {
 #ifndef KEY_TRACE
                 _inputString.insert(_stringPos, 1, input);
                 ++_stringPos;
-                printPrompt();
-                std::cout << _inputString;
-                setCursorPos(_stringPos);
+                //printPrompt();
+                std::cout << input;
+                //setCursorPos(_stringPos);
 #endif
                 continue;
             }
@@ -643,7 +645,7 @@ void Console::run() {
         if( entry == NULL ) {
             entry = _keyMap.getKeyEntry(input);
         } else {
-            entry = entry->getKeyStroke(input);
+            entry = entry->getKeySequenceEntry(input);
         }
 
         if(entry == NULL) {
@@ -806,6 +808,16 @@ bool Console::selectHistory(bool up) {
     return true;
 }
 
+int Console::getTerminalColumnSize() const {
+    char str[8] = "cols";
+    int cols = tigetnum(str);
+    return cols;
+}
+int Console::getTerminalLineSize() const {
+    char str[8] = "lines";
+    int cols = tigetnum(str);
+    return cols;
+}
 bool Console::moveCursor(bool left) {
 
     if(!left) {
@@ -867,6 +879,9 @@ bool Console::actionDeleteForwardCharacter() {
 bool Console::actionEnter() {
     execute(_inputString);
     std::cout << std::endl;
+    if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
+        return false;
+    }
     clearStatus();
     printPrompt();
 
@@ -1018,7 +1033,7 @@ bool Console::actionComplete() {
 
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
     if(tokenList->size() == 1) {
-        std::cout << std::endl;
+        std::cout << std::endl << std::endl;
 
         std::vector<std::string> argumentList;
         std::string param = "";
@@ -1057,35 +1072,24 @@ bool Console::actionComplete() {
 
     if( ret ) {
         // 完全補完
-        // 完全補完と判定された場合に, param.size()==0 であれば追加して表示
-        // param.empty()==true の場合上書き
-        if(param.empty()) {
-            _inputString += after;// + " ";
-            printPrompt();
-            std::cout << _inputString;
-            _stringPos = _inputString.size();
+        size_t pos = after.rfind(param);
+        std::string sub = after.substr(pos+param.length());
+        if(pos != std::string::npos) {
+            _inputString.append(sub);
+            //printPrompt();
+            //_inputString += " ";
+            //_stringPos += 1;
+            _stringPos = _inputString.size(); 
+            std::cout << sub;
             return true;
         } else {
-            size_t pos = _inputString.rfind(param);
-            if(pos != std::string::npos) {
-                _inputString.replace(pos, param.size(), after);
-                printPrompt();
-                //_inputString += " ";
-                //_stringPos += 1;
-                _stringPos = _inputString.size(); 
-                std::cout << _inputString;
-                return true;
-            } else {
-                beep();
-                return true;
-            }
+            beep();
+            return true;
         }
     } else {
-        //std::cout << "Point A" << std::endl;
         // 一部補完 or 補完候補なし
         // matchList.size() > 0 である場合、一部補完と判断
         if(!argumentList.empty()) {
-            //std::cout << "Point B" << std::endl;
             // 補完が行われた場合は、そのまま表示
             // 変更がない場合は、候補を表示する。
             if(param != after) {
@@ -1110,7 +1114,7 @@ bool Console::actionComplete() {
                 }
             } else {
                 // 変更がないので候補表示
-                std::cout << std::endl;
+                std::cout << std::endl << std::endl;
                 cmd->afterCompletionHook(argumentList);
                 printStringList(argumentList.begin(), argumentList.end());
                 std::cout << std::endl;
@@ -1292,7 +1296,7 @@ void Console::printAllCommandName() {
         }
     }
     max += 3;
-    size_t num = 80/max;
+    size_t num = getTerminalColumnSize()/max;
     size_t i=0;
     for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
             ite != _commandSelector->getCommandSet().end();
@@ -1373,7 +1377,7 @@ void Console::printStringList(Iterator lh, Iterator rh) {
     }
 
     max += 3;
-    size_t num = 80/max;
+    size_t num = getTerminalColumnSize()/max;
     size_t i=0;
     lh = begin;
     rh = end;

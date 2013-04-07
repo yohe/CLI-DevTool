@@ -74,16 +74,9 @@ void FileListBehavior::stripParentPath(std::vector<std::string>& matchList) cons
     std::vector<std::string>::iterator it;
     std::vector<std::string> after;
     for(it = matchList.begin(); it != matchList.end(); ++it) {
-        size_t pos = it->find_last_of("/");
+        size_t pos = it->find_last_of("/", it->length()-2);
         std::string name = it->substr(pos+1);
         if(!name.empty()) {
-            after.push_back(name);
-        } else {
-            pos = it->find_last_of("/", it->length()-2);
-            name = it->substr(pos+1);
-            if(name == "./" || name == "../") {
-                continue;
-            }
             after.push_back(name);
         }
     }

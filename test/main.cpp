@@ -9,7 +9,7 @@
 
 #include <fstream>
 
-#include "key_stroke.cpp"
+#include "key_seq.cpp"
 #include "key_map.cpp"
 
 using namespace iunit;
@@ -20,8 +20,8 @@ int main(int argc, char const* argv[])
     config.init(argc, argv);
     CppTestResultCollector collector;
     CppTestSuite suite("TestSuite", collector);
-    suite.addTest(new KeyStrokeEntryTest());
-    suite.addTest(new KeyStrokeGroupTest());
+    suite.addTest(new KeySequenceEntryTest());
+    suite.addTest(new KeySequenceGroupTest());
     suite.addTest(new KeyMapTest());
     suite.config(config);
 

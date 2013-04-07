@@ -4,23 +4,23 @@
 
 #include <map>
 
-#include "key_stroke.h"
+#include "key_seq.h"
 
 class KeyMap {
 public:
-    typedef std::map<char, KeyStrokeEntry*> GroupMap;
+    typedef std::map<char, KeySequenceEntry*> GroupMap;
     typedef std::map<std::string, std::vector<char> > StrokeNameMap;
 
     KeyMap() ;
     ~KeyMap();
 
-    void addKeyStroke(const std::string& strokeName, const std::vector<char> keyStroke, int actionCode);
-    void deleteKeyStroke(const std::string& strokeName);
+    void addKeyCodeSeq(const std::string& strokeName, const std::vector<char> keyStroke, int keyCode);
+    void deleteKeyCodeSeq(const std::string& strokeName);
 
-    KeyStrokeEntry* getKeyEntry(char keyCode) const;
-    KeyStrokeEntry* getKeyEntry(const std::string& strokeName) const;
+    KeySequenceEntry* getKeyEntry(char keyCode) const;
+    KeySequenceEntry* getKeyEntry(const std::string& strokeName) const;
 protected:
-    std::vector<char> getKeyStroke(const std::string& strokeName) const;
+    std::vector<char> getKeySequence(const std::string& strokeName) const;
 
     GroupMap _keyMap;
     StrokeNameMap _nameMap;

@@ -3,7 +3,7 @@
 #include <test_macros.hpp>
 
 #include "key_map.h"
-#include "action_code.h"
+#include "key_code.h"
 
 using namespace iunit;
 
@@ -22,7 +22,7 @@ using namespace iunit;
 // strokeListは KEY_STROKE_DEF を使用
 #define ADD_KEY_MAP(name, code, strokeList) \
     strokeList; \
-    keyMap.addKeyStroke(name, stroke, code); \
+    keyMap.addKeyCodeSeq(name, stroke, code); \
     stroke.clear();
 
 class KeyMapTest : public CppTestCase {
@@ -33,12 +33,12 @@ public:
 
     virtual void setup() {
         std::vector<char> stroke;
-        ADD_KEY_MAP("CTRL-A", ActionCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
-        ADD_KEY_MAP("UP", ActionCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
+        ADD_KEY_MAP("CTRL-A", KeyCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
+        ADD_KEY_MAP("UP", KeyCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
     }
     virtual void teardown() {
-        keyMap.deleteKeyStroke("UP");
-        keyMap.deleteKeyStroke("CTRL-A");
+        keyMap.deleteKeyCodeSeq("UP");
+        keyMap.deleteKeyCodeSeq("CTRL-A");
     }
 
     virtual void test();
@@ -51,11 +51,11 @@ public:
 void KeyMapTest::test() {
     IUNIT_NOT_NULL(keyMap.getKeyEntry(1));
     IUNIT_NULL(keyMap.getKeyEntry(2));
-    KeyStrokeEntry* entry = keyMap.getKeyEntry(1);
+    KeySequenceEntry* entry = keyMap.getKeyEntry(1);
     IUNIT_EQ(true, entry->isEntry());
     entry = keyMap.getKeyEntry(27);
     IUNIT_EQ(false, entry->isEntry());
-    keyMap.deleteKeyStroke("CTRL-A");
+    keyMap.deleteKeyCodeSeq("CTRL-A");
     IUNIT_NOT_NULL(keyMap.getKeyEntry(27));
     IUNIT_NULL(keyMap.getKeyEntry(1));
 }

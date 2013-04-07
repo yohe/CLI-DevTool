@@ -10,7 +10,7 @@ KeyMap::KeyMap() {
 
 KeyMap::~KeyMap() {
     for(GroupMap::iterator ite = _keyMap.begin(); ite != _keyMap.end(); ++ite) {
-        KeyStrokeEntry* entry = ite->second;
+        KeySequenceEntry* entry = ite->second;
         delete entry;
     }
 
@@ -19,7 +19,7 @@ KeyMap::~KeyMap() {
 }
 
 
-void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keyStroke, int actionCode) {
+void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyStroke, int keyCode) {
 #ifdef DEBUG
     std::cout << "[ \"" << strokeName << "\" ]" << "install start." << std::endl;
 #endif
@@ -28,14 +28,14 @@ void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keySt
         return;
     }
 
-    KeyStrokeEntry* entry = NULL;
+    KeySequenceEntry* entry = NULL;
 
     std::vector<char>::iterator ite = keyStroke.begin(); 
     entry = getKeyEntry(*ite);
 
     if(entry == NULL) {
         if(keyStroke.size() == 1) {
-            _keyMap.insert(std::pair<char, KeyStrokeEntry*>(*ite, new KeyStrokeEntry(*ite, strokeName, actionCode)));
+            _keyMap.insert(std::pair<char, KeySequenceEntry*>(*ite, new KeySequenceEntry(*ite, strokeName, keyCode)));
 #ifdef DEBUG
             std::cout << "[ \"" << strokeName << "\" ]" << "installed." << std::endl;
             std::cout << "[ \"" << strokeName << "\" ]" << "install end." << std::endl;
@@ -43,8 +43,8 @@ void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keySt
             _nameMap.insert(std::pair<std::string, std::vector<char> >(strokeName, keyStroke));
             return;
         } else {
-            entry = new KeyStrokeGroup(*ite);
-            _keyMap.insert(std::pair<char, KeyStrokeEntry*>(*ite, entry));
+            entry = new KeySequenceGroup(*ite);
+            _keyMap.insert(std::pair<char, KeySequenceEntry*>(*ite, entry));
 #ifdef DEBUG
             std::cout << "group add " << "keyCode = " << (int)*ite << std::endl;
 #endif
@@ -59,23 +59,24 @@ void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keySt
             assert(false);
         }
 
-        KeyStrokeGroup* group = dynamic_cast<KeyStrokeGroup*>(entry);
-        entry = group->getKeyStroke(*ite);
-        if(entry == NULL) {
+        KeySequenceGroup* group = dynamic_cast<KeySequenceGroup*>(entry);
+        const KeySequenceEntry* innerEntry;
+        innerEntry = group->getKeySequenceEntry(*ite);
+        if(innerEntry == NULL) {
             std::vector<char>::iterator endIte = keyStroke.end(); 
             std::advance(endIte, -1);
 
-            // 最後のキーコードであれば KeyStrokeEntry
-            // 途中のキーコードであれば KeyStrokeGroupe
+            // 最後のキーコードであれば KeySequenceEntry
+            // 途中のキーコードであれば KeySequenceGroupe
             if(ite == endIte) {
-                group->addKeyStroke(new KeyStrokeEntry(*ite, strokeName, actionCode));
+                group->addKeySequence(new KeySequenceEntry(*ite, strokeName, keyCode));
 #ifdef DEBUG
                 std::cout << "[ \"" << strokeName << "\" ]" << "installed." << std::endl;
 #endif
                 break;
             } else {
-                entry = new KeyStrokeGroup(*ite);
-                group->addKeyStroke(entry);
+                entry = new KeySequenceGroup(*ite);
+                group->addKeySequence(entry);
 #ifdef DEBUG
                 std::cout << "group add " << "keyCode = " << (int)*ite << std::endl;
 #endif
@@ -97,7 +98,7 @@ void KeyMap::addKeyStroke(const std::string& strokeName, std::vector<char> keySt
     return;
 }
 
-void KeyMap::deleteKeyStroke(const std::string& strokeName) {
+void KeyMap::deleteKeyCodeSeq(const std::string& strokeName) {
     StrokeNameMap::iterator ite = _nameMap.find(strokeName);
     if( ite == _nameMap.end() ) {
         return;
@@ -106,7 +107,7 @@ void KeyMap::deleteKeyStroke(const std::string& strokeName) {
     _nameMap.erase(strokeName);
 
     std::vector<char>::iterator keyIte = keyStroke.begin();
-    KeyStrokeEntry* entry = NULL;
+    KeySequenceEntry* entry = NULL;
     entry = getKeyEntry(*keyIte);
     if(entry->isEntry()) {
         delete entry;
@@ -115,16 +116,16 @@ void KeyMap::deleteKeyStroke(const std::string& strokeName) {
     }
     keyIte++;
     for(; keyIte != keyStroke.end(); ++keyIte) {
-        KeyStrokeGroup* group = dynamic_cast<KeyStrokeGroup*>(entry);
-        entry = group->getKeyStroke(*keyIte);
+        KeySequenceGroup* group = dynamic_cast<KeySequenceGroup*>(entry);
+        entry = group->getKeySequenceEntry(*keyIte);
         if(entry->isEntry()) {
-            group->deleteKeyStroke(entry->getKeyCode());
+            group->deleteKeySequence(entry->getKeyCode());
             break;
         }
     }
 }
 
-KeyStrokeEntry* KeyMap::getKeyEntry(char keyCode) const {
+KeySequenceEntry* KeyMap::getKeyEntry(char keyCode) const {
     GroupMap::const_iterator ite = _keyMap.find(keyCode);
     if(ite == _keyMap.end()) {
         return NULL;
@@ -132,7 +133,7 @@ KeyStrokeEntry* KeyMap::getKeyEntry(char keyCode) const {
 
     return ite->second;
 }
-KeyStrokeEntry* KeyMap::getKeyEntry(const std::string& strokeName) const {
+KeySequenceEntry* KeyMap::getKeyEntry(const std::string& strokeName) const {
     StrokeNameMap::const_iterator ite = _nameMap.find(strokeName);
     if( ite == _nameMap.end() ) {
         return NULL;
@@ -140,11 +141,11 @@ KeyStrokeEntry* KeyMap::getKeyEntry(const std::string& strokeName) const {
     
     std::vector<char> keyStroke(ite->second);
     std::vector<char>::iterator keyIte = keyStroke.begin();
-    KeyStrokeEntry* entry = getKeyEntry(*keyIte);
+    KeySequenceEntry* entry = getKeyEntry(*keyIte);
     ++keyIte;
     for(; keyIte != keyStroke.end(); ++keyIte) {
-        KeyStrokeGroup* group = dynamic_cast<KeyStrokeGroup*>(entry);
-        entry = group->getKeyStroke(*keyIte);
+        KeySequenceGroup* group = dynamic_cast<KeySequenceGroup*>(entry);
+        entry = group->getKeySequenceEntry(*keyIte);
     }
     return entry;
 }
