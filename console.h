@@ -906,6 +906,7 @@ bool Console::actionClearFromCursorToEnd() {
 }
 
 void Console::execute(const std::string& inputString) {
+    std::cout << std::endl;
 
     // コマンド名、引数に分離
     size_t sp = inputString.find(' ');
@@ -953,7 +954,6 @@ void Console::execute(const std::string& inputString) {
 }
 
 void Console::executeCommand(const Command* cmd, const std::string& argument) {
-    std::cout << std::endl;
     // ターミナル状態をもとに戻す
     setTermIOS(_save_term);
 

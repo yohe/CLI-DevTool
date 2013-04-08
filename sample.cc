@@ -164,8 +164,8 @@ int main(int argc, char const* argv[])
 
 std::string Console::printPromptImpl() const {
     std::string dir = getCurrentDirectory();
-    //std::string prompt = "$";
-    std::string prompt = "[" + _user_name + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
+    std::string prompt = "$ ";
+    //std::string prompt = "[" + _user_name + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
     return prompt;
 }
 void Console::printTitle() {
