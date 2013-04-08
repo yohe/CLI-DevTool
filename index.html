@@ -9,6 +9,8 @@
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="js/google-code-prettify/prettify.css" rel="stylesheet">
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -87,14 +89,13 @@
             <p><a href="https://github.com/yohe/CLI-DevTool/zipball/master" class="btn btn-primary btn-large">Download</a></p>
           </div>
           <div class="row-fluid">
-            <div class="span9">
-                <p>
+            <div class="span12">
             </div>
-            <div class="span9">
+            <div class="span12">
               <h2 id="getting_started">Getting Started.</h2>
               <p>
               <ol type="1" style="list-style-position: outside">
-                  <li><a href="#compile">コンパイル</a></li>
+                  <li><a href="#compile_and_execution">コンパイルと実行</a></li>
                   <li><a href="#change_prompt">プロンプト文字列変更</a></li>
                   <li><a href="#regist_command">コマンド登録</a></li>
                   <li><a href="#setting_console">コンソール</a></li>
@@ -102,26 +103,62 @@
               </p>
 
               <p>
-              <h4 id="compile">コンパイル</h4>
-              <p>Execute "make" command in CLI-DevTool directory. If compile occurred error, you check the required libraries.<br>
+              <h4 id="compile_and_execution">コンパイルと実行</h4>
+              <p>First, Download form <a href="https://github.com/yohe/CLI-DevTool/zipball/master">here</a>, and let decompress its file.<br>Execute "make" command in the CLI-DevTool directory. If compile occurred error, you check the required libraries.<br>
               <pre>$make</pre>
+              <strong>Required Libraries.</strong>
+              <ol type="1">
+                  <li>ncurses</li>
+              </ol>
               </p>
+              <p>make によって console バイナリが作成されます。これを実行することでサンプルのコンソールを起動できます。以下に起動時の画面を示します。</p>
+              <pre></pre>
               <h4 id="change_prompt">プロンプト文字列変更</h4>
+              <p>"sample.cc" に定義されている関数 Console::printPromptImpl() を変更することでプロンプト文字列が変更できます。プロンプト文字列を作成する際に、Consoleクラスで定義されている次の関数を利用することでシェルライクな表示が可能です。</p>
+              <strong>Consoleメンバ関数</strong>
+              <ol type="1">
+                  <li>getCurrentDirectory()</li>
+                  <li>getUserName()</li>
+                  <li>getHostName()</li>
+              </ol>
+              以下にConsole::printPromptImpl() の例を示します。
+              <pre class="prettyprint linenums">
+std::string Console::printPromptImpl() const {
+    std::string dir = getCurrentDirectory();
+    //ディレクトリは絶対パスで取得します。下記では、現在のディレクトリ名のみを抽出している。
+    std::string prompt = "[" + getUserName() + " " + dir.substr(dir.rfind("/")+1) + "]$ ";
+    return prompt;
+}</pre>
+              <p>この場合、次のように表示されます.</p>
+              <pre>[yohe CLI-DevTool]$</pre>
               <h4 id="regist_command">コマンド登録</h4>
+              <p>コンソールにコマンド登録する方法について説明します。
+              コンソールに登録できるコマンドは、 Command クラスを継承したクラスになります。ユーザ定義のコマンドについては、<a href="#defined_new_command">Defined new command."</a>を参照してください。CLI-DevTool が提供しているクラスを使用して説明します。CLI-DevTool が提供しているクラスを以下に示します。</p>
+
+              <strong>定義済みコマンドクラス</strong>
+              <ol type="1">
+                      <dt><li>ShellCommand</li></dt>
+                      <dd>シェルが提供するコマンドの実行機能を提供します。コマンド毎に登録することでシェルと同等な使用感を提供できます。また、パラメータ補完等の振る舞いも入れ替え可能です。</dd>
+                      <dt><li>ShellCommandExecutor</li></dt>
+                      <dd>シェルが提供する全てのコマンドの実行機能を提供します。exe コマンドの引数として実行するコマンドを指定できます。補完はコマンド名補完と、ファイル名補完のみとなります</dd>
+                      <dt><li>EditorCommand</li></dt>
+                      <dd>エディタを起動するコマンドに使用するクラスです。コンソールの操作ログを記録するビルトインコマンドの "script" を使用中にエディタを起動すると、正しく動作しない問題を回避するためのコマンドです。</dd>
+              </ol>
+
               <h4 id="setting_console">コンソール設定</h4>
               </p>
-            </div><!--/span-->
-            <div class="span9">
+          </div><!--/span-->
+          <div class="span12">
               <h2 id="defined_new_command">Defined new command.</h2>
-              <p>aaaaaaaaaaaaaaaaaa
+              <p>
               </p>
-            </div><!--/span-->
-            <div class="span9">
+          </div><!--/span-->
+          <div class="span12">
               <h2 id="using_console_functions">Using of the console functions.</h2>
               <p></p>
-            </div><!--/span-->
-          </div><!--/row-fluid-->
-        </div><!--/span-->
+          </div><!--/span-->
+      </div><!--/row-fluid-->
+  </div><!--/span-->
       </div><!--/row-->
 
       <hr>
@@ -130,12 +167,15 @@
       <p>&copy; Yohei Sekiguchi <a href="mailto:ysekiguchi.zzz@gmail.com">ysekiguchi.zzz@gmail.com</a></p>
       </footer>
 
-    </div><!--/.fluid-container-->
+  </div><!--/.fluid-container-->
 
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/bootstrap.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+  <!-- Le javascript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="js/bootstrap.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="js/google-code-prettify/prettify.js"></script>
+  <script>prettyPrint();</script>
   </body>
 </html>
