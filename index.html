@@ -76,7 +76,7 @@
   </head>
 
   <!-- Scrollspyの設定をbodyタグに記入 -->
-  <body>
+  <body data-spy="scroll" data-target=".bs-docs-sidebar">
     <!-- 上部固定のナビゲーションバー -->
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
@@ -126,6 +126,7 @@
             <ul class="nav nav-list">
               <li><a href="#getting_started"><i class="icon-chevron-right"></i> Getting Started.</a></li>
               <li><a href="#compile_and_running"><i class="icon-chevron-right"></i> コンパイルと実行</a></li>
+              <li><a href="#change_title"><i class="icon-chevron-right"></i> タイトル画面変更</a></li>
               <li><a href="#change_prompt"><i class="icon-chevron-right"></i> プロンプト文字列変更</a></li>
               <li><a href="#regist_command"><i class="icon-chevron-right"></i> コマンド登録</a></li>
               <li><a href="#setting_console"><i class="icon-chevron-right"></i> コンソール設定</a></li>
@@ -149,6 +150,22 @@
           </div>
           </div>
           </div>
+          <div class="accordion-group">
+          <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree"> Using of the console functions.</a>
+          </div>
+          <div id="collapseThree" class="accordion-body collapse">
+          <div class="accordion-inner">
+            <ul class="nav nav-list">
+              <li><a href="#using_console_functions"><i class="icon-chevron-right"></i> Using of the console functions.</a></li>
+              <li><a href="#compile_and_running"><i class="icon-chevron-right"></i> コンパイルと実行</a></li>
+              <li><a href="#change_prompt"><i class="icon-chevron-right"></i> プロンプト文字列変更</a></li>
+              <li><a href="#regist_command"><i class="icon-chevron-right"></i> コマンド登録</a></li>
+              <li><a href="#setting_console"><i class="icon-chevron-right"></i> コンソール設定</a></li>
+            </ul>
+          </div>
+          </div>
+          </div>
           </div>
         </div>
       </div><!--/span-->
@@ -158,6 +175,7 @@
           <p>
             <ol type="1" style="list-style-position: outside">
               <li><a href="#compile_and_running">コンパイルと実行</a></li>
+              <li><a href="#change_title">タイトル画面変更</a></li>
               <li><a href="#change_prompt">プロンプト文字列変更</a></li>
               <li><a href="#regist_command">コマンド登録</a></li>
               <li><a href="#setting_console">コンソール設定</a></li>
@@ -174,7 +192,7 @@
 |              Console               |
 +------------------------------------+
 $ </pre>
-              <h4 id="change_title">タイトル画面の変更</h4>
+              <h4 id="change_title">タイトル画面変更</h4>
               <p>"sample.cc" に定義されている関数 Console::printTitle() を変更することで、タイトル画面を変更できます。この関数は、起動時に一度だけ実行されます。以下に変更例を示します。</p>
               <pre class="prettyprint linenums">
 void Console::printTitle() {
@@ -229,8 +247,8 @@ std::string Console::printPromptImpl() const {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>ShellCommand</td>
-                    <td>シェルが提供するコマンドの実行機能を提供します。コマンド毎に登録することでシェルと同等な使用感を提供できます。また、パラメータ補完等の振る舞いも入れ替え可能です。</td>
+                    <td>SystemFuncCommand</td>
+                    <td>system()関数を利用したの実行機能を提供します。コマンド毎に登録することでシェルと同等な使用感を提供できます。また、パラメータ補完等の振る舞いも入れ替え可能です。</td>
                   </tr>
                   <tr>
                     <td>ShellCommandExecutor</td>
@@ -242,6 +260,31 @@ std::string Console::printPromptImpl() const {
                   </tr>
                 </tbody>
               </table>
+              <p>この中から、SystemFuncCommand クラスを用いたコマンド登録について以下に記載する。<br>
+                <pre class="prettyprint linenums">
+int main(int argc, char const* argv[])
+{
+    int historySize = 100;
+    bool ctrl_c = true; // false : ignore <CTRL-C> key.
+    std::string historyFileName = ".cli_history";
+
+    Console console(historySize, ctrl_c, historyFileName.c_str());
+
+    // SystemFuncCommand(std::string commandName,
+    //                   std::string commandOption,
+    //                   ParameterBehavior* p,
+    //                   HelpBehavior* h)
+    // 
+    // -G : Enable colorized for Mac OS X.
+    // --color=auto : Enable colorized for Linux.
+    if(console.installCommand(new SystemFuncCommand("ls", "-G", new FileListBehavior(), new ManBehavior("ls"))) == false) {
+        std::cout &lt&lt "install false" &rt&rt std::endl;
+        return -1;
+    }
+
+    console.run();
+}
+</pre>
               <h4 id="setting_console">コンソール設定</h4>
               <br>
               </section>
