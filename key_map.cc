@@ -60,9 +60,8 @@ void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyS
         }
 
         KeySequenceGroup* group = dynamic_cast<KeySequenceGroup*>(entry);
-        const KeySequenceEntry* innerEntry;
-        innerEntry = group->getKeySequenceEntry(*ite);
-        if(innerEntry == NULL) {
+        entry = group->getKeySequenceEntry(*ite);
+        if(entry == NULL) {
             std::vector<char>::iterator endIte = keyStroke.end(); 
             std::advance(endIte, -1);
 
@@ -71,7 +70,7 @@ void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyS
             if(ite == endIte) {
                 group->addKeySequence(new KeySequenceEntry(*ite, strokeName, keyCode));
 #ifdef DEBUG
-                std::cout << "[ \"" << strokeName << "\" ]" << "installed." << std::endl;
+                std::cout << "[ \"" << strokeName << "\" ]" << "installed. : " << (int)group->getKeyCode() << std::endl;
 #endif
                 break;
             } else {

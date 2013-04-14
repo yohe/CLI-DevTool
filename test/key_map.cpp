@@ -35,6 +35,7 @@ public:
         std::vector<char> stroke;
         ADD_KEY_MAP("CTRL-A", KeyCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
         ADD_KEY_MAP("UP", KeyCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
+        ADD_KEY_MAP("DOWN", KeyCode::KEY_DOWN_ARROW, KEY_STROKE_DEF(3, (27) (91) (66)));
     }
     virtual void teardown() {
         keyMap.deleteKeyCodeSeq("UP");
@@ -49,12 +50,22 @@ public:
 };
 
 void KeyMapTest::test() {
+    IUNIT_FALSE(KeyCode::KEY_UP_ARROW == KeyCode::KEY_DOWN_ARROW);
     IUNIT_NOT_NULL(keyMap.getKeyEntry(1));
     IUNIT_NULL(keyMap.getKeyEntry(2));
-    KeySequenceEntry* entry = keyMap.getKeyEntry(1);
+    const KeySequenceEntry* entry = keyMap.getKeyEntry(1);
     IUNIT_EQ(true, entry->isEntry());
     entry = keyMap.getKeyEntry(27);
     IUNIT_EQ(false, entry->isEntry());
+    entry = entry->getKeySequenceEntry(91);
+    IUNIT_NOT_NULL( entry );
+    IUNIT_EQ(false, entry->isEntry());
+    const KeySequenceEntry* tmp = entry->getKeySequenceEntry(65);
+    IUNIT_NOT_NULL( tmp );
+    IUNIT_EQ(true, tmp->isEntry());
+    tmp = entry->getKeySequenceEntry(66);
+    IUNIT_NOT_NULL( tmp );
+    IUNIT_EQ(true, tmp->isEntry());
     keyMap.deleteKeyCodeSeq("CTRL-A");
     IUNIT_NOT_NULL(keyMap.getKeyEntry(27));
     IUNIT_NULL(keyMap.getKeyEntry(1));
