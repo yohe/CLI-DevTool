@@ -174,84 +174,40 @@ void Console::printTitle() {
     std::cout << "+------------------------------------+\n";
 }
 
-#define SEMICOLON_SPLIT_1(x) stroke.push_back(x);
-#define SEMICOLON_SPLIT_2(x) stroke.push_back(x); SEMICOLON_SPLIT_1
-#define SEMICOLON_SPLIT_3(x) stroke.push_back(x); SEMICOLON_SPLIT_2
-#define SEMICOLON_SPLIT_4(x) stroke.push_back(x); SEMICOLON_SPLIT_3
-
-// KEY_STROKE_DEF は Num に Asciiコード列長, Seq に Asciiコード列 を記載
-// Asciiコード列は、 (first) (second) (therd) のように各コードを () で括り記載する
-// Asciiコード列の調査は、make 時に作成される key_trace を使用する
-// 0x20 - 0x7F の間のAsciiコード( alphanumeric symbol )で始まるコード列は使用できません
-#define KEY_STROKE_DEF(Num, Seq) \
-    SEMICOLON_SPLIT_##Num Seq;
-
-// strokeListは KEY_STROKE_DEF を使用
-#define ADD_KEY_MAP(name, code, strokeList) \
-    strokeList; \
-    _keyMap.addKeyCodeSeq(name, stroke, code); \
-    stroke.clear();
-
-// Asciiコード列に対応するキーを設定する
-void Console::keyMapInitialize() {
-
-    std::vector<char> stroke;
-    ADD_KEY_MAP("BS", KeyCode::KEY_BS, KEY_STROKE_DEF(1, (127)));
-    ADD_KEY_MAP("DEL", KeyCode::KEY_DEL, KEY_STROKE_DEF(4, (27) (91) (51) (126)));
-
-    ADD_KEY_MAP("CTRL-SPACE", KeyCode::KEY_CTRL_SPACE, KEY_STROKE_DEF(1, (0)));
-    ADD_KEY_MAP("CTRL-A", KeyCode::KEY_CTRL_A, KEY_STROKE_DEF(1, (1)));
-    ADD_KEY_MAP("CTRL-B", KeyCode::KEY_CTRL_B, KEY_STROKE_DEF(1, (2)));
-    ADD_KEY_MAP("CTRL-C", KeyCode::KEY_CTRL_C, KEY_STROKE_DEF(1, (3)));
-    ADD_KEY_MAP("CTRL-E", KeyCode::KEY_CTRL_E, KEY_STROKE_DEF(1, (5)));
-    ADD_KEY_MAP("CTRL-F", KeyCode::KEY_CTRL_F, KEY_STROKE_DEF(1, (6)));
-    ADD_KEY_MAP("CTRL-H", KeyCode::KEY_CTRL_H, KEY_STROKE_DEF(1, (8)));
-    ADD_KEY_MAP("CTRL-J", KeyCode::KEY_CTRL_J, KEY_STROKE_DEF(1, (10) ));
-    ADD_KEY_MAP("CTRL-K", KeyCode::KEY_CTRL_K, KEY_STROKE_DEF(1, (11) ));
-    ADD_KEY_MAP("CTRL-N", KeyCode::KEY_CTRL_N, KEY_STROKE_DEF(1, (14) ));
-    ADD_KEY_MAP("CTRL-P", KeyCode::KEY_CTRL_P, KEY_STROKE_DEF(1, (16) ));
-
-    ADD_KEY_MAP("TAB", KeyCode::KEY_TAB, KEY_STROKE_DEF(1, (9)));
-    ADD_KEY_MAP("RETURN", KeyCode::KEY_CR, KEY_STROKE_DEF(1, (13)));
-    ADD_KEY_MAP("UP", KeyCode::KEY_UP_ARROW, KEY_STROKE_DEF(3, (27) (91) (65)));
-    ADD_KEY_MAP("DOWN", KeyCode::KEY_DOWN_ARROW, KEY_STROKE_DEF(3, (27) (91) (66) ));
-    ADD_KEY_MAP("RIGHT", KeyCode::KEY_RIGHT_ARROW, KEY_STROKE_DEF(3, (27) (91) (67) ));
-    ADD_KEY_MAP("LEFT", KeyCode::KEY_LEFT_ARROW, KEY_STROKE_DEF(3, (27) (91) (68) ));
-
-}
-
 // キー入力発生時に実行する関数を登録
 void Console::keyBindInitialize() {
 
+    std::cout << " ----- keyBindInitialize() -----" << std::endl;
+
     // Delete Character
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_K, &Console::actionClearFromCursorToEnd));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_K, &Console::actionClearFromCursorToEnd));
 
     // Complete
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_TAB, &Console::actionComplete));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_SPACE, &Console::actionComplete));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_TAB, &Console::actionComplete));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_SPACE, &Console::actionComplete));
 
     // History select
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_P, &Console::actionBackwardHistory));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_N, &Console::actionForwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_P, &Console::actionBackwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_N, &Console::actionForwardHistory));
 
     // cursor move
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_F, &Console::actionMoveCursorRight));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_F, &Console::actionMoveCursorRight));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom));
 
 
     // command execute
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CR, &Console::actionEnter));
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_J, &Console::actionEnter));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CR, &Console::actionEnter));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_J, &Console::actionEnter));
 
     // CTRL-C
-    _keyBindMap.insert(std::pair<int, Action>(KeyCode::KEY_CTRL_C, &Console::actionTerminate));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_C, &Console::actionTerminate));
 }
 

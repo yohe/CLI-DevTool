@@ -8,6 +8,7 @@ CC += $(CFLAGS)
 all: console key_trace
 
 debug: 
+	make clean
 	make all "CFLAGS+=-DDEBUG"
 
 console: sample.cc key_map.cc key_seq.cc console.h command/command.h command/command_selector.h 

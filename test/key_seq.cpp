@@ -3,6 +3,7 @@
 #include <test_macros.hpp>
 
 #include "key_seq.h"
+#include "key_code.h"
 
 using namespace iunit;
 
@@ -14,7 +15,7 @@ public:
     }
 
     virtual void setup() {
-        entry = new KeySequenceEntry(1, "CTRL-X", 100);
+        entry = new KeySequenceEntry(1, "CTRL-X", KeyCode::KEY_DEL);
     }
     virtual void teardown() {
         delete entry; entry = NULL;
@@ -28,8 +29,8 @@ public:
 };
 
 void KeySequenceEntryTest::test() {
-    IUNIT_EQ(1, entry->getKeyCode());
-    IUNIT_EQ(100, entry->getActionCode());
+    IUNIT_EQ(1, entry->getSequenceCode());
+    IUNIT_EQ(KeyCode::KEY_DEL, entry->getVirtualKeyCode());
     IUNIT_EQ("CTRL-X", entry->getStrokeName());
     IUNIT_EQ(true, entry->isEntry());
     IUNIT_EQ(NULL, entry->getKeySequenceEntry(2));
@@ -45,8 +46,8 @@ public:
 
     virtual void setup() {
         group = new KeySequenceGroup(50);
-        entry1 = new KeySequenceEntry(1, "CTRL-A", 10);
-        entry2 = new KeySequenceEntry(2, "CTRL-B", 10);
+        entry1 = new KeySequenceEntry(1, "CTRL-A", KeyCode::KEY_CTRL_J);
+        entry2 = new KeySequenceEntry(2, "CTRL-B", KeyCode::KEY_CTRL_J);
         group->addKeySequence(entry1);
         group->addKeySequence(entry2);
     }
@@ -62,7 +63,7 @@ public:
 };
 
 void KeySequenceGroupTest::test() {
-    IUNIT_EQ(50, group->getKeyCode());
+    IUNIT_EQ(50, group->getSequenceCode());
     //IUNIT_EQ(-1, entry->getActionCode());
     //IUNIT_EQ("null", entry->getStrokeName());
     IUNIT_EQ(false, group->isEntry());

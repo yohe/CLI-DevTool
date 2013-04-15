@@ -133,7 +133,7 @@ public:
 class Console {
     typedef bool (Console::*Action)();
     typedef CommandSelector::CommandSet CommandSet;
-    typedef std::map<int, Action> KeyBindMap;
+    typedef std::map<KeyCode::Code, Action> KeyBindMap;
     
 public:
 
@@ -271,8 +271,8 @@ public:
 
     // 処理ループ
     void run();
-    Action getAction(int actionCode) const {
-        KeyBindMap::const_iterator ite = _keyBindMap.find(actionCode);
+    Action getAction(KeyCode::Code keyCode) const {
+        KeyBindMap::const_iterator ite = _keyBindMap.find(keyCode);
         if(ite == _keyBindMap.end()) {
             return NULL;
         }
@@ -319,7 +319,7 @@ public:
     std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
 
     // ターミナル機能
-    void  printPrompt() {
+    void printPrompt() {
         printf("\r");
         std::string str = printPromptImpl();
         std::cout << "\x1b[36m" << str << "\x1b[39m";
@@ -548,6 +548,33 @@ public:
 };
 
 
+#define ADD_KEY_MAP(name, code, strokeList) \
+    strokeList; \
+    _keyMap.addKeyCodeSeq(stroke, code); \
+    stroke.clear();
+
+void Console::keyMapInitialize() {
+
+    KeyCode codeMaster;
+    codeMaster.initialize();
+    KeyBindMap::iterator ite = _keyBindMap.begin();
+    KeyBindMap::iterator end = _keyBindMap.end();
+    for(; ite != end; ite++) {
+        std::stringstream ss;
+        std::vector<char> stroke;
+        std::string codeSeq = codeMaster.getCodeSeq(ite->first);
+        std::cout << ite->first << " : " << codeSeq << std::endl;
+        ss << codeSeq;
+        while(!ss.eof()) {
+            int code;
+            ss >> code;
+            stroke.push_back(code);
+        }
+        _keyMap.addKeyCodeSeq(ite->first, stroke);
+    }
+    
+}
+
 bool Console::initialize() {
     if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
         return false;
@@ -580,13 +607,13 @@ bool Console::initialize() {
 #ifdef DEBUG
     std::cout << " ------------------ KeyMapSetting Start" << std::endl;
 #endif
-    // キーストロークの登録
-    keyMapInitialize();
     // キーストロークに対応するアクションの登録
     keyBindInitialize();
 #ifdef DEBUG
     std::cout << " ------------------ KeyMapSetting End" << std::endl;
 #endif
+    // キーストロークの登録
+    keyMapInitialize();
 
     installCommand(new BuiltInHelpCommand());
     installCommand(new BuiltInHistoryCommand());
@@ -656,7 +683,7 @@ void Console::run() {
 
         if(entry->isEntry()) {
 
-            int actionCode = entry->getActionCode();
+            KeyCode::Code actionCode = entry->getVirtualKeyCode();
             Action action = getAction(actionCode);
             if(action != NULL) {
                 (this->*action)();
@@ -877,10 +904,10 @@ bool Console::actionDeleteForwardCharacter() {
 }
 
 bool Console::actionEnter() {
-    execute(_inputString);
     if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
         return false;
     }
+    execute(_inputString);
     clearStatus();
     printPrompt();
 
@@ -964,7 +991,7 @@ void Console::executeCommand(const Command* cmd, const std::string& argument) {
         ret = cmd->execute(argument);
     }
 
-    std::cout << ret;
+    std::cout << ret << std::endl;
     if(_isLogging) {
         std::cout << std::flush;
     }
@@ -1177,7 +1204,6 @@ Console::CompletionType Console::completeCommandName() {
                 // 変更がないので候補表示
                 std::cout << std::endl;
                 printStringList(matchList.begin(), matchList.end());
-                std::cout << std::endl;
                 printPrompt();
                 _inputString = tmp;
                 _stringPos = tmp.size();
@@ -1388,6 +1414,7 @@ void Console::printStringList(Iterator lh, Iterator rh) {
         }
         lh++;
     }
+    std::cout << std::endl;
 }
 
 std::vector<std::string>* Console::divideStringToVector(std::string& src, std::list<std::string>& delimiter) {

@@ -6,27 +6,29 @@
 #include <vector>
 #include <map>
 
+#include "key_code.h"
+
 class KeySequenceEntry {
 public:
-    KeySequenceEntry(char keyCode, std::string strokeName, int actionCode);
+    KeySequenceEntry(char endSeqCode, KeyCode::Code keyCode);
     virtual ~KeySequenceEntry();
 
-    char getKeyCode() const { return _keyCode; }
-    std::string getStrokeName() const { return _strokeName; }
-    int getActionCode() const { return _actionCode; }
+    char getSequenceCode() const { return _sequenceCode; }
+    //std::string getStrokeName() const { return _strokeName; }
+    KeyCode::Code getVirtualKeyCode() const { return _virtualKeyCode; }
 
     virtual bool isEntry() const { return true; };
-    virtual const KeySequenceEntry* getKeySequenceEntry(char keyCode) const {
-        if(_keyCode != keyCode) {
+    virtual const KeySequenceEntry* getKeySequenceEntry(char sequenceCode) const {
+        if(_sequenceCode != sequenceCode) {
             return NULL;
         }
         return this;
     };
 
 protected:
-    char _keyCode;
-    std::string _strokeName;
-    int _actionCode;
+    char _sequenceCode;
+    //std::string _strokeName;
+    KeyCode::Code _virtualKeyCode;
 };
 
 class KeySequenceGroup: public KeySequenceEntry {

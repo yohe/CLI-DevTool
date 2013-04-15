@@ -3,8 +3,8 @@
 
 #include "key_seq.h"
 
-KeySequenceEntry::KeySequenceEntry(char keyCode, std::string strokeName, int actionCode) :
-    _keyCode(keyCode), _strokeName(strokeName), _actionCode(actionCode)
+KeySequenceEntry::KeySequenceEntry(char endSeqCode, KeyCode::Code keyCode) :
+    _sequenceCode(endSeqCode), _virtualKeyCode(keyCode)
 {
 
 }
@@ -13,7 +13,7 @@ KeySequenceEntry::~KeySequenceEntry() {
 
 }
 
-KeySequenceGroup::KeySequenceGroup(char groupCode) : KeySequenceEntry(groupCode, "null", -1) {
+KeySequenceGroup::KeySequenceGroup(char groupCode) : KeySequenceEntry(groupCode, KeyCode::KEY_NONE) {
 
 } 
 
@@ -40,9 +40,9 @@ KeySequenceEntry* KeySequenceGroup::getKeySequenceEntry(char keyCode) const {
 
 void KeySequenceGroup::addKeySequence(KeySequenceEntry* entry) {
 
-    GroupMap::iterator ite = _group.find(entry->getKeyCode());
+    GroupMap::iterator ite = _group.find(entry->getSequenceCode());
     if(ite == _group.end()) {
-        _group.insert(std::pair<char, KeySequenceEntry*>(entry->getKeyCode(), entry));
+        _group.insert(std::pair<char, KeySequenceEntry*>(entry->getSequenceCode(), entry));
         return;
     }
 

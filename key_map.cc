@@ -19,7 +19,7 @@ KeyMap::~KeyMap() {
 }
 
 
-void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyStroke, int keyCode) {
+void KeyMap::addKeyCodeSeq(KeyCode::Code keyCode, std::vector<char> keyStroke) {
 #ifdef DEBUG
     std::cout << "[ \"" << strokeName << "\" ]" << "install start." << std::endl;
 #endif
@@ -35,12 +35,12 @@ void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyS
 
     if(entry == NULL) {
         if(keyStroke.size() == 1) {
-            _keyMap.insert(std::pair<char, KeySequenceEntry*>(*ite, new KeySequenceEntry(*ite, strokeName, keyCode)));
+            _keyMap.insert(std::pair<char, KeySequenceEntry*>(*ite, new KeySequenceEntry(*ite, keyCode)));
 #ifdef DEBUG
             std::cout << "[ \"" << strokeName << "\" ]" << "installed." << std::endl;
             std::cout << "[ \"" << strokeName << "\" ]" << "install end." << std::endl;
 #endif
-            _nameMap.insert(std::pair<std::string, std::vector<char> >(strokeName, keyStroke));
+            _registeredMap.insert(std::pair<KeyCode::Code, std::vector<char> >(keyCode, keyStroke));
             return;
         } else {
             entry = new KeySequenceGroup(*ite);
@@ -68,9 +68,9 @@ void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyS
             // 最後のキーコードであれば KeySequenceEntry
             // 途中のキーコードであれば KeySequenceGroupe
             if(ite == endIte) {
-                group->addKeySequence(new KeySequenceEntry(*ite, strokeName, keyCode));
+                group->addKeySequence(new KeySequenceEntry(*ite, keyCode));
 #ifdef DEBUG
-                std::cout << "[ \"" << strokeName << "\" ]" << "installed. : " << (int)group->getKeyCode() << std::endl;
+                std::cout << "[ \"" << strokeName << "\" ]" << "installed. : " << (int)group->getSequenceCode() << std::endl;
 #endif
                 break;
             } else {
@@ -84,7 +84,7 @@ void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyS
             std::vector<char>::iterator next = ite;
             next++;
             if(next == keyStroke.end()) {
-                std::cout << "\"" << strokeName << "\"" << " is install error. : conflict keystroke" << std::endl;
+                std::cout << "\"" << keyCode << "\"" << " is install error. : conflict keystroke" << std::endl;
                 return;
             }
         }
@@ -93,17 +93,17 @@ void KeyMap::addKeyCodeSeq(const std::string& strokeName, std::vector<char> keyS
 #ifdef DEBUG
     std::cout << "[ \"" << strokeName << "\" ]" << "install end." << std::endl;
 #endif
-    _nameMap.insert(std::pair<std::string, std::vector<char> >(strokeName, keyStroke));
+    _registeredMap.insert(std::pair<KeyCode::Code, std::vector<char> >(keyCode, keyStroke));
     return;
 }
 
-void KeyMap::deleteKeyCodeSeq(const std::string& strokeName) {
-    StrokeNameMap::iterator ite = _nameMap.find(strokeName);
-    if( ite == _nameMap.end() ) {
+void KeyMap::deleteKeyCodeSeq(KeyCode::Code keyCode) {
+    RegisteredKeyMap::iterator ite = _registeredMap.find(keyCode);
+    if( ite == _registeredMap.end() ) {
         return;
     }
     std::vector<char> keyStroke(ite->second);
-    _nameMap.erase(strokeName);
+    _registeredMap.erase(keyCode);
 
     std::vector<char>::iterator keyIte = keyStroke.begin();
     KeySequenceEntry* entry = NULL;
@@ -118,7 +118,7 @@ void KeyMap::deleteKeyCodeSeq(const std::string& strokeName) {
         KeySequenceGroup* group = dynamic_cast<KeySequenceGroup*>(entry);
         entry = group->getKeySequenceEntry(*keyIte);
         if(entry->isEntry()) {
-            group->deleteKeySequence(entry->getKeyCode());
+            group->deleteKeySequence(entry->getSequenceCode());
             break;
         }
     }
@@ -132,9 +132,9 @@ KeySequenceEntry* KeyMap::getKeyEntry(char keyCode) const {
 
     return ite->second;
 }
-KeySequenceEntry* KeyMap::getKeyEntry(const std::string& strokeName) const {
-    StrokeNameMap::const_iterator ite = _nameMap.find(strokeName);
-    if( ite == _nameMap.end() ) {
+KeySequenceEntry* KeyMap::getKeyEntry(const KeyCode::Code keyCode) const {
+    RegisteredKeyMap::const_iterator ite = _registeredMap.find(keyCode);
+    if( ite == _registeredMap.end() ) {
         return NULL;
     }
     
