@@ -35,6 +35,7 @@ This software is development tool for creating console. The created console has 
     - Please edit the Makefile if you want to change the compiler.
 
 ```bash
+$ cmake .
 $ make
 $ ./console
 ```
