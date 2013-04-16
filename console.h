@@ -563,7 +563,6 @@ void Console::keyMapInitialize() {
         std::stringstream ss;
         std::vector<char> stroke;
         std::string codeSeq = codeMaster.getCodeSeq(ite->first);
-        std::cout << ite->first << " : " << codeSeq << std::endl;
         ss << codeSeq;
         while(!ss.eof()) {
             int code;
@@ -643,7 +642,9 @@ void Console::run() {
     _stringPos=0;
     _historyIndex = 0;
     bool isKeyStrokeBeginning = false;
+#ifndef KEY_TRACE
     const KeySequenceEntry* entry = NULL;
+#endif
     while(isEnd()) {
         char input = fgetc(stdin);
         //bool ret = userKeyHookProc(input);

@@ -19,12 +19,16 @@ This software is development tool for creating console. The created console has 
 
 * Support OS
     * Mac OS X
-    * Linux (maybe)
+    * Linux
 
 ----
+## Required
+* Packages
+    * cmake 2.6 or later
+    * g++ or clang++
 
-* Use library
-    * ncurses
+* Use libraries
+    * ncurses-dev
 
 ## Compile and Running.
 * For sample

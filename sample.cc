@@ -177,8 +177,6 @@ void Console::printTitle() {
 // キー入力発生時に実行する関数を登録
 void Console::keyBindInitialize() {
 
-    std::cout << " ----- keyBindInitialize() -----" << std::endl;
-
     // Delete Character
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
