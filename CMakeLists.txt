@@ -13,11 +13,24 @@ ENDIF(APPLE)
 
 ADD_EXECUTABLE(console sample.cc key_seq.cc key_map.cc)
 ADD_EXECUTABLE(key_trace sample.cc key_seq.cc key_map.cc)
+#ADD_EXECUTABLE(test/test_main test/main.cpp key_seq.cc key_map.cc)
+
+set_directory_properties(PROPERTIES
+                         ADDITIONAL_MAKE_CLEAN_FILES "test/test_main")
 
 set_target_properties(console PROPERTIES LINK_FLAGS -lncurses)
 set_target_properties(console PROPERTIES COMPILE_FLAGS "-Wall")
 set_target_properties(key_trace PROPERTIES COMPILE_FLAGS "-Wall -DKEY_TRACE")
 set_target_properties(key_trace PROPERTIES LINK_FLAGS -lncurses)
+#set_target_properties(test/test_main PROPERTIES COMPILE_FLAGS "-Wall -I ../ -I ../iunit/cpp")
+#set_target_properties(test/test_main PROPERTIES LINK_FLAGS -lncurses)
+
+
+add_custom_target(test
+                  COMMAND cmake .
+                  COMMAND make
+                  COMMAND make run
+                  WORKING_DIRECTORY test
+)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-
