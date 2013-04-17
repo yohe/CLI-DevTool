@@ -140,10 +140,10 @@ public:
         _code[KEY_TAB]    = "9";
         _code[KEY_NL]     = "10";
         _code[KEY_CR]     = "13";
-#ifdef USE_KEY_DEL_AS_ESC_SEQ_DEL
-        _code[KEY_DEL]    = "21 91 51 126";
-#else
+#ifdef USE_KEY_DEL_AS_ASCII_DEL
         _code[KEY_DEL]    = "127";
+#else
+        _code[KEY_DEL]    = "27 91 51 126";
 #endif
         _code[KEY_DEL]    = "127";
         _code[KEY_UP_ARROW] = "27 91 65";
