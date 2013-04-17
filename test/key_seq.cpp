@@ -15,7 +15,7 @@ public:
     }
 
     virtual void setup() {
-        entry = new KeySequenceEntry(1, "CTRL-X", KeyCode::KEY_DEL);
+        entry = new KeySequenceEntry(1, KeyCode::KEY_DEL);
     }
     virtual void teardown() {
         delete entry; entry = NULL;
@@ -31,7 +31,7 @@ public:
 void KeySequenceEntryTest::test() {
     IUNIT_EQ(1, entry->getSequenceCode());
     IUNIT_EQ(KeyCode::KEY_DEL, entry->getVirtualKeyCode());
-    IUNIT_EQ("CTRL-X", entry->getStrokeName());
+    //IUNIT_EQ("CTRL-X", entry->getStrokeName());
     IUNIT_EQ(true, entry->isEntry());
     IUNIT_EQ(NULL, entry->getKeySequenceEntry(2));
     IUNIT_EQ(entry, entry->getKeySequenceEntry(1));
@@ -46,8 +46,8 @@ public:
 
     virtual void setup() {
         group = new KeySequenceGroup(50);
-        entry1 = new KeySequenceEntry(1, "CTRL-A", KeyCode::KEY_CTRL_J);
-        entry2 = new KeySequenceEntry(2, "CTRL-B", KeyCode::KEY_CTRL_J);
+        entry1 = new KeySequenceEntry(1, KeyCode::KEY_CTRL_J);
+        entry2 = new KeySequenceEntry(2, KeyCode::KEY_CTRL_J);
         group->addKeySequence(entry1);
         group->addKeySequence(entry2);
     }
