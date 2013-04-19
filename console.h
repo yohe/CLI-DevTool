@@ -145,13 +145,12 @@ public:
         ERROR
     };
 
-    Console(size_t histroySize = 20, bool isCTRL_CPermit = true, std::string filename = ".cli_history") :
+    Console(size_t histroySize = 20, std::string filename = ".cli_history") :
         _commandSelector(NULL),
         _historyMax(histroySize),
         _historyFile(filename),
-        _isCTRL_CPermit(isCTRL_CPermit),
-        _tmpCTRL_CPermit(isCTRL_CPermit),
-        _isLogging(false)
+        _isLogging(false),
+        _isTerminatePermit(true)
     {
         //_commandSelector = new DefaultCommandSelector();
         _commandSelector = new AbbreviatedCommandSelector();
@@ -174,7 +173,8 @@ public:
     bool actionTerminate();
     bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); return true;}
     bool actionClearLine() { clearLine(); return true; }
-    bool actionClearFromCursorToEnd();
+    bool actionDeleteFromCursorToEnd();
+    bool actionDeleteFromHeadToCursor();
 
 private:
     // 初期化
@@ -280,14 +280,6 @@ public:
         return ite->second;
     }
 
-    // CTRL-C を受け付けるか
-    bool isCTRL_CPermit() {
-        return _isCTRL_CPermit;
-    }
-    void setCTRL_CPermit(bool isPermit) {
-        _isCTRL_CPermit = isPermit;
-    }
-
     bool isLogging() { return _isLogging; }
     bool loggingMode(bool flag, std::string filename = "typescript"); 
     void updateDisplayFromScriptLog() {
@@ -390,9 +382,8 @@ protected:
     size_t _historyIndex;
     size_t _historyMax;
     std::string _historyFile;
-    bool _isCTRL_CPermit;
-    bool _tmpCTRL_CPermit;
     bool _isLogging;
+    bool _isTerminatePermit;
     bool _logFlag;
     FILE* _typeLog;
     size_t _before_fpos, _after_fpos;
@@ -916,14 +907,14 @@ bool Console::actionEnter() {
 }
 
 bool Console::actionTerminate() {
-    if(isCTRL_CPermit()) {
-        _consoleExit = true; return true;
-    } else {
-        return false;
+    if(_isTerminatePermit) {
+        _consoleExit = true;
+        return true;
     }
+    return false;
 }
 
-bool Console::actionClearFromCursorToEnd() {
+bool Console::actionDeleteFromCursorToEnd() {
     size_t cursorPos = getCursorPosOnString();
     size_t strSize = _inputString.size();
 
@@ -1351,7 +1342,6 @@ bool Console::loggingMode(bool flag, std::string filename) {
         if(_typeLog == NULL) {
             _systemErrorNumber = errno;
             _isLogging = false;
-            setCTRL_CPermit(_tmpCTRL_CPermit);
             return false;
         }
         _typeLogFd = fileno(_typeLog);
@@ -1368,7 +1358,7 @@ bool Console::loggingMode(bool flag, std::string filename) {
         std::cout << "Script started, output file is " << _typeLogName << "." << std::endl;
         system("date");
 
-        setCTRL_CPermit(false);
+        _isTerminatePermit = false;
     } else {
         std::cout << "Script done, output file is " << _typeLogName << "." << std::endl;
         system("date");
@@ -1382,7 +1372,7 @@ bool Console::loggingMode(bool flag, std::string filename) {
         close(_stdinBackup);
         close(_stderrBackup);
 
-        setCTRL_CPermit(_tmpCTRL_CPermit);
+        _isTerminatePermit = true;
     }
 
     return true;

@@ -118,13 +118,12 @@ private:
 int main(int argc, char const* argv[])
 {
     int historySize = 100;
-    bool ctrl_c = true; // false : ignore <CTRL-C> key.
     std::string historyFileName = ".cli_history";
 
     // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
     // Console console(history); 
     // Console console(history, ctrl_c);
-    Console console(historySize, ctrl_c, historyFileName.c_str());
+    Console console(historySize, historyFileName.c_str());
 
     if(console.installCommand(new ExitCommand()) == false) {
         std::cout << "install false" << std::endl;
@@ -180,7 +179,7 @@ void Console::keyBindInitialize() {
     // Delete Character
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_K, &Console::actionClearFromCursorToEnd));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_K, &Console::actionDeleteFromCursorToEnd));
 
     // Complete
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_TAB, &Console::actionComplete));

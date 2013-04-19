@@ -133,9 +133,9 @@ public:
         _code[KEY_CTRL_Z] = "26";
         _code[KEY_BEL]    = "7";
 #ifdef USE_KEY_BS_AS_ASCII_DEL
-        _code[KEY_BS]     = "127";
-#else
         _code[KEY_BS]     = "8";
+#else
+        _code[KEY_BS]     = "127";
 #endif
         _code[KEY_TAB]    = "9";
         _code[KEY_NL]     = "10";
@@ -145,7 +145,6 @@ public:
 #else
         _code[KEY_DEL]    = "27 91 51 126";
 #endif
-        _code[KEY_DEL]    = "127";
         _code[KEY_UP_ARROW] = "27 91 65";
         _code[KEY_DOWN_ARROW] = "27 91 66";
         _code[KEY_RIGHT_ARROW] = "27 91 67";
