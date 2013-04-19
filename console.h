@@ -652,7 +652,13 @@ void Console::run() {
                 _inputString.insert(_stringPos, 1, input);
                 ++_stringPos;
                 //printPrompt();
+                // 端末を挿入モードに設定することで、標準出力に入力するだけで、
+                // 文字の追加処理を意識せずにカーソル位置に入力できる。
+                char enterIns[8] = "smir";
+                char endIns[8] = "rmir";
+                putp(tigetstr(enterIns));
                 std::cout << input;
+                putp(tigetstr(endIns));
                 //setCursorPos(_stringPos);
 #endif
                 continue;
@@ -920,6 +926,15 @@ bool Console::actionDeleteFromCursorToEnd() {
 
     putp(tparm(parm_dch, strSize-cursorPos));
     _inputString.erase(cursorPos, strSize-cursorPos);
+
+    return true;
+}
+bool Console::actionDeleteFromHeadToCursor() {
+    size_t cursorPos = getCursorPosOnString();
+    while(cursorPos > 0) {
+        actionDeleteBackwardCharacter();
+        cursorPos--;
+    }
 
     return true;
 }
