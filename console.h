@@ -1122,7 +1122,7 @@ bool Console::actionComplete() {
 
     if( ret ) {
         // 完全補完
-        size_t pos = after.rfind(param);
+        size_t pos = after.find(param);
         std::string sub = after.substr(pos+param.length());
         if(pos != std::string::npos) {
             _inputString.append(sub);
@@ -1150,7 +1150,6 @@ bool Console::actionComplete() {
                     _stringPos = _inputString.size();
                     return true;
                 } else {
-                    std::cout << std::endl << "Point A" << std::endl;
                     size_t pos = _inputString.rfind(param);
                     if(pos != std::string::npos) {
                         _inputString.replace(pos, param.size(), after);
