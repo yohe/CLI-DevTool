@@ -129,12 +129,16 @@ public:
 
 };
 
+class BuiltInScriptCommand;
+class BuiltInScriptExitCommand;
 
 class Console {
     typedef bool (Console::*Action)();
     typedef CommandSelector::CommandSet CommandSet;
     typedef std::map<KeyCode::Code, Action> KeyBindMap;
     
+    friend class BuiltInScriptCommand;
+    friend class BuiltInScriptExitCommand;
 public:
 
     enum CompletionType {
@@ -193,12 +197,117 @@ private:
         _inputString.clear();
         tcsetattr(fileno(stdin), TCSANOW, &_save_term);
     }
-
     void keyMapInitialize();
     void keyBindInitialize();
 
-public:
+    // アクション
+    Action getAction(KeyCode::Code keyCode) const {
+        KeyBindMap::const_iterator ite = _keyBindMap.find(keyCode);
+        if(ite == _keyBindMap.end()) {
+            return NULL;
+        }
 
+        return ite->second;
+    }
+
+    // 補完機能
+    CompletionType completeCommandName();
+    void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList);
+    bool completeCommand(std::string& key, std::vector<std::string>& matchList);
+    template <class Iterator>
+    bool completeStringList(std::string& key, std::vector<std::string>& matchList, Iterator begin, Iterator end);
+
+    // コマンド機能
+    void executeCommand(const Command* cmd, const std::string& argument);
+    Command* getCommandFromInputString(std::string& inputString);
+
+    // History
+    void loadHistory();
+    bool selectHistory(bool up);
+    void addHistory(std::string str, bool save = true);
+
+     // 画面フォーマット出力
+    void printPrompt() {
+        printf("\r");
+        std::string str = printPromptImpl();
+        std::cout << "\x1b[36m" << str << "\x1b[39m";
+    }
+    std::string printPromptImpl() const;
+    // ターミナル操作機能
+    bool moveCursor(bool left);
+    void clearLine(bool clearString = true) {
+
+        std::string tmp = _inputString;
+
+        size_t length = _inputString.length();
+        actionMoveCursorBottom();
+        while(length > 0) {
+            actionDeleteBackwardCharacter();
+            length--;
+        }
+
+        if(clearString) {
+            clearInputString();
+        } else {
+            _inputString = tmp;
+            _stringPos = tmp.length();
+        }
+        printPrompt();
+    }
+    void clearInputString() {
+        _stringPos = 0;
+        _inputString.clear();
+    }
+    void setCursorPos(int pos) {
+        int sub = _stringPos - pos;
+        //sub -= printPromptImpl().length();
+        if(sub > 0) {
+            putp(tparm(parm_left_cursor, sub));
+        } else if(sub < 0) {
+            sub *= -1;
+            putp(tparm(parm_right_cursor, sub));
+        }
+        _stringPos = pos;
+    }
+    void clearStatus() {
+        _stringPos = 0;
+        _inputString.clear();
+        _historyIndex = 0;
+    }
+    bool isEnd() {
+        return !_consoleExit;
+    }
+
+    template <class Iterator>
+    void printStringList(Iterator begin, Iterator end);
+
+    // script コマンド対応
+    bool loggingMode(bool flag, std::string filename = "typescript"); 
+    void updateDisplayFromScriptLog() {
+
+        fseek(_typeLog, 0, SEEK_END);
+        _after_fpos = ftell(_typeLog);
+        if(_before_fpos >= _after_fpos) {
+            return;
+        }
+ 
+        char* buf = new char[_after_fpos - _before_fpos + 1];
+        size_t size = _after_fpos - _before_fpos;
+        if(fseek(_typeLog, _before_fpos, SEEK_SET) != 0) {
+            assert(false);
+        }
+        if(fread(buf, size, 1, _typeLog) == 0) {
+            assert(false);
+        }
+        _before_fpos = ftell(_typeLog);
+        buf[size] = '\0';
+        dup2(_stdinBackup, 1);
+        dup2(_stderrBackup, 2);
+
+        std::cout << buf;
+    }
+
+public:
 
     // エラー
     std::string getSystemError() {
@@ -208,15 +317,10 @@ public:
     // ヒストリ機能
     void printAllHistory();
     std::string getHistory(size_t index); 
-    void addHistory(std::string str, bool save = true);
 
-    // 画面フォーマット出力
-    std::string printPromptImpl() const;
     void printTitle(); 
-
     void printAllCommandName();
-    template <class Iterator>
-    void printStringList(Iterator begin, Iterator end);
+
     void beep() { printf("\a"); }
     std::string getUserName() const { return _user_name; }
     std::string getHostName() const {
@@ -257,11 +361,9 @@ public:
         }
         return true;
     }
-    
     Command* getCommand(std::string key) const {
         return _commandSelector->getCommand(key);
     }
-
     void getCommandNameList(std::vector<std::string>& nameList) {
         for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
             ite != _commandSelector->getCommandSet().end();
@@ -272,74 +374,9 @@ public:
 
     // 処理ループ
     void run();
-    Action getAction(KeyCode::Code keyCode) const {
-        KeyBindMap::const_iterator ite = _keyBindMap.find(keyCode);
-        if(ite == _keyBindMap.end()) {
-            return NULL;
-        }
-
-        return ite->second;
-    }
-
-    bool isLogging() { return _isLogging; }
-    bool loggingMode(bool flag, std::string filename = "typescript"); 
-    void updateDisplayFromScriptLog() {
-
-        fseek(_typeLog, 0, SEEK_END);
-        _after_fpos = ftell(_typeLog);
-        if(_before_fpos >= _after_fpos) {
-            return;
-        }
- 
-        char* buf = new char[_after_fpos - _before_fpos + 1];
-        size_t size = _after_fpos - _before_fpos;
-        if(fseek(_typeLog, _before_fpos, SEEK_SET) != 0) {
-            assert(false);
-        }
-        if(fread(buf, size, 1, _typeLog) == 0) {
-            assert(false);
-        }
-        _before_fpos = ftell(_typeLog);
-        buf[size] = '\0';
-        dup2(_stdinBackup, 1);
-        dup2(_stderrBackup, 2);
-
-        std::cout << buf;
-    }
-
 
     // 文字列分割
     std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
-
-    // ターミナル機能
-    void printPrompt() {
-        printf("\r");
-        std::string str = printPromptImpl();
-        std::cout << "\x1b[36m" << str << "\x1b[39m";
-    }
-    void clearLine(bool clearString = true) {
-
-        std::string tmp = _inputString;
-
-        size_t length = _inputString.length();
-        actionMoveCursorBottom();
-        while(length > 0) {
-            actionDeleteBackwardCharacter();
-            length--;
-        }
-
-        if(clearString) {
-            clearInputString();
-        } else {
-            _inputString = tmp;
-            _stringPos = tmp.length();
-        }
-        printPrompt();
-    }
-    void clearInputString() {
-        _stringPos = 0;
-        _inputString.clear();
-    }
 
     int getTerminalColumnSize() const ;
     int getTerminalLineSize() const ;
@@ -349,44 +386,9 @@ public:
     int getCursorPosOnString() const {
         return _stringPos;
     }
-    void setCursorPos(int pos) {
-        int sub = _stringPos - pos;
-        //sub -= printPromptImpl().length();
-        if(sub > 0) {
-            putp(tparm(parm_left_cursor, sub));
-        } else if(sub < 0) {
-            sub *= -1;
-            putp(tparm(parm_right_cursor, sub));
-        }
-        _stringPos = pos;
-    }
-    void clearStatus() {
-        _stringPos = 0;
-        _inputString.clear();
-        _historyIndex = 0;
-    }
-    bool moveCursor(bool left);
 
-    // 補完機能
-    CompletionType completeCommandName();
-    void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList);
-    bool completeCommand(std::string& key, std::vector<std::string>& matchList);
-    template <class Iterator>
-    bool completeStringList(std::string& key, std::vector<std::string>& matchList, Iterator begin, Iterator end);
+    bool isLogging() { return _isLogging; }
 
-    // コマンド実行機能
-    void executeCommand(const Command* cmd, const std::string& argument);
-
-    // コマンド取得機能
-    Command* getCommandFromInputString(std::string& inputString);
-
-    // History
-    void loadHistory();
-    bool selectHistory(bool up);
-
-    bool isEnd() {
-        return !_consoleExit;
-    }
 protected:
 
     KeyMap _keyMap;
