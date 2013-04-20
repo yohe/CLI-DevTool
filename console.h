@@ -317,11 +317,21 @@ public:
         std::cout << "\x1b[36m" << str << "\x1b[39m";
     }
     void clearLine(bool clearString = true) {
-        char str[8] = "dl1";
-        char* cmd = tigetstr(str);
-        putp(cmd);
+
+        std::string tmp = _inputString;
+
+        size_t length = _inputString.length();
+        actionMoveCursorBottom();
+        while(length > 0) {
+            actionDeleteBackwardCharacter();
+            length--;
+        }
+
         if(clearString) {
             clearInputString();
+        } else {
+            _inputString = tmp;
+            _stringPos = tmp.length();
         }
         printPrompt();
     }
@@ -339,10 +349,15 @@ public:
         return _stringPos;
     }
     void setCursorPos(int pos) {
-        printf("\r");
+        int sub = _stringPos - pos;
+        //sub -= printPromptImpl().length();
+        if(sub > 0) {
+            putp(tparm(parm_left_cursor, sub));
+        } else if(sub < 0) {
+            sub *= -1;
+            putp(tparm(parm_right_cursor, sub));
+        }
         _stringPos = pos;
-        pos += printPromptImpl().length();
-        putp(tparm(parm_right_cursor, pos));
     }
     void clearStatus() {
         _stringPos = 0;
@@ -655,11 +670,10 @@ void Console::run() {
                 // 端末を挿入モードに設定することで、標準出力に入力するだけで、
                 // 文字の追加処理を意識せずにカーソル位置に入力できる。
                 char enterIns[8] = "smir";
-                char endIns[8] = "rmir";
+                char exitIns[8] = "rmir";
                 putp(tigetstr(enterIns));
                 std::cout << input;
-                putp(tigetstr(endIns));
-                //setCursorPos(_stringPos);
+                putp(tigetstr(exitIns));
 #endif
                 continue;
             }
@@ -826,7 +840,11 @@ bool Console::selectHistory(bool up) {
         clearLine();
         std::string history = getHistory(_historyIndex-1);
         _inputString = history;
+        char enterIns[8] = "smir";
+        char endIns[8] = "rmir";
+        putp(tigetstr(enterIns));
         std::cout << _inputString;
+        putp(tigetstr(endIns));
         _stringPos = _inputString.size();
     }
 
@@ -1132,6 +1150,7 @@ bool Console::actionComplete() {
                     _stringPos = _inputString.size();
                     return true;
                 } else {
+                    std::cout << std::endl << "Point A" << std::endl;
                     size_t pos = _inputString.rfind(param);
                     if(pos != std::string::npos) {
                         _inputString.replace(pos, param.size(), after);
@@ -1152,7 +1171,7 @@ bool Console::actionComplete() {
                 if(param.empty()) {
                     _inputString += after;
                     _stringPos = _inputString.size();
-                    clearLine(false);       
+                    clearLine(false);
                     std::cout << _inputString;
                     return true;
                 } else {
@@ -1160,7 +1179,7 @@ bool Console::actionComplete() {
                     if(pos != std::string::npos) {
                         _inputString.replace(pos, param.size(), after);
                         _stringPos = _inputString.size();
-                        clearLine(false);       
+                        clearLine(false);
                         std::cout << _inputString;
                         return true;
                     } else {
@@ -1190,7 +1209,7 @@ Console::CompletionType Console::completeCommandName() {
     bool ret = completeCommand(tmp, matchList);
     if( ret ) {
         // 完全補完
-        clearLine();       
+        clearLine();
         _inputString = tmp + " ";
         _stringPos = tmp.size()+1;
         std::cout << _inputString;
@@ -1202,7 +1221,7 @@ Console::CompletionType Console::completeCommandName() {
             // 補完が行われた場合は、そのまま表示
             // 変更がない場合は、候補を表示する。
             if(tmp != _inputString) {
-                clearLine();       
+                clearLine();
                 _inputString = tmp;
                 _stringPos = tmp.size();
                 std::cout << _inputString;
