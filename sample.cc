@@ -163,8 +163,8 @@ int main(int argc, char const* argv[])
 
 std::string Console::printPromptImpl() const {
     std::string dir = getCurrentDirectory();
-    std::string prompt = "$ ";
-    //std::string prompt = "[" + _user_name + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
+    //std::string prompt = "$ ";
+    std::string prompt = "[" + _user_name + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
     return prompt;
 }
 void Console::printTitle() {
@@ -181,6 +181,7 @@ void Console::keyBindInitialize() {
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_K, &Console::actionDeleteFromCursorToEnd));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_U, &Console::actionDeleteFromHeadToCursor));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_L, &Console::actionClearScreen));
 
     // Complete
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_TAB, &Console::actionComplete));

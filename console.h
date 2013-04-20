@@ -175,6 +175,7 @@ public:
     bool actionClearLine() { clearLine(); return true; }
     bool actionDeleteFromCursorToEnd();
     bool actionDeleteFromHeadToCursor();
+    bool actionClearScreen();
 
 private:
     // 初期化
@@ -932,6 +933,7 @@ bool Console::actionEnter() {
 
 bool Console::actionTerminate() {
     if(_isTerminatePermit) {
+        std::cout << std::endl;
         _consoleExit = true;
         return true;
     }
@@ -954,6 +956,20 @@ bool Console::actionDeleteFromHeadToCursor() {
         cursorPos--;
     }
 
+    return true;
+}
+
+bool Console::actionClearScreen() {
+    char str[8] = "clear";
+    char* cmd;
+    if((cmd = tigetstr(str)) == NULL) {
+        return false;
+    }
+    if(putp(cmd) == ERR) {
+        return false;
+    }
+
+    clearLine();
     return true;
 }
 
