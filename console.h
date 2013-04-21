@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cstdio>
 #include <set>
+#include <algorithm>
 
 #include <string.h>
 #include <errno.h>
@@ -29,6 +30,20 @@
 #include "command/command.h"
 #include "command/command_selector.h"
 
+namespace {
+    class NotSpaceCampare {
+    public:
+        bool operator()(char c) {
+            return c != ' ';
+        }
+    };
+    class SpaceCampare {
+    public:
+        bool operator()(char c) {
+            return c == ' ';
+        }
+    };
+};
 //namespace console {
 
 class SystemFuncCommand : public Command {
@@ -169,8 +184,12 @@ public:
     bool actionForwardHistory(){ return selectHistory(false); }
     bool actionMoveCursorRight() { return moveCursor(false); }
     bool actionMoveCursorLeft() { return moveCursor(true); }
+    bool actionMoveCursorForwardParam();
+    bool actionMoveCursorBackwardParam();
     bool actionDeleteForwardCharacter();
     bool actionDeleteBackwardCharacter();
+    bool actionDeleteForwardParam();
+    bool actionDeleteBackwardParam();
     bool actionEnter();
     bool actionComplete();
     bool actionMoveCursorTop() { setCursorPos(0); return true;}
@@ -885,6 +904,45 @@ bool Console::moveCursor(bool left) {
     return true;
 }
 
+bool Console::actionMoveCursorForwardParam() {
+    size_t pos = getCursorPosOnString();
+    size_t space = _inputString.find(" ", pos);
+    if(space == std::string::npos) {
+        setCursorPos(_inputString.length());
+        return true;
+    }
+    size_t nextParamPos = _inputString.find_first_not_of(" ", space);
+    if(nextParamPos == std::string::npos) {
+        setCursorPos(_inputString.length());
+        return true;
+    }
+    setCursorPos(nextParamPos);
+    return true;
+}
+bool Console::actionMoveCursorBackwardParam() {
+    size_t pos = getCursorPosOnString();
+    size_t nextParamPos = 0;
+    if(_inputString[pos] == ' ') {
+        std::string::reverse_iterator ite = _inputString.rbegin();
+        std::string::reverse_iterator end = _inputString.rend();
+        ite += (_inputString.length() - (pos+1));
+        std::string::reverse_iterator ret = std::find_if(ite, end, NotSpaceCampare());
+        ret = std::find_if(ret, end, SpaceCampare());
+        nextParamPos = std::distance(ret, end);
+    } else {
+        std::string::reverse_iterator ite = _inputString.rbegin();
+        std::string::reverse_iterator end = _inputString.rend();
+        ite += (_inputString.length() - (pos+1));
+        ite++;
+        std::string::reverse_iterator ret = std::find_if(ite, end, NotSpaceCampare());
+        ret = std::find_if(ret, end, SpaceCampare());
+        nextParamPos = std::distance(ret, end);
+    }
+
+    setCursorPos(nextParamPos);
+    return true;
+}
+
 bool Console::actionDeleteBackwardCharacter() {
     if(_inputString.empty()) {
         // 入力文字列がない
@@ -920,6 +978,14 @@ bool Console::actionDeleteForwardCharacter() {
         beep();
     }
     return false;
+}
+
+bool Console::actionDeleteForwardParam() {
+    return true;
+}
+
+bool Console::actionDeleteBackwardParam() {
+    return true;
 }
 
 bool Console::actionEnter() {
