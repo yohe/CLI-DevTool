@@ -188,8 +188,7 @@ public:
     bool actionMoveCursorBackwardParam();
     bool actionDeleteForwardCharacter();
     bool actionDeleteBackwardCharacter();
-    bool actionDeleteForwardParam();
-    bool actionDeleteBackwardParam();
+    bool actionDeleteParam();
     bool actionEnter();
     bool actionComplete();
     bool actionMoveCursorTop() { setCursorPos(0); return true;}
@@ -980,11 +979,30 @@ bool Console::actionDeleteForwardCharacter() {
     return false;
 }
 
-bool Console::actionDeleteForwardParam() {
-    return true;
-}
+bool Console::actionDeleteParam() {
+    size_t pos = getCursorPosOnString();
+    size_t delSize = 0;
+    if(_inputString[pos] == ' ') {
+        return false;
+    }
 
-bool Console::actionDeleteBackwardParam() {
+    std::string::iterator ite = _inputString.begin();
+    std::string::iterator end = _inputString.end();
+    ite += pos;
+    std::string::iterator ret = std::find_if(ite, end, NotSpaceCampare());
+    ret = std::find_if(ret, end, SpaceCampare());
+    if(ret == end) {
+        ret = end;
+    } else {
+        ret++;
+    }
+    //std::cout << std::endl << "["<< *ite << "]:[" << *ret << "]" << std::endl;
+    delSize = std::distance(ite, ret);
+    while(delSize > 0) {
+        actionDeleteForwardCharacter();
+        delSize--;
+    }
+
     return true;
 }
 
