@@ -1447,6 +1447,7 @@ void Console::printAllCommandName() {
     }
     max += 3;
     size_t num = getTerminalColumnSize()/max;
+    num--;
     size_t i=0;
     for(CommandSet::const_iterator ite = _commandSelector->getCommandSet().begin();
             ite != _commandSelector->getCommandSet().end();
