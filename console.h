@@ -178,6 +178,21 @@ public:
     virtual ~Console() {
         unInitialize();
     }
+    
+    bool registKeyBinding(KeyCode::Code code, Action action) {
+        if(_keyBindMap.count(code) == 1) {
+            return false;
+        }
+        _keyBindMap.insert(std::pair<KeyCode::Code, Action>(code, action));
+        return true;
+    }
+    bool unregistKeyBinding(KeyCode::Code code) {
+        if(_keyBindMap.count(code) == 0) {
+            return false;
+        }
+        _keyBindMap.erase(code);
+        return true;
+    }
 
     // 定義済みアクション
     bool actionBackwardHistory() { return selectHistory(true); }

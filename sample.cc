@@ -190,9 +190,9 @@ void Console::keyBindInitialize() {
 
     // History select
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_P, &Console::actionBackwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_U, &Console::actionBackwardHistory));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_N, &Console::actionForwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_D, &Console::actionForwardHistory));
 
     // cursor move
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));
@@ -201,13 +201,12 @@ void Console::keyBindInitialize() {
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_ALT_N, &Console::actionMoveCursorForwardParam));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_ALT_P, &Console::actionMoveCursorBackwardParam));
 
 
     // command execute
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CR, &Console::actionEnter));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_J, &Console::actionEnter));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_N, &Console::actionMoveCursorForwardParam));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam));
 
     // CTRL-C
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_C, &Console::actionTerminate));
