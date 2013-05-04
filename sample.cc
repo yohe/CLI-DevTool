@@ -182,6 +182,7 @@ void Console::keyBindInitialize() {
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_K, &Console::actionDeleteFromCursorToEnd));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_U, &Console::actionDeleteFromHeadToCursor));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_L, &Console::actionClearScreen));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_S, &Console::actionClearLine));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_G, &Console::actionDeleteParam));
 
     // Complete
@@ -190,9 +191,9 @@ void Console::keyBindInitialize() {
 
     // History select
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_U, &Console::actionBackwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_ALT_K, &Console::actionBackwardHistory));
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory));
-    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_CTRL_D, &Console::actionForwardHistory));
+    _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_ALT_J, &Console::actionForwardHistory));
 
     // cursor move
     _keyBindMap.insert(std::pair<KeyCode::Code, Action>(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight));

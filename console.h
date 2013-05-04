@@ -264,6 +264,8 @@ private:
         printf("\r");
         std::string str = printPromptImpl();
         std::cout << "\x1b[36m" << str << "\x1b[39m";
+        _inputString = "";
+        _stringPos = 0;
     }
     std::string printPromptImpl() const;
     // ターミナル操作機能
@@ -271,6 +273,7 @@ private:
     void clearLine(bool clearString = true) {
 
         std::string tmp = _inputString;
+        size_t pos = _stringPos;
 
         size_t length = _inputString.length();
         actionMoveCursorBottom();
@@ -279,13 +282,14 @@ private:
             length--;
         }
 
+        printPrompt();
+
         if(clearString) {
             clearInputString();
         } else {
             _inputString = tmp;
-            _stringPos = tmp.length();
+            _stringPos = pos;
         }
-        printPrompt();
     }
     void clearInputString() {
         _stringPos = 0;
@@ -421,6 +425,11 @@ public:
     }
 
     bool isLogging() { return _isLogging; }
+
+    void inputStringToTerminal(const std::string& str) {
+        std::cout << str;
+        _stringPos += str.length();
+    }
 
 protected:
 
@@ -589,12 +598,6 @@ public:
     }
 };
 
-
-#define ADD_KEY_MAP(name, code, strokeList) \
-    strokeList; \
-    _keyMap.addKeyCodeSeq(stroke, code); \
-    stroke.clear();
-
 void Console::keyMapInitialize() {
 
     KeyCode codeMaster;
@@ -702,7 +705,6 @@ void Console::run() {
 #ifndef KEY_TRACE
                 _inputString.insert(_stringPos, 1, input);
                 ++_stringPos;
-                //printPrompt();
                 // 端末を挿入モードに設定することで、標準出力に入力するだけで、
                 // 文字の追加処理を意識せずにカーソル位置に入力できる。
                 char enterIns[8] = "smir";
@@ -1189,9 +1191,11 @@ bool Console::actionComplete() {
 
     // 以降ではコマンド名が確定している場合の処理
     Command* cmd = NULL;
+
+    std::string fixedInput = _inputString.substr(0, _stringPos);
     std::list<std::string> delimiterList;
     delimiterList.push_back(" ");
-    std::vector<std::string>* tokenList = divideStringToVector(_inputString, delimiterList);
+    std::vector<std::string>* tokenList = divideStringToVector(fixedInput, delimiterList);
 
     cmd = getCommand((*tokenList)[0]);
     if(cmd == NULL) {
@@ -1202,22 +1206,25 @@ bool Console::actionComplete() {
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
     if(tokenList->size() == 1) {
         std::cout << std::endl;
-
         std::vector<std::string> argumentList;
         std::string param = "";
         std::vector<std::string> matchList;
         cmd->getParamList(argumentList, param, matchList);
         cmd->afterCompletionHook(matchList);
         printStringList(matchList.begin(), matchList.end());
-        printPrompt();
-        std::cout << _inputString;
+        size_t pos = _stringPos;
+        clearLine(false);
+        _stringPos = 0;
+        inputStringToTerminal(_inputString);
+        setCursorPos(pos);
+
         return true;
     }
 
 
     std::vector<std::string> argumentList;
     std::string param = "";
-    getInputParameter(_inputString, tokenList, param, argumentList);
+    getInputParameter(fixedInput, tokenList, param, argumentList);
 
     delete tokenList; tokenList = NULL;
 
@@ -1237,17 +1244,19 @@ bool Console::actionComplete() {
     std::vector<std::string>::iterator end = matchList.end();
     bool ret = completeStringList(after, argumentList, begin, end);
 
+    // 補完結果をカーソル位置に反映させる
     if( ret ) {
         // 完全補完
         size_t pos = after.find(param);
         std::string sub = after.substr(pos+param.length());
         if(pos != std::string::npos) {
-            _inputString.append(sub);
-            //printPrompt();
-            //_inputString += " ";
-            //_stringPos += 1;
-            _stringPos = _inputString.size(); 
-            std::cout << sub;
+            _inputString.insert(_stringPos, sub);
+            _stringPos += sub.length();
+            size_t cursorPos = _stringPos;
+            clearLine(false);
+            _stringPos = 0;
+            inputStringToTerminal(_inputString);
+            setCursorPos(cursorPos);
             return true;
         } else {
             beep();
@@ -1261,18 +1270,26 @@ bool Console::actionComplete() {
             // 変更がない場合は、候補を表示する。
             if(param != after) {
                 if(param.empty()) {
-                    _inputString += after;
+                    _inputString.insert(_stringPos, after);
+                    _stringPos += after.length();
+                    size_t cursorPos = _stringPos;
                     clearLine(false);
-                    std::cout << _inputString;
-                    _stringPos = _inputString.size();
+                    _stringPos = 0;
+                    inputStringToTerminal(_inputString);
+                    setCursorPos(cursorPos);
                     return true;
                 } else {
-                    size_t pos = _inputString.rfind(param);
+                    //size_t pos = _inputString.rfind(param);
+                    size_t pos = after.find(param);
+                    std::string sub = after.substr(pos+param.length());
                     if(pos != std::string::npos) {
-                        _inputString.replace(pos, param.size(), after);
+                        _inputString.insert(_stringPos, sub);
+                        _stringPos += sub.length();
+                        size_t cursorPos = _stringPos;
                         clearLine(false);
-                        std::cout << _inputString;
-                        _stringPos = _inputString.size();
+                        _stringPos = 0;
+                        inputStringToTerminal(_inputString);
+                        setCursorPos(cursorPos);
                         return true;
                     } else {
                         beep();
@@ -1284,29 +1301,14 @@ bool Console::actionComplete() {
                 std::cout << std::endl;
                 cmd->afterCompletionHook(argumentList);
                 printStringList(argumentList.begin(), argumentList.end());
-                if(param.empty()) {
-                    _inputString += after;
-                    _stringPos = _inputString.size();
-                    clearLine(false);
-                    std::cout << _inputString;
-                    return true;
-                } else {
-                    size_t pos = _inputString.rfind(param);
-                    if(pos != std::string::npos) {
-                        _inputString.replace(pos, param.size(), after);
-                        _stringPos = _inputString.size();
-                        clearLine(false);
-                        std::cout << _inputString;
-                        return true;
-                    } else {
-                        beep();
-                        printPrompt();
-                        return true;
-                    }
-                }
+                size_t cursorPos = _stringPos;
+                clearLine(false);
+                _stringPos = 0;
+                inputStringToTerminal(_inputString);
+                setCursorPos(cursorPos);
+                return false;
             }
         } else {
-            //std::cout << "Point C" << std::endl;
             // 補完候補なし
             beep();
             return true;
@@ -1361,12 +1363,13 @@ Console::CompletionType Console::completeCommandName() {
     return ERROR;
 }
 
-void Console::getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList) {
+void Console::getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& inputting, std::vector<std::string>& paramList) {
 
     // パラメータは、スペースで区切られる。
     // パラメータリストで取得する際に指定する文字列は入力中のパラメータを含めない。 但し入力中の文字列として取得。
     // 上記についてコマンド名を含めず、最初のスペースで区切られたトークンから最後のスペースで区切られたトークンまでを引数リストに入れる
     // 例：Test ABC DEF G|    "|"をカーソル位置とすると Gは含めない
+    // 例：Test ABC DEF G |   "|"をカーソル位置とすると Gは含む
 
     if(inputString[inputString.size()-1] == ' ') {
         // 最後のトークンもスペースで区切られている
@@ -1377,17 +1380,17 @@ void Console::getInputParameter(std::string& inputString, std::vector<std::strin
                 ++ite) {
             paramList.push_back(*ite);
         }
-        //lastParam = paramList.back();
     } else {
         // 最後のトークンはスペースで区切られていない
         std::vector<std::string>::iterator ite = tokenList->begin();
         ite++;
         for(;
-                ite != tokenList->end();
-                ++ite) {
+            ite != tokenList->end();
+            ++ite) {
+
             paramList.push_back(*ite);
         }
-        lastParam = paramList.back();
+        inputting = paramList.back();
         paramList.pop_back();
     }
 }
