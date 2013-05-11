@@ -112,7 +112,7 @@
       <div class="hero-unit">
         <h1>CLI-DevTool</h1>
         <hr size=5 color=black>
-        <p>This software is development library for developing command-line tool.<br>You can develop a command-line tool with many features by the using of this library. For example is history feature, command completion feature and parameter completion feature.</p>
+        <p>This software is development library for developing command-line tool.<br>You can develop a command-line tool with many features by the using of this library. For examples, history feature, command completion feature and parameter completion feature.</p>
         <p><a href="https://github.com/yohe/CLI-DevTool/zipball/master" class="btn btn-primary btn-large">Download</a></p>
       </div><!-- /hero-unit -->
     </div>
@@ -195,7 +195,7 @@ $
                   <li>getUserName()</li>
                   <li>getHostName()</li>
               </ol>
-              以下にConsole::printPromptImpl() の例を示します。
+              It describe example for changing function as follow.
               <pre class="prettyprint linenums">
 std::string Console::printPromptImpl() const {
     std::string dir = getCurrentDirectory();
@@ -203,9 +203,9 @@ std::string Console::printPromptImpl() const {
     std::string prompt = "[" + getUserName() + " " + dir.substr(dir.rfind("/")+1) + "]$ ";
     return prompt;
 }</pre>
-              <p>この場合、次のように表示されます.</p>
+              <p>In this case, it is displayed the following.</p>
               <pre>[yohe CLI-DevTool]$</pre>
-              <h4 id="regist_command">コマンド登録</h4>
+              <h4 id="regist_command"> Register commands.</h4>
               <p>コンソールにコマンド登録する方法について説明します。
               コンソールに登録できるコマンドは、 Command クラスを継承したクラスになります。ユーザ定義のコマンドについては、<a href="#defined_new_command">Defined new command.</a>を参照してください。CLI-DevTool が提供しているクラスを使用して説明します。CLI-DevTool が提供しているクラスを以下に示します。</p>
 
