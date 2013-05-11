@@ -95,8 +95,8 @@
             <li class="dropdown">
               <a class="dropdown-togle" data-toggle="dropdown" href="#"> language <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="./index.html"><i class="icon-ok"></i> English</strong></a></li>
-                <li><a href="./index_jp.html"><i class="icon-minus"></i> Japanese</a></li>
+                <li><a href="./index.html"><i class="icon-minus"></i> English</a></li>
+                <li><a href="./index_jp.html"><i class="icon-ok"></i> Japanese</a></li>
               </ul>
             </li>
           </ul>
@@ -104,15 +104,13 @@
       </div><!-- /container-fluid -->
       </div><!-- /navbar-inner -->
     </div><!-- /navbar navbar-fixed-top -->
-
-
   <div class="container-fluid">
     <div class="row-fluid">
     <div class="span12">
       <div class="hero-unit">
         <h1>CLI-DevTool</h1>
         <hr size=5 color=black>
-        <p>This software is development library for developing command-line tool.<br>You can develop a command-line tool with many features by the using of this library. For example is history feature, command completion feature and parameter completion feature.</p>
+        <p>このソフトウェアはコマンドラインツールを開発するためのライブラリです.<br>このライブラリを使用することで, たくさんの機能を持ったコマンドラインツールを開発できます. 例えば, ヒストリ機能, コマンド補完機能, パラメータ補完機能, そしてキー入力によるシェルライクなコンソール操作機能 ( 例えば, CTRL+L など ).</p>
         <p><a href="https://github.com/yohe/CLI-DevTool/zipball/master" class="btn btn-primary btn-large">Download</a></p>
       </div><!-- /hero-unit -->
     </div>
@@ -124,21 +122,26 @@
           <div>
           <ul class="nav nav-list">
             <li><a href="#getting_started"><strong> Getting Started.</strong></a></li>
-            <li><a href="#compile_and_running"><i class="icon-chevron-right"></i> Compiling and execution.</a></li>
-            <li><a href="#change_title"><i class="icon-chevron-right"></i> Changing the title.</a></li>
-            <li><a href="#change_prompt"><i class="icon-chevron-right"></i> Changing the prompt string.</a></li>
-            <li><a href="#regist_command"><i class="icon-chevron-right"></i> Register commands.</a></li>
-            <li><a href="#setting_console"><i class="icon-chevron-right"></i> Setting the console.</a></li>
+            <li><a href="#compile_and_running"><i class="icon-chevron-right"></i> コンパイルと実行</a></li>
+            <li><a href="#change_title"><i class="icon-chevron-right"></i> タイトル画面変更</a></li>
+            <li><a href="#change_prompt"><i class="icon-chevron-right"></i> プロンプト文字列変更</a></li>
+            <li><a href="#regist_command"><i class="icon-chevron-right"></i> コマンド登録</a></li>
+            <li><a href="#setting_console"><i class="icon-chevron-right"></i> コンソール設定</a></li>
           </ul>
           </div>
           <div>
           <ul class="nav nav-list">
-            <li><a href="#defined_new_command"><strong> User-defined command.</strong></a></li>
+            <li><a href="#defined_new_command"><strong> ユーザ定義コマンド.</strong></a></li>
+            <li><a href="#command_def"><i class="icon-chevron-right"></i> クラス定義</a></li>
+            <li><a href="#command_name"><i class="icon-chevron-right"></i> コマンド名</a></li>
+            <li><a href="#command_param_compl"><i class="icon-chevron-right"></i> コマンドパラメータ</a></li>
+            <li><a href="#command_exec"><i class="icon-chevron-right"></i> コマンド実行</a></li>
+            <li><a href="#command_help"><i class="icon-chevron-right"></i> ヘルプ</a></li>
           </ul>
           </div>
           <div>
           <ul class="nav nav-list">
-            <li><a href="#required"><strong> Required Packages.</strong></a></li>
+            <li><a href="#required"><strong> 必須パッケージ.</strong></a></li>
           </ul>
           </div>
           </div>
@@ -149,27 +152,27 @@
         <h2>Getting Started.</h2>
           <p>
             <ol type="1" style="list-style-position: outside">
-              <li><a href="#compile_and_running"> Compiling and execution.</a></li>
-              <li><a href="#change_title"> Changing the title.</a></li>
-              <li><a href="#change_prompt"> Changing the prompt string.</a></li>
-              <li><a href="#regist_command"> Regster commands.</a></li>
-              <li><a href="#setting_console"> Setting the console.</a></li>
+              <li><a href="#compile_and_running">コンパイルと実行</a></li>
+              <li><a href="#change_title">タイトル画面変更</a></li>
+              <li><a href="#change_prompt">プロンプト文字列変更</a></li>
+              <li><a href="#regist_command">コマンド登録</a></li>
+              <li><a href="#setting_console">コンソール設定</a></li>
             </ol>
           </p>
           <p>
-          <h4 id="compile_and_running"> Compiling and execution.</h4>
-          <p>First, Download form <a href="https://github.com/yohe/CLI-DevTool/zipball/master">here</a>, and let decompress its file, then execute "cmake" and "make" command in the CLI-DevTool directory. If compile occurred error, you check the required libraries.<br>
+          <h4 id="compile_and_running">コンパイルと実行</h4>
+          <p>まず, <a href="https://github.com/yohe/CLI-DevTool/zipball/master"><strong>ここ</strong></a>からライブラリをダウンロードし, ファイルを展開してください.<br>CLI-DevTool ディレクトリ内で "cmake ." コマンドと "make" コマンドを実行してください. もしエラーが発生する場合は, 必須パッケージがインストールされているか確認してください.<br>
           <pre>$cmake .
 $make</pre>
           </p>
-          <p>"console" binary is created by make, and you can run sample console by to execute this, then will display as follows when you executed.</p>
+          <p>make によって console バイナリが作成されます. これを実行することでサンプルのコンソールを起動できます. 以下に起動時の画面を示します.</p>
           <pre>
 +------------------------------------+
 |              Console               |
 +------------------------------------+
 $ </pre>
-              <h4 id="change_title"> Changing the title.</h4>
-              <p>You can change the title by to chage the "Console::printTitle" function in "sample.cc". This function is called only once at startup. Describe the change in the following example.</p>
+              <h4 id="change_title">タイトル画面変更</h4>
+              <p>"sample.cc" に定義されている関数 Console::printTitle() を変更することで、タイトル画面を変更できます。この関数は、起動時に一度だけ実行されます。以下に変更例を示します。</p>
               <pre class="prettyprint linenums">
 void Console::printTitle() {
     std::cout << "---------------------------------\n";
@@ -178,7 +181,7 @@ void Console::printTitle() {
     std::cout << "---------------------------------\n";
 }
 </pre>
-              <p>In this case, it is displayed the following in the startup.
+              <p>この場合、起動時に次のように表示されます。
               <pre>
 ---------------------------------
    Original Command line tool.
@@ -187,9 +190,9 @@ void Console::printTitle() {
 $ 
 </pre>
               </p>
-              <h4 id="change_prompt"> Changing the prompt string.</h4>
-              <p>you can change the prompt string by to change the "Console::printPromptImpl()" in "sample.cc". By using the following function that is Defined in the console class, you can express like the prompt of shell.</p>
-              <strong>Member function of console class.</strong>
+              <h4 id="change_prompt">プロンプト文字列変更</h4>
+              <p>"sample.cc" に定義されている関数 Console::printPromptImpl() を変更することでプロンプト文字列が変更できます。プロンプト文字列を作成する際に、Consoleクラスで定義されている次の関数を利用することでシェルライクな表示が可能です。</p>
+              <strong>Consoleクラス メンバ関数</strong>
               <ol type="1">
                   <li>getCurrentDirectory()</li>
                   <li>getUserName()</li>
@@ -410,10 +413,10 @@ void Console::keyBindInitialize() {
               <br>
               </section>
               <div class="page-header">
-                  <h2 id="defined_new_command">Defined new command.</h2>
+                  <h2 id="defined_new_command">ユーザ定義コマンド.</h2>
               </div>
               <div class="page-header">
-                  <h2 id="required">Required packages.</h2>
+                  <h2 id="required">必須パッケージ.</h2>
                   <ul>
                       <li>cmake 2.6 or later</li>
                       <li>make</li>
