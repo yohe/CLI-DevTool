@@ -206,10 +206,11 @@ std::string Console::printPromptImpl() const {
               <p>In this case, it is displayed the following.</p>
               <pre>[yohe CLI-DevTool]$</pre>
               <h4 id="regist_command"> Register commands.</h4>
-              <p>コンソールにコマンド登録する方法について説明します。
-              コンソールに登録できるコマンドは、 Command クラスを継承したクラスになります。ユーザ定義のコマンドについては、<a href="#defined_new_command">Defined new command.</a>を参照してください。CLI-DevTool が提供しているクラスを使用して説明します。CLI-DevTool が提供しているクラスを以下に示します。</p>
+              <p> A explain how to register commands to console.
+              Registrable commands to console need to inherit the command-class.
+User-defined commands refer to here(<a href="#defined_new_command">User-defined command.)</a>. Library is providing some class that is inheriting the command class. They lists in below, and then, it describe example how to register.</p>
 
-              <p class="text-center"><strong>定義済みコマンドクラス</strong></p>
+              <p class="text-center"><strong>Providing command-class</strong></p>
               <table class="table table-bordered table-striped">
                 <colgroup>
                   <col class="span1">
