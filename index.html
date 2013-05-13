@@ -112,7 +112,7 @@
       <div class="hero-unit">
         <h1>CLI-DevTool</h1>
         <hr size=5 color=black>
-        <p>This software is development library for developing command-line tool.<br>You can develop a command-line tool with many features by the using of this library. For examples, history feature, command completion feature and parameter completion feature.</p>
+        <p>This software is development library for developing command-line tool.<br>You can develop a command-line tool with many features by using of this library. For examples, history feature, command completion feature and parameter completion feature.</p>
         <p><a href="https://github.com/yohe/CLI-DevTool/zipball/master" class="btn btn-primary btn-large">Download</a></p>
       </div><!-- /hero-unit -->
     </div>
@@ -162,7 +162,7 @@
           <pre>$cmake .
 $make</pre>
           </p>
-          <p>"console" binary is created by make, and you can run sample console by to execute this, then will display as follows when you executed.</p>
+          <p>"console" binary is created by the "make", and you can run sample console by to execute this, then will display as follows when you executed.</p>
           <pre>
 +------------------------------------+
 |              Console               |
@@ -224,12 +224,16 @@ User-defined commands refer to here(<a href="#defined_new_command">User-defined 
                 </thead>
                 <tbody>
                   <tr>
+                    <td>Command</td>
+                    <td></td>
+                  </tr>
+                  <tr>
                     <td>SystemFuncCommand</td>
-                    <td>system()関数を利用したの実行機能を提供します。コマンド毎に登録することでシェルと同等な使用感を提供できます。また、パラメータ補完等の振る舞いも入れ替え可能です。</td>
+                    <td>This class provide execution feature by the system function. By to register each command, you can to use it like a shell environment. And completion behavior of the parameters is configurable.</td>
                   </tr>
                   <tr>
                     <td>ShellCommandExecutor</td>
-                    <td>シェルが提供する全てのコマンドの実行機能を提供します。exe コマンドの引数として実行するコマンドを指定できます。補完はコマンド名補完と、ファイル名補完のみとなります</td>
+                    <td>This class provide feature to execute all of the shell commands that can execute on shell. You can to execute command by specify shell command and parameter as "exe" command argument. This class can not configure completion behavior, and can use command name completion and file name completion only.</td>
                   </tr>
                   <tr>
                     <td>EditorCommand</td>
