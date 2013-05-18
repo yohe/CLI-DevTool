@@ -12,13 +12,13 @@ public:
     FileListBehavior() {}
     virtual ~FileListBehavior() {}
 
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const ;
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const ;
     
-    virtual void stripParentPath(std::vector<std::string>& matchList) const;
-    virtual void stripFile(std::vector<std::string>& matchList) const;
+    virtual void stripParentPath(std::vector<std::string>& candidates) const;
+    virtual void stripFile(std::vector<std::string>& candidates) const;
 };
 
-void FileListBehavior::getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         FILE* in_pipe = NULL;
 
         std::string path("");
@@ -65,27 +65,27 @@ void FileListBehavior::getParamList(std::vector<std::string>& inputtedList, std:
                     name += " ";
                 }
             }
-            matchList.push_back(name);
+            candidates.push_back(name);
         }
         return ;
 }
 
-void FileListBehavior::stripParentPath(std::vector<std::string>& matchList) const {
+void FileListBehavior::stripParentPath(std::vector<std::string>& candidates) const {
     std::vector<std::string>::iterator it;
     std::vector<std::string> after;
-    for(it = matchList.begin(); it != matchList.end(); ++it) {
+    for(it = candidates.begin(); it != candidates.end(); ++it) {
         size_t pos = it->find_last_of("/", it->length()-2);
         std::string name = it->substr(pos+1);
         if(!name.empty()) {
             after.push_back(name);
         }
     }
-    matchList.swap(after);
+    candidates.swap(after);
 }
-void FileListBehavior::stripFile(std::vector<std::string>& matchList) const {
+void FileListBehavior::stripFile(std::vector<std::string>& candidates) const {
     std::vector<std::string>::iterator it;
     std::vector<std::string> after;
-    for(it = matchList.begin(); it != matchList.end(); ++it) {
+    for(it = candidates.begin(); it != candidates.end(); ++it) {
         if(it->at(it->length()-1) == '/') {
             size_t pos = it->find_last_of("/", it->length()-2);
             std::string name = it->substr(pos+1);
@@ -95,6 +95,6 @@ void FileListBehavior::stripFile(std::vector<std::string>& matchList) const {
             after.push_back(name);
         }
     }
-    matchList.swap(after);
+    candidates.swap(after);
 }
 #endif /* end of include guard */

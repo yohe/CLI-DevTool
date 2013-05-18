@@ -17,11 +17,11 @@ public:
     virtual std::string getKey() const = 0;
     virtual std::string printHelp() const = 0;
     virtual std::string execute(std::string param) const = 0;
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const = 0;
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const = 0;
     virtual bool isHistoryAdd() { return true; }
     virtual void setConsole(Console* console) { _console = console; }
     
-    virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
     }
 protected:
     Console* _console;

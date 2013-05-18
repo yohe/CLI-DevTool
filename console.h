@@ -64,12 +64,12 @@ public:
         system(cmd.c_str()); 
         return "";
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        _behavior->getParamList(inputtedList, inputting, matchList);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
+        _behavior->getParamCandidates(inputtedList, inputting, candidates);
     }
-    virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
         FileListBehavior fileListBehavior;
-        fileListBehavior.stripParentPath(matchList);
+        fileListBehavior.stripParentPath(candidates);
     }
 };
 
@@ -94,7 +94,7 @@ public:
         system(param.c_str()); 
         return "";
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         if(_initFlag == false) {
             const char* c_env = getenv("PATH");
             std::string env(c_env);
@@ -132,12 +132,12 @@ public:
         }
 
         if(inputtedList.empty()) {
-            matchList.insert(matchList.begin(), _commandList.begin(), _commandList.end());
+            candidates.insert(candidates.begin(), _commandList.begin(), _commandList.end());
         } else {
             if(inputtedList[0] == "man") {
-                matchList.insert(matchList.begin(), _commandList.begin(), _commandList.end());
+                candidates.insert(candidates.begin(), _commandList.begin(), _commandList.end());
             } else {
-                _fileListBehavior.getParamList(inputtedList, inputting, matchList);
+                _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
             }
         }
     }
@@ -246,9 +246,9 @@ private:
     // 補完機能
     CompletionType completeCommandName();
     void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList);
-    bool completeCommand(std::string& key, std::vector<std::string>& matchList);
+    bool completeCommand(std::string& key, std::vector<std::string>& candidates);
     template <class Iterator>
-    bool completeStringList(std::string& key, std::vector<std::string>& matchList, Iterator begin, Iterator end);
+    bool completeStringList(std::string& key, std::vector<std::string>& candidates, Iterator begin, Iterator end);
 
     // コマンド機能
     void executeCommand(const Command* cmd, const std::string& argument);
@@ -479,8 +479,8 @@ public:
         }
         return cmd->printHelp();
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        _console->getCommandNameList(matchList);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
+        _console->getCommandNameList(candidates);
     }
 };
 
@@ -522,7 +522,7 @@ public:
     virtual void printHistory() const {
         _console->printAllHistory();
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         if(inputting.size() != 0 || !inputtedList.empty()) {
             return;
         }
@@ -552,8 +552,8 @@ public:
         
         return "";
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        _fileListBehavior.getParamList(inputtedList, inputting, matchList);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
+        _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
     }
 
     void setExitCommand(Command* exit) { _exit = exit; }
@@ -593,8 +593,8 @@ public:
         
         return "";
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        _fileListBehavior.getParamList(inputtedList, inputting, matchList);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
+        _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
     }
 };
 
@@ -732,7 +732,9 @@ void Console::run() {
         }
 
         if(entry->isEntry()) {
-
+            if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
+                continue;
+            }
             KeyCode::Code actionCode = entry->getVirtualKeyCode();
             Action action = getAction(actionCode);
             if(action != NULL) {
@@ -750,10 +752,10 @@ void Console::run() {
 }
 
 
-bool Console::completeCommand(std::string& key, std::vector<std::string>& matchList) {
+bool Console::completeCommand(std::string& key, std::vector<std::string>& candidates) {
     size_t min = -1;
     CommandSet::const_iterator candidate;
-    matchList.clear();
+    candidates.clear();
 
     // trim white space
     std::string str = key;
@@ -771,26 +773,26 @@ bool Console::completeCommand(std::string& key, std::vector<std::string>& matchL
                 min = ite->first.size();
                 candidate = ite;
             }
-            matchList.push_back(ite->first);
+            candidates.push_back(ite->first);
         }
     }
 
     // ########### Complete longest common string
 
-    if(matchList.size() == 1) {
+    if(candidates.size() == 1) {
         // full Complete
-        key = matchList.front();
+        key = candidates.front();
         return true;
-    } else if(matchList.empty()) {
-        //matchList.push_back("Candidate does not exist.");
+    } else if(candidates.empty()) {
+        //candidates.push_back("Candidate does not exist.");
         return false;
     }
 
     size_t pos = key.size();
     while(pos <= candidate->first.size()) {
         std::string complStr = candidate->first.substr(0, pos+1);
-        for(std::vector<std::string>::iterator ite = matchList.begin();
-                ite != matchList.end();
+        for(std::vector<std::string>::iterator ite = candidates.begin();
+                ite != candidates.end();
                 ++ite) {
 
             if(ite->compare(0, complStr.size(), complStr) != 0){
@@ -1024,9 +1026,6 @@ bool Console::actionDeleteParam() {
 }
 
 bool Console::actionEnter() {
-    if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
-        return false;
-    }
     execute(_inputString);
     clearStatus();
     printPrompt();
@@ -1208,10 +1207,10 @@ bool Console::actionComplete() {
         std::cout << std::endl;
         std::vector<std::string> argumentList;
         std::string param = "";
-        std::vector<std::string> matchList;
-        cmd->getParamList(argumentList, param, matchList);
-        cmd->afterCompletionHook(matchList);
-        printStringList(matchList.begin(), matchList.end());
+        std::vector<std::string> candidates;
+        cmd->getParamCandidates(argumentList, param, candidates);
+        cmd->afterCompletionHook(candidates);
+        printStringList(candidates.begin(), candidates.end());
         size_t pos = _stringPos;
         clearLine(false);
         _stringPos = 0;
@@ -1235,13 +1234,13 @@ bool Console::actionComplete() {
     // 補完が完全補完の場合は表示して終了
     // 補完が一部補完である場合は、補完されている場合はそのまま表示して終了
     // 補完候補がない場合は beep
-    std::vector<std::string> matchList;
-    cmd->getParamList(argumentList, param, matchList);
+    std::vector<std::string> candidates;
+    cmd->getParamCandidates(argumentList, param, candidates);
 
     std::string after = param;
     argumentList.clear();
-    std::vector<std::string>::iterator begin = matchList.begin();
-    std::vector<std::string>::iterator end = matchList.end();
+    std::vector<std::string>::iterator begin = candidates.begin();
+    std::vector<std::string>::iterator end = candidates.end();
     bool ret = completeStringList(after, argumentList, begin, end);
 
     // 補完結果をカーソル位置に反映させる
@@ -1264,7 +1263,7 @@ bool Console::actionComplete() {
         }
     } else {
         // 一部補完 or 補完候補なし
-        // matchList.size() > 0 である場合、一部補完と判断
+        // candidates.size() > 0 である場合、一部補完と判断
         if(!argumentList.empty()) {
             // 補完が行われた場合は、そのまま表示
             // 変更がない場合は、候補を表示する。
@@ -1320,11 +1319,11 @@ bool Console::actionComplete() {
 
 Console::CompletionType Console::completeCommandName() {
 
-    std::vector<std::string> matchList;
+    std::vector<std::string> candidates;
     std::string tmp = _inputString;
     // ret = true : コマンド名を完全補完
     // ret = false: コマンド名を一部補完 or 補完候補なし
-    bool ret = completeCommand(tmp, matchList);
+    bool ret = completeCommand(tmp, candidates);
     if( ret ) {
         // 完全補完
         clearLine();
@@ -1334,8 +1333,8 @@ Console::CompletionType Console::completeCommandName() {
         return FULL_COMPLETE;
     } else {
         // 一部補完 or 補完候補なし
-        // matchList.size() > 0 である場合、一部補完と判断
-        if(matchList.size() > 0) {
+        // candidates.size() > 0 である場合、一部補完と判断
+        if(candidates.size() > 0) {
             // 補完が行われた場合は、そのまま表示
             // 変更がない場合は、候補を表示する。
             if(tmp != _inputString) {
@@ -1347,7 +1346,7 @@ Console::CompletionType Console::completeCommandName() {
             } else {
                 // 変更がないので候補表示
                 std::cout << std::endl;
-                printStringList(matchList.begin(), matchList.end());
+                printStringList(candidates.begin(), candidates.end());
                 printPrompt();
                 _inputString = tmp;
                 _stringPos = tmp.size();
@@ -1623,8 +1622,8 @@ public:
         system(cmd.c_str()); 
         return "";
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        _behavior->getParamList(inputtedList, inputting, matchList);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
+        _behavior->getParamCandidates(inputtedList, inputting, candidates);
     }
 };
 

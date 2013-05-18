@@ -13,7 +13,7 @@ public:
     virtual std::string getKey() const { return "sample"; }
     virtual std::string printHelp() const { return "sample command."; }
     virtual std::string execute(std::string parameter) const { return parameter; }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(std::find(inputtedList.begin(), inputtedList.end(), "hoge") == inputtedList.end()) {
             matchList.push_back("hoge");
         }
@@ -53,8 +53,8 @@ public:
         return "";
     }
 
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
-        _behavior.getParamList(inputtedList, inputting, matchList);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+        _behavior.getParamCandidates(inputtedList, inputting, matchList);
     }
 
     virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
@@ -70,7 +70,7 @@ public:
     virtual std::string getKey() const { return "exit"; }
     virtual std::string printHelp() const { return "console exit."; }
     virtual std::string execute(std::string parameter) const { _console->actionTerminate(); return ""; }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
     }
 
 private:
@@ -90,7 +90,7 @@ public:
         system(cmd.c_str());
         return "";
     }
-    virtual void getParamList(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(inputtedList.empty()) {
             matchList.push_back("add ");
             matchList.push_back("branch ");
@@ -105,7 +105,7 @@ public:
 
             return;
         }
-        _fileBehavior.getParamList(inputtedList, inputting, matchList);
+        _fileBehavior.getParamCandidates(inputtedList, inputting, matchList);
     }
     
     virtual void afterCompletionHook(std::vector<std::string>& matchList) const {
