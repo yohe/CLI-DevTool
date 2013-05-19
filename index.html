@@ -237,11 +237,11 @@ User-defined commands refer to here(<a href="#defined_new_command">User-defined 
                   </tr>
                   <tr>
                     <td>EditorCommand</td>
-                    <td>エディタを起動するコマンドに使用するクラスです。コンソールの操作ログを記録するビルトインコマンドの "script" を使用中にエディタを起動すると、正しく動作しない問題を回避するためのコマンドです。</td>
+                    <td>This class is used to command for to invoke a editor. This class avoid the problem occur by invoking a editor on while running the built-in script command for logging the operation.</td>
                   </tr>
                 </tbody>
               </table>
-              <p>この中から、SystemFuncCommand クラスを用いたコマンド登録について以下に記載する。</p>
+              <p>Describe in below about the registering a command by using the "SystemFuncCommad" class.</p>
                 <pre class="prettyprint linenums">
 int main(int argc, char const* argv[])
 {
