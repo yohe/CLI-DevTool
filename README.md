@@ -4,7 +4,7 @@
 
 ## Getting started.
  * English page.
- * [Japanese page.](http://yohe.github.io/CLI-DevTool/)
+ * [Japanese page.](http://yohe.github.io/CLI-DevTool/index_jp.html)
 
 # Description of Software
 This software is development tool for creating console. The created console has the following features.
