@@ -2,6 +2,10 @@
 ## Author
     Yohei.Sekiguchi <ysekiguchi.zzz@gmail.com> 
 
+## Getting started.
+ * English page.
+ * [Japanese page.][http://yohe.github.io/CLI-DevTool/]
+
 # Description of Software
 This software is development tool for creating console. The created console has the following features.
  
