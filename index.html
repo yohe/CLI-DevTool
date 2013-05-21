@@ -263,7 +263,7 @@ int main(int argc, char const* argv[])
     console.run();
 }
 </pre>
-              <p>コマンドの登録処理は、L.13 - L.17 の箇所で、 Console クラスのメンバ関数 installCommand() によって実施します。コマンドの登録に失敗するのは、同一名のコマンドが既に登録済み担っている場合です。 SystemFuncCommand クラスについて簡単に説明します。詳細は、<a href="./class_ref.html">クラスリファレンス</a>を参照してください。
+              <p>Command registration process is 13 to 17 lines, and by the "Console::installCommand" function. If it fails the command registration, it is registered a same name command already. Describe the "SystemFuncCommand" constructor. Detail refer to the <a href="./class_ref.html">class reference</a>.
               </p>
               <table class="table table-bordered table-striped">
                 <colgroup>
@@ -279,11 +279,11 @@ int main(int argc, char const* argv[])
                 <tbody>
                   <tr>
                     <td>First</td>
-                    <td>コマンド名として使用されます。シェル上で使用可能なコマンドを指定する必要があります。</td>
+                    <td>This argument use as a command name。You need to specify the useable command in a shell.</td>
                   </tr>
                   <tr>
                     <td>Second</td>
-                    <td>第１引数で指定したコマンドに対して常に指定させたいオプション文字列を指定します。</td>
+                    <td>This argument use as a command option. This option is always enabled.</td>
                   </tr>
                   <tr>
                     <td>Third</td>
@@ -414,18 +414,21 @@ void Console::keyBindInitialize() {
               </pre>
               <br>
               </section>
-              <div class="page-header">
-                  <h2 id="defined_new_command">Defined new command.</h2>
-              </div>
-              <div class="page-header">
-                  <h2 id="required">Required packages.</h2>
+              <section id="defined_new_command">
+                  <h2>Defined new command.</h2>
+                  <div class="alert alert-info">
+                      <strong> Info </strong>"I have been writing this section now, so please wait a moment."
+                  </div>
+              </section>
+              <section id="required">
+                  <h2>Required packages.</h2>
                   <ul>
                       <li>cmake 2.6 or later</li>
                       <li>make</li>
                       <li>c++ compiler</li>
                       <li>ncurses-dev</li>
                   </ul>
-              </div>
+              </section>
               <br>
               <br>
           </div><!-- /span8 -->
