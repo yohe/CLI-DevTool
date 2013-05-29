@@ -226,6 +226,10 @@ std::string Console::printPromptImpl() const {
                 </thead>
                 <tbody>
                   <tr>
+                    <td>Command</td>
+                    <td>このクラスは、コマンドの基底クラスです。全てのコマンドはこのクラスを継承する必要があります。</td>
+                  </tr>
+                  <tr>
                     <td>SystemFuncCommand</td>
                     <td>system()関数を利用したの実行機能を提供します。コマンド毎に登録することでシェルと同等な使用感を提供できます。また、パラメータ補完等の振る舞いも入れ替え可能です。</td>
                   </tr>
@@ -285,7 +289,7 @@ int main(int argc, char const* argv[])
                   </tr>
                   <tr>
                     <td>Third</td>
-                    <td>コマンドパラメータを生成するクラスを指定します。コマンドのパラメータ補完は、ここで指定したクラスが返却する一覧より実施されます。上で指定している FileListBehavior は、 CLI-DevTool が提供しているクラスで、ファイル名の補完を提供するクラスです。</td>
+                    <td>コマンドパラメータの候補を生成するクラスを指定します。コマンドのパラメータ補完は、ここで指定したクラスが返却する一覧より実施されます。上で指定している FileListBehavior は、 CLI-DevTool が提供しているクラスで、ファイル名の補完を提供するクラスです。</td>
                   </tr>
                   <tr>
                     <td>Fourth</td>
@@ -403,6 +407,7 @@ int main(int argc, char const* argv[])
               <p>キーバインドを設定する上で注意することは、TAB キーと CTRL+I キーのようにキー入力時に同じ コード列 を生成するキーが存在することです。この場合、 TAB キーと CTRL+I キーの区別ができないため、どれか一つの設定が複数キーに影響します。キーに対応するコード列はコンパイルで作成される key_trace で確認できます。<br>
               次にキーバインド設定について説明します。キーバインド設定は、 Console クラスの keyBindInitialize 関数内で実施し、registKeyBinding 関数を使用します。registKeyBinding 関数は、登録するキーと対応するアクションを指定します。以下の例では、 BS キーと DEL キーを押下した際の振る舞いを定義しています。</p>
               <pre class="prettyprint linenums">
+A
 void Console::keyBindInitialize() {
     // BS キー登録
     registKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
@@ -410,6 +415,10 @@ void Console::keyBindInitialize() {
     registKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
 }
               </pre>
+              <h5 id="setting_console_keycode">キーコード変更</h5>
+              <p>キーボード, ターミナルによってキー入力時に発行されるコード列が異なる場合があります。その場合、デフォルトで定義されているキーコードでは正しくキー入力を検出できません。正しく検出できるようにするためにキーコード定義を変更する必要があります。キーに対するキーコードは コンパイル時に作成された key_trace を使用することで、確認できます。
+              キーコードは、"key_code.h" に定義されています。ここに定義されているコード列の変更例を以下に示します。
+              </p>
               <br>
               </section>
               <section id="defined_new_command">

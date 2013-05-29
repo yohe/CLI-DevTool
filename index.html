@@ -225,7 +225,7 @@ User-defined commands refer to here(<a href="#defined_new_command">User-defined 
                 <tbody>
                   <tr>
                     <td>Command</td>
-                    <td></td>
+                    <td>This class is base class for a command. All of command have to inherit this.</td>
                   </tr>
                   <tr>
                     <td>SystemFuncCommand</td>
@@ -287,7 +287,7 @@ int main(int argc, char const* argv[])
                   </tr>
                   <tr>
                     <td>Third</td>
-                    <td>コマンドパラメータを生成するクラスを指定します。コマンドのパラメータ補完は、ここで指定したクラスが返却する一覧より実施されます。上で指定している FileListBehavior は、 CLI-DevTool が提供しているクラスで、ファイル名の補完を提供するクラスです。</td>
+                    <td>It specify a completion behavior class in order to generate the command parameter candidates. Parameter completion of a command is executed by return value from the specified class by this argument. FileListBehavior-class of the example as described above be provided by this library. This calss provide a feature that returns a list of files in the current directory.</td>
                   </tr>
                   <tr>
                     <td>Fourth</td>
