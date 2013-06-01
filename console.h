@@ -1175,9 +1175,6 @@ bool Console::actionComplete() {
         std::cout << std::endl;
         printPrompt();
 
-        // 入力されていないはずなので不要？
-        _inputString.clear();
-        _stringPos = 0;
         return true;
     }
 
