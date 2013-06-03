@@ -24,7 +24,7 @@
         padding-top: 30px;
         margin-top: -30px
       }
-      h4 {
+      h4,h5 {
         padding-top: 40px;
       }
       section > .page-header,
@@ -133,7 +133,7 @@
           </div>
           <div>
           <ul class="nav nav-list">
-            <li><a href="#defined_new_command"><strong> User-defined command.</strong></a></li>
+            <li><a href="#define_new_command"><strong> User-defined command.</strong></a></li>
           </ul>
           </div>
           <div>
@@ -291,19 +291,19 @@ int main(int argc, char const* argv[])
                   </tr>
                   <tr>
                     <td>Fourth</td>
-                    <td>help コマンドで、第１引数で指定したコマンドが指定された場合の Help 表示を実施するクラスを指定します。上で指定している ManBehavior は、 CLI-DevTool が提供しているクラスで、指定された文字列に対する man コマンドを呼び出す機能を提供するクラスです。</td>
+                    <td>It specify the class to use for displaying help message when invoke the help command with specifying the command name(first argument). ManBehavior-class of the example as described above be provided by this library. This class provides a feature that call the man command.</td>
                   </tr>
                 </tbody>
               </table>
-              <h4 id="setting_console">コンソール設定</h4>
-              <p>コンソール設定では、以下の項目についてを記載する。</p>
+              <h4 id="setting_console">Setting the console.</h4>
+              <p>This section describe the contents of the following.</p>
               <ol type="1" style="list-style-position: outside">
-                <li><a href="#setting_console_history">ヒストリ設定</a></li>
-                <li><a href="#setting_console_keybind">キーバインド設定</a></li>
-                <li><a href="#setting_console_keycode">キーコード変更</a></li>
+                <li><a href="#setting_console_history">Setting the history.</a></li>
+                <li><a href="#setting_console_keybind">Setting the key bind.</a></li>
+                <li><a href="#setting_console_keycode">Changing the key code.</a></li>
               </ol>
-              <h5 id="setting_console_history">ヒストリ設定</h5>
-              <p>コンソールのヒストリ機能について説明します。ヒストリ機能とはコマンド実行履歴をファイル保存による管理、履歴から再実行する機能です。ヒストリ機能は、ビルトインコマンドの "history" コマンドにより使用します。ヒストリ設定とは、コマンド実行履歴の保存数、及び保存先のファイル名の設定を行います。以下にヒストリ設定方法を記載します。</p>
+              <h5 id="setting_console_history">Setting the history.</h5>
+              <p>In below, describe about the history feature. History feature provides the managiment a command execution history by the file, and provides the rerun a command from history. History feature use the "hisotry" command in built-in command. It set the size and filename for the saving a command history. Describing the example in below.</p>
               <pre class="prettyprint linenums">
 int main(int argc, char const* argv[])
 {
@@ -313,8 +313,8 @@ int main(int argc, char const* argv[])
     ...
 }
               </pre>
-              <p>上記で示したように、 Console クラスのコンストラクタに引数として、ヒストリ保存数、ヒストリ保存ファイル名を指定します。</p>
-              <h5 id="setting_console_keybind">キーバインド設定</h5>
+              <p>It specify the size and filename as arguments to the constructor of the console class.</p>
+              <h5 id="setting_console_keybind">Setting the key bind.</h5>
               <p>コンソールのキーバインド設定機能について説明します。コンソールでは、Function Key やモディファイアキーを使用したコンビネーションキーに対応したアクションを設定できます。使用可能なアクション一覧を以下に示します。</p>
               <table class="table table-bordered table-striped">
                 <colgroup>
@@ -330,47 +330,47 @@ int main(int argc, char const* argv[])
                 <tbody>
                   <tr>
                     <td>actionDeleteBackwardCharacter</td>
-                    <td>カーソル位置手前の文字を削除し、カーソルを一つ左へ移動させます。ターミナルのBackSpaceキーと同じ動作をします。</td>
+                    <td>This action deletes a character at the before a cursor, and move to left the cursor. This action is the same behavior as the backspace key on the terminal.</td>
                   </tr>
                   <tr>
                     <td>actionDeleteForwardCharacter</td>
-                    <td>カーソル位置の文字を削除します。ターミナルのDeleteキーと同じ動作をします。</td>
+                    <td>This action deletes a character on the cursor. This action is the same behavior as the delete key on the terminal.</td>
                   </tr>
                   <tr>
                     <td>actionDeleteFromCursorToEnd</td>
-                    <td>カーソル位置から行末までの文字を削除します。ターミナルの CTRL+K キーと同じ動作をします</td>
+                    <td>This action deletes characters from the cursor position to the end of line. This action is same behavior as CTRL+K key on the terminal.</td>
                   </tr>
                   <tr>
                     <td>actionDeleteFromHeadToCursor</td>
-                    <td>行頭からカーソル位置までの文字を削除します。ターミナルの CTRL+U キーと同じ動作をします</td>
+                    <td>This action deletes characters from the beginning of line to the cursor position. This action is same behavior as CTRL+U key on the terminal.</td>
                   </tr>
                   <tr>
                     <td>actionDeleteParam</td>
-                    <td>カーソル位置から次のコマンド引数までを削除します。</td>
+                    <td>This action deletes characters from the cursor position to the top of next parameter position.</td>
                   </tr>
                   <tr>
                     <td>actionMoveCursorRight</td>
-                    <td>カーソルを1文字分だけ右へ移動します。</td>
+                    <td>This action moves the cursor to right one character.</td>
                   </tr>
                   <tr>
                     <td>actionMoveCursorLeft</td>
-                    <td>カーソルを1文字分だけ左へ移動します。</td>
+                    <td>This action moves the cursor to left one character.</td>
                   </tr>
                   <tr>
                     <td>actionMoveCursorForwardParam</td>
-                    <td>カーソルを次のコマンド引数に移動します。</td>
+                    <td>This action moves the cursor to the next parameter position.</td>
                   </tr>
                   <tr>
                     <td>actionMoveCursorBackwardParam</td>
-                    <td>カーソルを前のコマンド引数に移動します。</td>
+                    <td>This action moves the cursor to the top of before parameter position.</td>
                   </tr>
                   <tr>
                     <td>actionMoveCursorTop</td>
-                    <td>カーソルを行頭に移動します。ターミナルの CTRL+A キーと同じ動作をします。</td>
+                    <td>This action moves the cursor to the beginning of line. This action is same behavior as CTRL+A key on the terminal.</td>
                   </tr>
                   <tr>
                     <td>actionMoveCursorBottom</td>
-                    <td>カーソルを行頭に移動します。ターミナルの CTRL+E キーと同じ動作をします。</td>
+                    <td>This action moves the cursor to the end of line. This action is same behavior as CTRL+E key on the terminal.</td>
                   </tr>
                   <tr>
                     <td>actionBackwardHistory</td>
@@ -413,9 +413,14 @@ void Console::keyBindInitialize() {
 }
               </pre>
               <br>
+              <h5 id="setting_console_keycode">キーコード変更</h5>
+              <p>キーボード, ターミナルによってキー入力時に発行されるコード列が異なる場合があります。その場合、デフォルトで定義されているキーコードでは正しくキー入力を検出できません。正しく検出できるようにするためにキーコード定義を変更する必要があります。キーに対するキーコードは コンパイル時に作成された key_trace を使用することで、確認できます。
+              キーコードは、"key_code.h" に定義されています。ここに定義されているコード列の変更例を以下に示します。
+              </p>
+              <br>
               </section>
               <section id="defined_new_command">
-                  <h2>Defined new command.</h2>
+                  <h2>User-defined command.</h2>
                   <div class="alert alert-info">
                       <strong> Info </strong>"I have been writing this section now, so please wait a moment."
                   </div>
