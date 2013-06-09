@@ -208,7 +208,7 @@ std::string Console::printPromptImpl() const {
               <h4 id="regist_command"> Register commands.</h4>
               <p> A explain how to register commands to console.
               Registrable commands to console need to inherit the command-class.
-User-defined commands refer to here(<a href="#defined_new_command">User-defined command.)</a>. Library is providing some class that is inheriting the command class. They lists in below, and then, it describe example how to register.</p>
+User-defined commands refer to here(<a href="#defined_new_command">User-defined command.)</a>. Library is providing some class that is inheriting the command class. They lists at below, and then, it describe example how to register.</p>
 
               <p class="text-center"><strong>Providing command-class</strong></p>
               <table class="table table-bordered table-striped">
@@ -241,7 +241,7 @@ User-defined commands refer to here(<a href="#defined_new_command">User-defined 
                   </tr>
                 </tbody>
               </table>
-              <p>Describe in below about the registering a command by using the "SystemFuncCommad" class.</p>
+              <p>Describe at below about the registering a command by using the "SystemFuncCommad" class.</p>
                 <pre class="prettyprint linenums">
 int main(int argc, char const* argv[])
 {
@@ -303,7 +303,7 @@ int main(int argc, char const* argv[])
                 <li><a href="#setting_console_keycode">Changing the key code.</a></li>
               </ol>
               <h5 id="setting_console_history">Setting the history.</h5>
-              <p>In below, describe about the history feature. History feature provides the managiment a command execution history by the file, and provides the rerun a command from history. History feature use the "hisotry" command in built-in command. It set the size and filename for the saving a command history. Describing the example in below.</p>
+              <p>At below, describe about the history feature. History feature provides the managiment a command execution history by the file, and provides the rerun a command from history. History feature use the "history" command in built-in command. It set the size and filename for the saving a command history. Describing the example at below.</p>
               <pre class="prettyprint linenums">
 int main(int argc, char const* argv[])
 {
@@ -315,7 +315,7 @@ int main(int argc, char const* argv[])
               </pre>
               <p>It specify the size and filename as arguments to the constructor of the console class.</p>
               <h5 id="setting_console_keybind">Setting the key bind.</h5>
-              <p>コンソールのキーバインド設定機能について説明します。コンソールでは、Function Key やモディファイアキーを使用したコンビネーションキーに対応したアクションを設定できます。使用可能なアクション一覧を以下に示します。</p>
+              <p>This section describe the setting of the key binding for the console. This library can to set the action to the combination-key or the function-key. Actions describe at below.</p>
               <table class="table table-bordered table-striped">
                 <colgroup>
                   <col class="span1">
@@ -374,11 +374,11 @@ int main(int argc, char const* argv[])
                   </tr>
                   <tr>
                     <td>actionBackwardHistory</td>
-                    <td>コマンド実行履歴を一つ遡ります。</td>
+                    <td>This action go back a command history.</td>
                   </tr>
                   <tr>
                     <td>actionForwardHistory</td>
-                    <td>コマンド実行履歴を一つ進めます。</td>
+                    <td>This action go forward a command history.</td>
                   </tr>
                   <tr>
                     <td>actionEnter</td>
@@ -407,9 +407,9 @@ int main(int argc, char const* argv[])
               <pre class="prettyprint linenums">
 void Console::keyBindInitialize() {
     // BS キー登録
-    registKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
+    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
     // DELETE キー登録
-    registKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
+    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
 }
               </pre>
               <br>

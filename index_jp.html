@@ -409,9 +409,9 @@ int main(int argc, char const* argv[])
               <pre class="prettyprint linenums">
 void Console::keyBindInitialize() {
     // BS キー登録
-    registKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
+    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
     // DELETE キー登録
-    registKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
+    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
 }
               </pre>
               <h5 id="setting_console_keycode">キーコード変更</h5>
