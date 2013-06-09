@@ -148,7 +148,7 @@ class BuiltInScriptCommand;
 class BuiltInScriptExitCommand;
 
 class Console {
-    typedef bool (Console::*Action)();
+    typedef void (Console::*Action)();
     typedef CommandSelector::CommandSet CommandSet;
     typedef std::map<KeyCode::Code, Action> KeyBindMap;
     
@@ -179,14 +179,14 @@ public:
         unInitialize();
     }
     
-    bool registKeyBinding(KeyCode::Code code, Action action) {
+    bool registerKeyBinding(KeyCode::Code code, Action action) {
         if(_keyBindMap.count(code) == 1) {
             return false;
         }
         _keyBindMap.insert(std::pair<KeyCode::Code, Action>(code, action));
         return true;
     }
-    bool unregistKeyBinding(KeyCode::Code code) {
+    bool unregisterKeyBinding(KeyCode::Code code) {
         if(_keyBindMap.count(code) == 0) {
             return false;
         }
@@ -195,24 +195,24 @@ public:
     }
 
     // 定義済みアクション
-    bool actionBackwardHistory() { return selectHistory(true); }
-    bool actionForwardHistory(){ return selectHistory(false); }
-    bool actionMoveCursorRight() { return moveCursor(false); }
-    bool actionMoveCursorLeft() { return moveCursor(true); }
-    bool actionMoveCursorForwardParam();
-    bool actionMoveCursorBackwardParam();
-    bool actionDeleteForwardCharacter();
-    bool actionDeleteBackwardCharacter();
-    bool actionDeleteParam();
-    bool actionEnter();
-    bool actionComplete();
-    bool actionMoveCursorTop() { setCursorPos(0); return true;}
-    bool actionTerminate();
-    bool actionMoveCursorBottom() { setCursorPos(_inputString.size()); return true;}
-    bool actionClearLine() { clearLine(); return true; }
-    bool actionDeleteFromCursorToEnd();
-    bool actionDeleteFromHeadToCursor();
-    bool actionClearScreen();
+    void actionBackwardHistory() { selectHistory(true); }
+    void actionForwardHistory(){ selectHistory(false); }
+    void actionMoveCursorRight() { moveCursor(false); }
+    void actionMoveCursorLeft() { moveCursor(true); }
+    void actionMoveCursorForwardParam();
+    void actionMoveCursorBackwardParam();
+    void actionDeleteForwardCharacter();
+    void actionDeleteBackwardCharacter();
+    void actionDeleteParam();
+    void actionEnter();
+    void actionComplete();
+    void actionMoveCursorTop() { setCursorPos(0); return;}
+    void actionTerminate();
+    void actionMoveCursorBottom() { setCursorPos(_inputString.size()); return;}
+    void actionClearLine() { clearLine(); return; }
+    void actionDeleteFromCursorToEnd();
+    void actionDeleteFromHeadToCursor();
+    void actionClearScreen();
 
 private:
     // 初期化
@@ -922,22 +922,22 @@ bool Console::moveCursor(bool left) {
     return true;
 }
 
-bool Console::actionMoveCursorForwardParam() {
+void Console::actionMoveCursorForwardParam() {
     size_t pos = getCursorPosOnString();
     size_t space = _inputString.find(" ", pos);
     if(space == std::string::npos) {
         setCursorPos(_inputString.length());
-        return true;
+        return;
     }
     size_t nextParamPos = _inputString.find_first_not_of(" ", space);
     if(nextParamPos == std::string::npos) {
         setCursorPos(_inputString.length());
-        return true;
+        return;
     }
     setCursorPos(nextParamPos);
-    return true;
+    return;
 }
-bool Console::actionMoveCursorBackwardParam() {
+void Console::actionMoveCursorBackwardParam() {
     size_t pos = getCursorPosOnString();
     size_t nextParamPos = 0;
     if(_inputString[pos] == ' ') {
@@ -958,32 +958,32 @@ bool Console::actionMoveCursorBackwardParam() {
     }
 
     setCursorPos(nextParamPos);
-    return true;
+    return;
 }
 
-bool Console::actionDeleteBackwardCharacter() {
+void Console::actionDeleteBackwardCharacter() {
     if(_inputString.empty()) {
         // 入力文字列がない
         beep();
-        return false;
+        return;
     }
 
     if(_stringPos > 0) {
         moveCursor(true);
         actionDeleteForwardCharacter();
         //_inputString.erase(_stringPos, 1);
-        return true;
+        return;
     } else {
         beep();
     }
-    return false;
+    return;
 }
 
-bool Console::actionDeleteForwardCharacter() {
+void Console::actionDeleteForwardCharacter() {
     char str[8] = "dch1";
     if(_inputString.empty() || _stringPos == _inputString.size()){
         beep();
-        return false;
+        return;
     }
     
     // カーソルが文字列内にあるか判定
@@ -991,18 +991,18 @@ bool Console::actionDeleteForwardCharacter() {
         char* cmd = tigetstr(str);
         putp(cmd);
         _inputString.erase(_stringPos, 1);
-        return true;
+        return;
     } else {
         beep();
     }
-    return false;
+    return;
 }
 
-bool Console::actionDeleteParam() {
+void Console::actionDeleteParam() {
     size_t pos = getCursorPosOnString();
     size_t delSize = 0;
     if(_inputString[pos] == ' ') {
-        return false;
+        return;
     }
 
     std::string::iterator ite = _inputString.begin();
@@ -1022,57 +1022,57 @@ bool Console::actionDeleteParam() {
         delSize--;
     }
 
-    return true;
+    return;
 }
 
-bool Console::actionEnter() {
+void Console::actionEnter() {
     execute(_inputString);
     clearStatus();
     printPrompt();
 
-    return true;
+    return;
 }
 
-bool Console::actionTerminate() {
+void Console::actionTerminate() {
     if(_isTerminatePermit) {
         std::cout << std::endl;
         _consoleExit = true;
-        return true;
+        return;
     }
-    return false;
+    return;
 }
 
-bool Console::actionDeleteFromCursorToEnd() {
+void Console::actionDeleteFromCursorToEnd() {
     size_t cursorPos = getCursorPosOnString();
     size_t strSize = _inputString.size();
 
     putp(tparm(parm_dch, strSize-cursorPos));
     _inputString.erase(cursorPos, strSize-cursorPos);
 
-    return true;
+    return;
 }
-bool Console::actionDeleteFromHeadToCursor() {
+void Console::actionDeleteFromHeadToCursor() {
     size_t cursorPos = getCursorPosOnString();
     while(cursorPos > 0) {
         actionDeleteBackwardCharacter();
         cursorPos--;
     }
 
-    return true;
+    return;
 }
 
-bool Console::actionClearScreen() {
+void Console::actionClearScreen() {
     char str[8] = "clear";
     char* cmd;
     if((cmd = tigetstr(str)) == NULL) {
-        return false;
+        return;
     }
     if(putp(cmd) == ERR) {
-        return false;
+        return;
     }
 
     clearLine();
-    return true;
+    return;
 }
 
 void Console::execute(const std::string& inputString) {
@@ -1161,7 +1161,7 @@ Command* Console::getCommandFromInputString(std::string& inputString) {
     return cmd;
 }
 
-bool Console::actionComplete() {
+void Console::actionComplete() {
 
     // コマンド名を入力中であればコマンド名を補完する
     // コマンド名が確定している場合はパラメータ補完
@@ -1175,14 +1175,14 @@ bool Console::actionComplete() {
         std::cout << std::endl;
         printPrompt();
 
-        return true;
+        return;
     }
 
     if(_inputString.find(" ") == std::string::npos) {
         if(completeCommandName() == ERROR) {
             assert(false);
         }
-        return true;
+        return;
     }
 
     // 以降ではコマンド名が確定している場合の処理
@@ -1196,7 +1196,7 @@ bool Console::actionComplete() {
     cmd = getCommand((*tokenList)[0]);
     if(cmd == NULL) {
         delete tokenList;
-        return true;
+        return;
     }
 
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
@@ -1214,7 +1214,7 @@ bool Console::actionComplete() {
         inputStringToTerminal(_inputString);
         setCursorPos(pos);
 
-        return true;
+        return;
     }
 
 
@@ -1253,10 +1253,10 @@ bool Console::actionComplete() {
             _stringPos = 0;
             inputStringToTerminal(_inputString);
             setCursorPos(cursorPos);
-            return true;
+            return;
         } else {
             beep();
-            return true;
+            return;
         }
     } else {
         // 一部補完 or 補完候補なし
@@ -1273,7 +1273,7 @@ bool Console::actionComplete() {
                     _stringPos = 0;
                     inputStringToTerminal(_inputString);
                     setCursorPos(cursorPos);
-                    return true;
+                    return;
                 } else {
                     //size_t pos = _inputString.rfind(param);
                     size_t pos = after.find(param);
@@ -1286,10 +1286,10 @@ bool Console::actionComplete() {
                         _stringPos = 0;
                         inputStringToTerminal(_inputString);
                         setCursorPos(cursorPos);
-                        return true;
+                        return;
                     } else {
                         beep();
-                        return true;
+                        return;
                     }
                 }
             } else {
@@ -1302,16 +1302,16 @@ bool Console::actionComplete() {
                 _stringPos = 0;
                 inputStringToTerminal(_inputString);
                 setCursorPos(cursorPos);
-                return false;
+                return;
             }
         } else {
             // 補完候補なし
             beep();
-            return true;
+            return;
         }
     }
     
-    return true;
+    return;
 }
 
 Console::CompletionType Console::completeCommandName() {
