@@ -214,6 +214,25 @@ public:
     void actionDeleteFromHeadToCursor();
     void actionClearScreen();
 
+    void insertStringToTerminal(const std::string& str) {
+        _inputString.insert(_stringPos, str);
+        _stringPos += str.length();
+        std::string tmpStr = _inputString;
+        size_t pos = _stringPos;
+        actionClearLine();
+        std::cout << tmpStr;
+        _inputString = tmpStr;
+        _stringPos = pos;
+        setCursorPos(_stringPos);
+    }
+    void printStringOnTerminal(const std::string& str) {
+        std::cout << str;
+        _stringPos += str.length();
+    }
+    std::string getInputtingString() {
+        return _inputString;
+    }
+
 private:
     // 初期化
     bool initialize();
@@ -345,6 +364,17 @@ private:
     }
 
 public:
+    class Filter {
+    public:
+        virtual ~Filter() {}
+        virtual bool isSkip(const std::string& value) = 0;
+    };
+    class NullFilter : public Filter {
+    public:
+        virtual bool isSkip(const std::string& value) {
+            return false;
+        }
+    };
 
     // エラー
     std::string getSystemError() {
@@ -352,7 +382,7 @@ public:
     }
 
     // ヒストリ機能
-    void printAllHistory();
+    void printAllHistory(Filter* fileter);
     std::string getHistory(size_t index); 
 
     void printTitle(); 
@@ -426,11 +456,6 @@ public:
 
     bool isLogging() { return _isLogging; }
 
-    void inputStringToTerminal(const std::string& str) {
-        std::cout << str;
-        _stringPos += str.length();
-    }
-
 protected:
 
     KeyMap _keyMap;
@@ -485,13 +510,29 @@ public:
 };
 
 class BuiltInHistoryCommand : public Command {
-    //Console* _console;
+    class HistoryFilter : public Console::Filter {
+        const std::vector<std::string>& _filterList;
+    public:
+        HistoryFilter(const std::vector<std::string>& filterList) : _filterList(filterList) {
+        };
+
+        virtual bool isSkip(const std::string& value) {
+            std::vector<std::string>::const_iterator ite = _filterList.begin();
+            std::vector<std::string>::const_iterator end = _filterList.end();
+            for(; ite != end; ++ite) {
+                if(value.find(*ite) == std::string::npos) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
 public:
     BuiltInHistoryCommand() {}
     virtual ~BuiltInHistoryCommand() {}
 
     virtual std::string getKey() const { return "history"; }
-    virtual std::string printHelp() const { return "Usage history [History Number]"; }
+    virtual std::string printHelp() const { return "Usage history [filter string] ... [History Number]"; }
     virtual std::string execute(std::string param) const {
         std::string str = param;
         str = str.erase(0, str.find_first_not_of(" "));
@@ -501,32 +542,59 @@ public:
             return printHelp();
         }
 
-        std::stringstream ss(str);
-        size_t num = 0;
-        ss >> std::skipws >> num;
-        std::string cmd = _console->getHistory(num);
-        if(cmd.empty()) {
-            return "history: Error.";
-        } else {
-            std::string key = cmd.substr(0, cmd.find(" "));
-            if(key == "history") {
-                return "history: History command can not execute oneself.";
+        std::list<std::string> delimiterList;
+        delimiterList.push_back(" ");
+        std::vector<std::string>* filterList = _console->divideStringToVector(param, delimiterList);
+        std::string endStr = filterList->back();
+        bool isExecute = true;;
+        for(std::string::iterator ite = endStr.begin(); ite != endStr.end(); ++ite) {
+            if(std::isxdigit(*ite) == false) {
+                isExecute = false;
             }
         }
-        std::cout << "Execute : " << cmd << std::endl;
-        std::cout << "-------------------";
-        _console->execute(cmd);
+
+        if(isExecute) {
+            std::stringstream ss(endStr);
+            size_t num = 0;
+            ss >> std::skipws >> num;
+            std::string cmd = _console->getHistory(num);
+            if(cmd.empty()) {
+                delete filterList;
+                return "history: Error.";
+            } else {
+                std::string key = cmd.substr(0, cmd.find(" "));
+                if(key == "history") {
+                    delete filterList;
+                    return "history: History command can not execute oneself.";
+                }
+            }
+            std::cout << "Execute : " << cmd << std::endl;
+            std::cout << "-------------------";
+            _console->execute(cmd);
+        } else {
+            HistoryFilter filter(*filterList);
+            _console->printAllHistory(&filter);
+        }
+        delete filterList;
         return "";
     }
 
     virtual void printHistory() const {
-        _console->printAllHistory();
+        Console::NullFilter nonFilter;
+        _console->printAllHistory(&nonFilter);
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         if(inputting.size() != 0 || !inputtedList.empty()) {
+            std::vector<std::string> filterList = inputtedList;
+            filterList.push_back(inputting);
+            HistoryFilter filter(filterList);
+            _console->printAllHistory(&filter);
+            _console->insertStringToTerminal("");
             return;
         }
-        _console->printAllHistory();
+
+        Console::NullFilter nonFilter;
+        _console->printAllHistory(&nonFilter);
     }
 
     virtual bool isHistoryAdd() { return false; }
@@ -1211,7 +1279,7 @@ void Console::actionComplete() {
         size_t pos = _stringPos;
         clearLine(false);
         _stringPos = 0;
-        inputStringToTerminal(_inputString);
+        printStringOnTerminal(_inputString);
         setCursorPos(pos);
 
         return;
@@ -1251,7 +1319,7 @@ void Console::actionComplete() {
             size_t cursorPos = _stringPos;
             clearLine(false);
             _stringPos = 0;
-            inputStringToTerminal(_inputString);
+            printStringOnTerminal(_inputString);
             setCursorPos(cursorPos);
             return;
         } else {
@@ -1271,7 +1339,7 @@ void Console::actionComplete() {
                     size_t cursorPos = _stringPos;
                     clearLine(false);
                     _stringPos = 0;
-                    inputStringToTerminal(_inputString);
+                    printStringOnTerminal(_inputString);
                     setCursorPos(cursorPos);
                     return;
                 } else {
@@ -1284,11 +1352,11 @@ void Console::actionComplete() {
                         size_t cursorPos = _stringPos;
                         clearLine(false);
                         _stringPos = 0;
-                        inputStringToTerminal(_inputString);
+                        printStringOnTerminal(_inputString);
                         setCursorPos(cursorPos);
                         return;
                     } else {
-                        beep();
+                        //beep();
                         return;
                     }
                 }
@@ -1300,13 +1368,13 @@ void Console::actionComplete() {
                 size_t cursorPos = _stringPos;
                 clearLine(false);
                 _stringPos = 0;
-                inputStringToTerminal(_inputString);
+                printStringOnTerminal(_inputString);
                 setCursorPos(cursorPos);
                 return;
             }
         } else {
             // 補完候補なし
-            beep();
+            //beep();
             return;
         }
     }
@@ -1391,13 +1459,15 @@ void Console::getInputParameter(std::string& inputString, std::vector<std::strin
     }
 }
 
-void Console::printAllHistory() {
+void Console::printAllHistory(Filter* filter) {
     std::cout << std::endl;
     size_t count = _history.size()-1;
     for(std::deque<std::string>::reverse_iterator ite = _history.rbegin();
         ite != _history.rend();
         ++ite) {
-        std::cout << "[" << count << "] : " << *ite << std::endl;
+        if(filter->isSkip(*ite) == false) {
+            std::cout << "[" << count << "] : " << *ite << std::endl;
+        }
         --count;
     }
 }
