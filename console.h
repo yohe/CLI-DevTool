@@ -571,12 +571,14 @@ public:
             std::cout << "Execute : " << cmd << std::endl;
             std::cout << "-------------------";
             _console->execute(cmd);
+            delete filterList;
+            return "end";
         } else {
             HistoryFilter filter(*filterList);
             _console->printAllHistory(&filter);
+            delete filterList;
+            return printHelp();
         }
-        delete filterList;
-        return "";
     }
 
     virtual void printHistory() const {
@@ -589,6 +591,7 @@ public:
             filterList.push_back(inputting);
             HistoryFilter filter(filterList);
             _console->printAllHistory(&filter);
+            std::cout << std::endl;
             _console->insertStringToTerminal("");
             return;
         }
@@ -1236,10 +1239,9 @@ void Console::actionComplete() {
 
     // コマンド名が空の場合は全てのコマンド名を表示
     if(_inputString.empty()) {
-        // 文字列が入力されていないので、全コマンドをリストアップ
         std::cout << std::endl;
+        // 文字列が入力されていないので、全コマンドをリストアップ
         printAllCommandName();
-
         std::cout << std::endl;
         printPrompt();
 
@@ -1267,9 +1269,9 @@ void Console::actionComplete() {
         return;
     }
 
+    std::cout << std::endl;
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
     if(tokenList->size() == 1) {
-        std::cout << std::endl;
         std::vector<std::string> argumentList;
         std::string param = "";
         std::vector<std::string> candidates;
@@ -1460,7 +1462,6 @@ void Console::getInputParameter(std::string& inputString, std::vector<std::strin
 }
 
 void Console::printAllHistory(Filter* filter) {
-    std::cout << std::endl;
     size_t count = _history.size()-1;
     for(std::deque<std::string>::reverse_iterator ite = _history.rbegin();
         ite != _history.rend();
