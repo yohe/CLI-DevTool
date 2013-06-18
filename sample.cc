@@ -157,6 +157,7 @@ int main(int argc, char const* argv[])
     }
 
     console.run();
+    std::cout << std::endl;
 
     return 0;
 }

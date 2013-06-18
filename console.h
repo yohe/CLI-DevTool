@@ -1111,7 +1111,6 @@ void Console::actionEnter() {
 
 void Console::actionTerminate() {
     if(_isTerminatePermit) {
-        std::cout << std::endl;
         _consoleExit = true;
         return;
     }
