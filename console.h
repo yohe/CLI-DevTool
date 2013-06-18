@@ -131,6 +131,10 @@ public:
             _initFlag = true;
         }
 
+        if(inputting.find("./") != std::string::npos) {
+            _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
+            return;
+        }
         if(inputtedList.empty()) {
             candidates.insert(candidates.begin(), _commandList.begin(), _commandList.end());
         } else {
@@ -587,6 +591,7 @@ public:
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         if(inputting.size() != 0 || !inputtedList.empty()) {
+            std::cout << std::endl;
             std::vector<std::string> filterList = inputtedList;
             filterList.push_back(inputting);
             HistoryFilter filter(filterList);
@@ -1269,9 +1274,9 @@ void Console::actionComplete() {
         return;
     }
 
-    std::cout << std::endl;
     // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
     if(tokenList->size() == 1) {
+        std::cout << std::endl;
         std::vector<std::string> argumentList;
         std::string param = "";
         std::vector<std::string> candidates;
