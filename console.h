@@ -43,7 +43,7 @@ namespace {
             return c == ' ';
         }
     };
-};
+}
 //namespace console {
 
 class SystemFuncCommand : public Command {
