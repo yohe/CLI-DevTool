@@ -402,8 +402,8 @@ int main(int argc, char const* argv[])
                   </tr>
                 </tbody>
               </table>
-              <p>キーバインドを設定する上で注意することは、TAB キーと CTRL+I キーのようにキー入力時に同じ コード列 を生成するキーが存在することです。この場合、 TAB キーと CTRL+I キーの区別ができないため、どれか一つの設定が複数キーに影響します。キーに対応するコード列はコンパイルで作成される key_trace で確認できます。<br>
-              次にキーバインド設定について説明します。キーバインド設定は、 Console クラスの keyBindInitialize 関数内で実施し、registKeyBinding 関数を使用します。registKeyBinding 関数は、登録するキーと対応するアクションを指定します。以下の例では、 BS キーと DEL キーを押下した際の振る舞いを定義しています。</p>
+              <p>You need to know when set the key bindings that two or more different key has a same keycode. These all keys are set a key binding all together when set a key binding to a one of these key. You can check the key code by the "key_trace" that is created by the compilation.<br>It describe about the setting of key bindings. The setting of key bindings write by using the "Console::registerKeyBinding" in the function of the "Console::keyBindInitialize". The "Console::registerKeyBinding" specify two parameters that parameters are key and action.
+              以下の例では、 BS キーと DEL キーを押下した際の振る舞いを定義しています。</p>
               <pre class="prettyprint linenums">
 void Console::keyBindInitialize() {
     // BS キー登録
