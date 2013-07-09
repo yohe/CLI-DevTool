@@ -5,6 +5,18 @@
 #include <sstream>
 #include <fstream>
 
+class InsertExeAction : public UserAction {
+public:
+    InsertExeAction() {}
+    virtual ~InsertExeAction() {}
+
+    virtual void operator()() {
+        Console* console = get();
+        console->actionClearLine();
+        console->insertStringToTerminal("exe ");
+    }
+};
+
 class SampleCommand : public Command {
 public:
     SampleCommand() {}
@@ -205,6 +217,8 @@ void Console::keyBindInitialize() {
     registerKeyBinding(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop);
     registerKeyBinding(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom);
 
+    UserAction* action = new InsertExeAction();
+    registerKeyBinding(KeyCode::KEY_CTRL_W, action);
 
     // command execute
     registerKeyBinding(KeyCode::KEY_CR, &Console::actionEnter);

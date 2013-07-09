@@ -46,6 +46,25 @@ namespace {
 }
 //namespace console {
 
+class Action {
+public:
+    Action() {}
+    virtual ~Action() {};
+    virtual void operator()() = 0;
+};
+
+class Console;
+class UserAction : public Action {
+public:
+    UserAction() {}
+    virtual ~UserAction() {}
+
+    void set(Console* console) { console_ = console; }
+    Console* get() const { return console_; }
+private:
+    Console* console_;
+};
+
 class SystemFuncCommand : public Command {
     std::string _command;
     std::string _option;
@@ -152,12 +171,24 @@ class BuiltInScriptCommand;
 class BuiltInScriptExitCommand;
 
 class Console {
-    typedef void (Console::*Action)();
+    typedef void (Console::*ConsoleMethod)();
     typedef CommandSelector::CommandSet CommandSet;
-    typedef std::map<KeyCode::Code, Action> KeyBindMap;
+    typedef std::map<KeyCode::Code, Action*> KeyBindMap;
     
     friend class BuiltInScriptCommand;
     friend class BuiltInScriptExitCommand;
+
+    class SystemAction : public Action {
+    public:
+        SystemAction(Console* console, ConsoleMethod method) : console_(console), method_(method) {}
+        virtual ~SystemAction() {}
+
+        virtual void operator()() { (console_->*method_)(); }
+    private:
+        Console* console_;
+        ConsoleMethod method_;
+    };
+
 public:
 
     enum CompletionType {
@@ -183,11 +214,20 @@ public:
         unInitialize();
     }
     
-    bool registerKeyBinding(KeyCode::Code code, Action action) {
+    bool registerKeyBinding(KeyCode::Code code, ConsoleMethod method) {
         if(_keyBindMap.count(code) == 1) {
             return false;
         }
-        _keyBindMap.insert(std::pair<KeyCode::Code, Action>(code, action));
+        SystemAction* action = new SystemAction(this, method);
+        _keyBindMap.insert(std::pair<KeyCode::Code, Action*>(code, action));
+        return true;
+    }
+    bool registerKeyBinding(KeyCode::Code code, UserAction* action) {
+        if(_keyBindMap.count(code) == 1) {
+            return false;
+        }
+        action->set(this);
+        _keyBindMap.insert(std::pair<KeyCode::Code, Action*>(code, action));
         return true;
     }
     bool unregisterKeyBinding(KeyCode::Code code) {
@@ -257,7 +297,7 @@ private:
     void keyBindInitialize();
 
     // アクション
-    Action getAction(KeyCode::Code keyCode) const {
+    Action* getAction(KeyCode::Code keyCode) const {
         KeyBindMap::const_iterator ite = _keyBindMap.find(keyCode);
         if(ite == _keyBindMap.end()) {
             return NULL;
@@ -812,9 +852,9 @@ void Console::run() {
                 continue;
             }
             KeyCode::Code actionCode = entry->getVirtualKeyCode();
-            Action action = getAction(actionCode);
+            Action* action = getAction(actionCode);
             if(action != NULL) {
-                (this->*action)();
+                (*action)();
             }
             entry = NULL;
             isKeyStrokeBeginning = false;
