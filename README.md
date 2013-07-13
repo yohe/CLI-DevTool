@@ -7,8 +7,8 @@
  * [Japanese page.](http://yohe.github.io/CLI-DevTool/index_jp.html)
 
 # Description of Software
-This software is development tool for creating console. The created console has the following features.
- 
+This software is development tool for creating console. The created console has the following features:
+
 * Command-Name completion by tab key
 * Parameter completion by tab key
     - This is programable at each command.
@@ -18,6 +18,7 @@ This software is development tool for creating console. The created console has 
     2. history command : Display of a history, and execution.
     3. script command : Logging operation. (not cool)
 * Customizable key bindings.
+* User-defined action for the key bind.
 
 ----
 
