@@ -17,6 +17,74 @@ public:
     }
 };
 
+class ExportCommand : public Command {
+public:
+    ExportCommand() {}
+    virtual ~ExportCommand() {}
+
+    virtual std::string getKey() const { return "export"; }
+    virtual std::string printHelp() const { return "setting the environment variable.\n   Usage: export VAR=VALUE"; }
+    virtual std::string execute(std::string parameter) const {
+        parameter = parameter.erase(0, parameter.find_first_not_of(" "));
+        parameter = parameter.erase(parameter.find_last_not_of(" ")+1);
+        std::string var = parameter.substr(0, parameter.find("="));
+        std::string val;
+        if(parameter.find("=") != std::string::npos) {
+            val = parameter.substr(parameter.find("=")+1);
+        }
+        if(setenv(var.c_str(), val.c_str(), 1) != 0) {
+            return "NG.";
+        }
+        return "OK.";
+    }
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
+        if(inputting.find("=") == std::string::npos) {
+            getEnvironmentVariable(candidates);
+            return;
+        }
+        _behavior.getParamCandidates(inputtedList, inputting, candidates);
+    }
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
+        _behavior.stripParentPath(candidates);
+    }
+
+private:
+
+    void getEnvironmentVariable(std::vector<std::string>& candidates) const {
+        FILE* in_pipe = NULL;
+
+        std::string cmd = "env";
+
+        in_pipe = popen(cmd.c_str(), "r");
+        std::stringstream paramList("");
+        char buffer[512+1] = {0};
+        if(in_pipe != NULL) {
+            size_t readed_num = fread(buffer, sizeof(char), 512, in_pipe);
+            while(readed_num > 0) {
+                paramList.write(buffer, readed_num);
+                readed_num = fread(buffer, sizeof(char), 512, in_pipe);
+            }
+        }
+        pclose(in_pipe);
+        while(!paramList.eof()) {
+            std::string str;
+            paramList >> std::skipws >> str;
+            if(str.empty()) {
+                continue;
+            }
+            if(str.find("=") == std::string::npos) {
+                continue;
+            }
+            std::string envVar = str.substr(0, str.find("="));
+            candidates.push_back(envVar);
+        }
+        return ;
+    }
+
+    FileListBehavior _behavior;
+
+};
+
 class SampleCommand : public Command {
 public:
     SampleCommand() {}
@@ -81,7 +149,7 @@ public:
 
     virtual std::string getKey() const { return "exit"; }
     virtual std::string printHelp() const { return "console exit."; }
-    virtual std::string execute(std::string parameter) const { _console->actionTerminate(); return ""; }
+    virtual std::string execute(std::string parameter) const { _console->actionTerminate(); return "end."; }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
     }
 
@@ -145,6 +213,10 @@ int main(int argc, char const* argv[])
         std::cout << "install false" << std::endl;
         return -1;
     }
+    if(console.installCommand(new ExportCommand()) == false) {
+        std::cout << "install false" << std::endl;
+        return -1;
+    }
     if(console.installCommand(new SampleCommand()) == false) {
         std::cout << "install false" << std::endl;
         return -1;
@@ -167,9 +239,12 @@ int main(int argc, char const* argv[])
         std::cout << "install false" << std::endl;
         return -1;
     }
+    if(console.installCommand(new SystemFuncCommand("env", "", new FileListBehavior(), new ManBehavior("env"))) == false) {
+        std::cout << "install false" << std::endl;
+        return -1;
+    }
 
     console.run();
-    std::cout << std::endl;
 
     return 0;
 }

@@ -1144,7 +1144,9 @@ void Console::actionDeleteParam() {
 void Console::actionEnter() {
     execute(_inputString);
     clearStatus();
-    printPrompt();
+    if(isEnd()) {
+        printPrompt();
+    }
 
     return;
 }
