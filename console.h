@@ -77,11 +77,11 @@ public:
     virtual ~SystemFuncCommand() { delete _behavior; delete _helpBehavior; }
 
     virtual std::string getKey() const { return _command; }
-    virtual std::string printHelp() const { return _helpBehavior->printHelp(); }
-    virtual std::string execute(std::string param) const { 
+    virtual void printHelp() const { _helpBehavior->printHelp(); return; }
+    virtual void execute(std::string param) const { 
         std::string cmd = _command + " " + _option + param;
         system(cmd.c_str()); 
-        return "";
+        return;
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         _behavior->getParamCandidates(inputtedList, inputting, candidates);
@@ -106,12 +106,11 @@ public:
     }
 
     virtual std::string getKey() const { return _command; }
-    virtual std::string printHelp() const {
-        return "Usage : exe [command]";
+    virtual void printHelp() const {
+        std::cout << "Usage : exe [command]" << std::endl;
     }
-    virtual std::string execute(std::string param) const {
+    virtual void execute(std::string param) const {
         system(param.c_str()); 
-        return "";
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         if(_initFlag == false) {
@@ -375,7 +374,7 @@ private:
         _historyIndex = 0;
     }
     bool isEnd() {
-        return !_consoleExit;
+        return _consoleExit;
     }
 
     template <class Iterator>
@@ -536,17 +535,18 @@ public:
     virtual ~BuiltInHelpCommand() {}
 
     virtual std::string getKey() const { return "help"; }
-    virtual std::string printHelp() const { return "Usage help [command]:\n   Display [command] help"; }
-    virtual std::string execute(std::string param) const {
+    virtual void printHelp() const { std::cout << "Usage help [command]:\n   Display [command] help" << std::endl;; }
+    virtual void execute(std::string param) const {
         std::string str = param;
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
         Command* cmd = _console->getCommand(str);
         if(cmd == NULL) {
             std::string ret = "help : Command[" + param + "] not found.";
-            return ret;
+            std::cout << ret << std::endl;
+            return;
         }
-        return cmd->printHelp();
+        cmd->printHelp();
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         _console->getCommandNameList(candidates);
@@ -576,14 +576,15 @@ public:
     virtual ~BuiltInHistoryCommand() {}
 
     virtual std::string getKey() const { return "history"; }
-    virtual std::string printHelp() const { return "Usage history [filter string] ... [History Number]"; }
-    virtual std::string execute(std::string param) const {
+    virtual void printHelp() const { std::cout << "Usage history [filter string] ... [History Number]" << std::endl; }
+    virtual void execute(std::string param) const {
         std::string str = param;
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
         if(str.empty()) {
             printHistory();
-            return printHelp();
+            printHelp();
+            return;
         }
 
         std::list<std::string> delimiterList;
@@ -604,24 +605,26 @@ public:
             std::string cmd = _console->getHistory(num);
             if(cmd.empty()) {
                 delete filterList;
-                return "history: Error.";
+                std::cout << "history: Error." << std::endl;
+                return;
             } else {
                 std::string key = cmd.substr(0, cmd.find(" "));
                 if(key == "history") {
                     delete filterList;
-                    return "history: History command can not execute oneself.";
+                    std::cout << "history: History command can not execute oneself." << std::endl;
+                    return;
                 }
             }
             std::cout << "Execute : " << cmd << std::endl;
             std::cout << "-------------------";
             _console->execute(cmd);
             delete filterList;
-            return "end";
+            std::cout << "end" << std::endl;
         } else {
             HistoryFilter filter(*filterList);
             _console->printAllHistory(&filter);
             delete filterList;
-            return printHelp();
+            printHelp();
         }
     }
 
@@ -656,17 +659,15 @@ public:
     virtual ~BuiltInScriptExitCommand() {}
 
     virtual std::string getKey() const { return "exit"; }
-    virtual std::string printHelp() const { return "make typescript end."; }
-    virtual std::string execute(std::string param) const {
+    virtual void printHelp() const { std::cout << "make typescript end." << std::endl; }
+    virtual void execute(std::string param) const {
         _console->loggingMode(false);
 
         _console->uninstallCommand("exit", false);
         if(_exit == NULL) {
-            return "";
+            return;
         }
         _console->installCommand(_exit);
-        
-        return "";
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
@@ -682,8 +683,8 @@ public:
     virtual ~BuiltInScriptCommand() {}
 
     virtual std::string getKey() const { return "script"; }
-    virtual std::string printHelp() const { return "make typescript of terminal session.\nUsage script [filename]:"; }
-    virtual std::string execute(std::string param) const {
+    virtual void printHelp() const { std::cout << "make typescript of terminal session.\nUsage script [filename]:" << std::endl; }
+    virtual void execute(std::string param) const {
 
         bool ret = false;
         std::string filename = param;
@@ -702,12 +703,9 @@ public:
             _console->uninstallCommand("exit", false);
             _console->installCommand(_scriptExitCmd);
         } else {
-            
-            return ("script " + filename + ": "+ _console->getSystemError());
-
+            std::cout << "script " << filename << ": " <<  _console->getSystemError() << std::endl;
         }
-        
-        return "";
+        return;
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
@@ -806,7 +804,7 @@ void Console::run() {
 #ifndef KEY_TRACE
     const KeySequenceEntry* entry = NULL;
 #endif
-    while(isEnd()) {
+    while(!isEnd()) {
         char input = fgetc(stdin);
         //bool ret = userKeyHookProc(input);
 #ifdef KEY_TRACE
@@ -1144,10 +1142,9 @@ void Console::actionDeleteParam() {
 void Console::actionEnter() {
     execute(_inputString);
     clearStatus();
-    if(isEnd()) {
+    if(!isEnd()) {
         printPrompt();
     }
-
     return;
 }
 
@@ -1247,11 +1244,11 @@ void Console::executeCommand(const Command* cmd, const std::string& argument) {
     std::string ret("");
     if(cmd == NULL) {
         ret =  _commandSelector->errorCause();
+        std::cout << ret << std::endl;
     } else {
-        ret = cmd->execute(argument);
+        cmd->execute(argument);
     }
 
-    std::cout << ret << std::endl;
     if(_isLogging) {
         std::cout << std::flush;
     }
@@ -1727,14 +1724,13 @@ public:
     virtual ~EditorCommand() { delete _behavior; delete _helpBehavior; }
 
     virtual std::string getKey() const { return _command; }
-    virtual std::string printHelp() const { return _helpBehavior->printHelp(); }
-    virtual std::string execute(std::string param) const { 
+    virtual void printHelp() const { _helpBehavior->printHelp(); }
+    virtual void execute(std::string param) const { 
         std::string cmd = _command + " " + param;
         if(_console->isLogging()) {
-            return _command + " : not supporting during \"script\" execution.";
+            std::cout << _command + " : not supporting during \"script\" execution." << std::endl;
         }
         system(cmd.c_str()); 
-        return "";
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         _behavior->getParamCandidates(inputtedList, inputting, candidates);

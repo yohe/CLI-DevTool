@@ -23,8 +23,8 @@ public:
     virtual ~ExportCommand() {}
 
     virtual std::string getKey() const { return "export"; }
-    virtual std::string printHelp() const { return "setting the environment variable.\n   Usage: export VAR=VALUE"; }
-    virtual std::string execute(std::string parameter) const {
+    virtual void printHelp() const { std::cout << "setting the environment variable.\n   Usage: export VAR=VALUE" << std::endl; }
+    virtual void execute(std::string parameter) const {
         parameter = parameter.erase(0, parameter.find_first_not_of(" "));
         parameter = parameter.erase(parameter.find_last_not_of(" ")+1);
         std::string var = parameter.substr(0, parameter.find("="));
@@ -32,10 +32,13 @@ public:
         if(parameter.find("=") != std::string::npos) {
             val = parameter.substr(parameter.find("=")+1);
         }
+        std::string ret;
         if(setenv(var.c_str(), val.c_str(), 1) != 0) {
-            return "NG.";
+            ret = "NG.";
+        } else {
+            ret = "OK.";
         }
-        return "OK.";
+        std::cout << ret << std::endl;
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         if(inputting.find("=") == std::string::npos) {
@@ -91,8 +94,8 @@ public:
     virtual ~SampleCommand() {}
 
     virtual std::string getKey() const { return "sample"; }
-    virtual std::string printHelp() const { return "sample command."; }
-    virtual std::string execute(std::string parameter) const { return parameter; }
+    virtual void printHelp() const { std::cout << "sample command." << std::endl; }
+    virtual void execute(std::string parameter) const { std::cout << parameter << std::endl; }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(std::find(inputtedList.begin(), inputtedList.end(), "hoge") == inputtedList.end()) {
             matchList.push_back("hoge");
@@ -118,8 +121,8 @@ public:
     virtual ~ChangeDirCommand() {}
 
     virtual std::string getKey() const { return "cd"; }
-    virtual std::string printHelp() const { system("man cd"); return ""; }
-    virtual std::string execute(std::string parameter) const { 
+    virtual void printHelp() const { system("man cd"); }
+    virtual void execute(std::string parameter) const { 
         std::string str = parameter;
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
@@ -130,7 +133,7 @@ public:
             perror("cd");
         }
         system("pwd");
-        return "";
+        std::cout << std::endl;
     }
 
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
@@ -148,8 +151,8 @@ public:
     virtual ~ExitCommand() {}
 
     virtual std::string getKey() const { return "exit"; }
-    virtual std::string printHelp() const { return "console exit."; }
-    virtual std::string execute(std::string parameter) const { _console->actionTerminate(); return "end."; }
+    virtual void printHelp() const { std::cout << "console exit." << std::endl; }
+    virtual void execute(std::string parameter) const { _console->actionTerminate(); std::cout << "end."; }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
     }
 
@@ -164,11 +167,10 @@ public:
     virtual ~GitCommand() {}
 
     virtual std::string getKey() const { return "git"; }
-    virtual std::string printHelp() const { return _manBehavior.printHelp(); }
-    virtual std::string execute(std::string parameter) const {
+    virtual void printHelp() const { _manBehavior.printHelp(); }
+    virtual void execute(std::string parameter) const {
         std::string cmd = "git " + parameter;
         system(cmd.c_str());
-        return "";
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(inputtedList.empty()) {
@@ -245,7 +247,7 @@ int main(int argc, char const* argv[])
     }
 
     console.run();
-
+    std::cout << std::endl;
     return 0;
 }
 
