@@ -133,7 +133,12 @@
           </div>
           <div>
           <ul class="nav nav-list">
-            <li><a href="#define_new_command"><strong> User-defined command.</strong></a></li>
+            <li><a href="#defined_new_command"><strong> User-defined command.</strong></a></li>
+          </ul>
+          </div>
+          <div>
+          <ul class="nav nav-list">
+            <li><a href="#defined_new_action"><strong> User-defined action.</strong></a></li>
           </ul>
           </div>
           <div>
@@ -402,8 +407,11 @@ int main(int argc, char const* argv[])
                   </tr>
                 </tbody>
               </table>
-              <p>You need to know when set the key bindings that two or more different key has a same keycode. These all keys are set a key binding all together when set a key binding to a one of these key. You can check the key code by the "key_trace" that is created by the compilation.<br>It describe about the setting of key bindings. The setting of key bindings write by using the "Console::registerKeyBinding" in the function of the "Console::keyBindInitialize". The "Console::registerKeyBinding" specify two parameters that parameters are key and action.
-              以下の例では、 BS キーと DEL キーを押下した際の振る舞いを定義しています。</p>
+              <p>
+You need to know when set the key bindings that two or more different key has a same keycode. These all keys are set a key binding all together when set a key binding to a one of these key. You can check the key code by the "key_trace" that is created by the compilation.<br>
+It describe about the setting of key bindings. The setting of key bindings write by using the "Console::registerKeyBinding" in the function of the "Console::keyBindInitialize". The "Console::registerKeyBinding" specify two parameters that parameters are key and action.<br>
+In the below example, it setting a behavior of the BS key and DEL key.
+              </p>
               <pre class="prettyprint linenums">
 void Console::keyBindInitialize() {
     // BS キー登録
@@ -414,13 +422,19 @@ void Console::keyBindInitialize() {
               </pre>
               <br>
               <h5 id="setting_console_keycode">キーコード変更</h5>
-              <p>キーボード, ターミナルによってキー入力時に発行されるコード列が異なる場合があります。その場合、デフォルトで定義されているキーコードでは正しくキー入力を検出できません。正しく検出できるようにするためにキーコード定義を変更する必要があります。キーに対するキーコードは コンパイル時に作成された key_trace を使用することで、確認できます。
-              キーコードは、"key_code.h" に定義されています。ここに定義されているコード列の変更例を以下に示します。
+              <p>There is a case of different code sequence by same key by terminal-setting or keyboard type. In this case, Console can not accurate detection of a input key by the default key-code setting, so you need to change the key-code setting. You look see the key-code sequence corresponding to a input key by the key_trace. The key_trace being created by the compile.<br>
+              The key-code is defined in the "key_code.h" file.
               </p>
               <br>
               </section>
               <section id="defined_new_command">
                   <h2>User-defined command.</h2>
+                  <div class="alert alert-info">
+                      <strong> Info </strong>"I have been writing this section now, so please wait a moment."
+                  </div>
+              </section>
+              <section id="defined_new_action">
+                  <h2>User-defined action.</h2>
                   <div class="alert alert-info">
                       <strong> Info </strong>"I have been writing this section now, so please wait a moment."
                   </div>
