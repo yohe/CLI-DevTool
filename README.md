@@ -3,7 +3,7 @@
     Yohei.Sekiguchi <ysekiguchi.zzz@gmail.com> 
 
 ## Getting started.
- * English page.
+ * [English page.](http://yohe.github.io/CLI-DevTool/index.html)
  * [Japanese page.](http://yohe.github.io/CLI-DevTool/index_jp.html)
 
 # Description of Software
