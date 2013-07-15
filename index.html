@@ -442,9 +442,43 @@ void Console::keyBindInitialize() {
               </section>
               <section id="defined_new_action">
                   <h2>User-defined action.</h2>
-                  <div class="alert alert-info">
-                      <strong> Info </strong>"I have been writing this section now, so please wait a moment."
-                  </div>
+                  <p>
+                    <ol type="1" style="list-style-position: outside">
+                      <li><a href="#action_def"> クラス定義</a></li>
+                      <li><a href="#action_setting"> アクション設定</a></li>
+                    </ol>
+                  </p>
+                  <h5 id="action_def"> クラス定義</h5>
+                  <p>ユーザ定義アクションとは、キーバインドのアクション指定で使用可能なユーザが定義したアクションです。ユーザ定義アクションを使用することで、コマンドラインに規定の文字列を入力させるような動作も実現可能になります。ユーザ定義アクションは、"UserAction"クラスを継承して定義します。コマンドラインに "exe "を入力させる実装例を以下に示す。
+                  </p>
+                  <pre class="prettyprint linenums">
+class InsertExeAction : public UserAction {
+public:
+    InsertExeAction() {}
+    virtual ~InsertExeAction() {}
+
+    virtual void operator()() {
+        Console* console = get();
+        console->actionClearLine();
+        console->insertStringToTerminal("exe ");
+    }
+};
+                  </pre>
+                  <h5 id="action_setting"> アクション設定</h5>
+                  <p>作成したアクションのキーバインド設定について記載する。設定方法は<a href="#setting_console_keybind">キーバインド設定</a>で記載した方法と同じです。以下に作成したアクションをキーバインドで設定する例を示す。
+                  </p>
+                  <pre class="prettyprint linenums">
+void Console::keyBindInitialize() {
+    // BS キー登録
+    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
+    // DELETE キー登録
+    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
+
+    //CTRL-W 登録
+    InsertExeAction* insertExeAction = new InsertExeAction();
+    registerKeyBinding(KeyCode::KEY_CTRL_W, insertExeAction);
+}
+                  </pre>
               </section>
               <section id="required">
                   <h2>Required packages.</h2>
