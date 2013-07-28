@@ -146,6 +146,8 @@
           <div>
           <ul class="nav nav-list">
             <li><a href="#defined_new_action"><strong> User-defined action.</strong></a></li>
+            <li><a href="#action_def"><i class="icon-chevron-right"></i> Definition of an action.</a></li>
+            <li><a href="#action_setting"><i class="icon-chevron-right"></i> Using of an action.</a></li>
           </ul>
           </div>
           <div>
@@ -429,7 +431,7 @@ void Console::keyBindInitialize() {
               </pre>
               <br>
               <h5 id="setting_console_keycode">キーコード変更</h5>
-              <p>There is a case of different code sequence by same key by terminal-setting or keyboard type. In this case, Console can not accurate detection of a input key by the default key-code setting, so you need to change the key-code setting. You look see the key-code sequence corresponding to a input key by the key_trace. The key_trace being created by the compile.<br>
+              <p>There is a case that is expressed a same code sequence by different keys. In this case, Console can not accurate detection of a input key by the default key-code setting, so you need to change the key-code setting. You can check the key-code sequence corresponding to a input key by the key_trace. The key_trace being created by the compile.<br>
               The key-code is defined in the "key_code.h" file.
               </p>
               <br>
@@ -444,12 +446,12 @@ void Console::keyBindInitialize() {
                   <h2>User-defined action.</h2>
                   <p>
                     <ol type="1" style="list-style-position: outside">
-                      <li><a href="#action_def"> クラス定義</a></li>
-                      <li><a href="#action_setting"> アクション設定</a></li>
+                      <li><a href="#action_def"> Definition of an action.</a></li>
+                      <li><a href="#action_setting"> Using of an action.</a></li>
                     </ol>
                   </p>
-                  <h5 id="action_def"> クラス定義</h5>
-                  <p>ユーザ定義アクションとは、キーバインドのアクション指定で使用可能なユーザが定義したアクションです。ユーザ定義アクションを使用することで、コマンドラインに規定の文字列を入力させるような動作も実現可能になります。ユーザ定義アクションは、"UserAction"クラスを継承して定義します。コマンドラインに "exe "を入力させる実装例を以下に示す。
+                  <h5 id="action_def"> Definition of an action.</h5>
+                  <p>User-defined action can implement freely by users, and this action can use to the setting of the key bindings. ユーザ定義アクションを使用することで、コマンドラインに規定の文字列を入力させるような動作も実現可能になります。ユーザ定義アクションは、"UserAction"クラスを継承して定義します。コマンドラインに "exe "を入力させる実装例を以下に示す。
                   </p>
                   <pre class="prettyprint linenums">
 class InsertExeAction : public UserAction {
@@ -464,7 +466,7 @@ public:
     }
 };
                   </pre>
-                  <h5 id="action_setting"> アクション設定</h5>
+                  <h5 id="action_setting"> Using of an action.</h5>
                   <p>作成したアクションのキーバインド設定について記載する。設定方法は<a href="#setting_console_keybind">キーバインド設定</a>で記載した方法と同じです。以下に作成したアクションをキーバインドで設定する例を示す。
                   </p>
                   <pre class="prettyprint linenums">
