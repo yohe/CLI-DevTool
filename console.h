@@ -1660,14 +1660,14 @@ void Console::printStringList(Iterator lh, Iterator rh) {
     size_t i=0;
     lh = begin;
     rh = end;
-    while(lh!= rh) {
+    while(lh != rh) {
         std::cout << std::left << std::setw(max) << *lh;
         ++i;
-        if(i > num) {
+        ++lh;
+        if(i > num && lh != rh) {
             std::cout << std::endl;
             i = 0;
         }
-        lh++;
     }
     std::cout << std::endl;
 }
