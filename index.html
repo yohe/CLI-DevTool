@@ -451,7 +451,7 @@ void Console::keyBindInitialize() {
                     </ol>
                   </p>
                   <h5 id="action_def"> Definition of an action.</h5>
-                  <p>User-defined action can implement freely by users, and this action can use to the setting of the key bindings. ユーザ定義アクションを使用することで、コマンドラインに規定の文字列を入力させるような動作も実現可能になります。ユーザ定義アクションは、"UserAction"クラスを継承して定義します。コマンドラインに "exe "を入力させる実装例を以下に示す。
+                  <p>User-defined action can implement freely by users, and this action can use to the setting of the key bindings. By the use of user-defined action, you can implement the action to input a specific string into the console. User-defined action need to inherit the "UserAction" class. It describe a example in following. It describe a example of a user-defined action in below.
                   </p>
                   <pre class="prettyprint linenums">
 class InsertExeAction : public UserAction {
@@ -467,7 +467,7 @@ public:
 };
                   </pre>
                   <h5 id="action_setting"> Using of an action.</h5>
-                  <p>作成したアクションのキーバインド設定について記載する。設定方法は<a href="#setting_console_keybind">キーバインド設定</a>で記載した方法と同じです。以下に作成したアクションをキーバインドで設定する例を示す。
+                  <p>It describe the setting of the key binding that implemented a user-defined action. It describe a example that the implemented user-defined action set a key binding.
                   </p>
                   <pre class="prettyprint linenums">
 void Console::keyBindInitialize() {
