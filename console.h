@@ -14,6 +14,7 @@
 #include <set>
 #include <algorithm>
 
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <pwd.h>
@@ -78,7 +79,7 @@ public:
 
     virtual std::string getKey() const { return _command; }
     virtual void printHelp() const { _helpBehavior->printHelp(); return; }
-    virtual void execute(std::string param) const { 
+    virtual void execute(std::string param) { 
         std::string cmd = _command + " " + _option + param;
         system(cmd.c_str()); 
         return;
@@ -109,7 +110,7 @@ public:
     virtual void printHelp() const {
         std::cout << "Usage : exe [command]" << std::endl;
     }
-    virtual void execute(std::string param) const {
+    virtual void execute(std::string param) {
         system(param.c_str()); 
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
@@ -163,7 +164,6 @@ public:
             }
         }
     }
-
 };
 
 class BuiltInScriptCommand;
@@ -313,7 +313,7 @@ private:
     bool completeStringList(std::string& key, std::vector<std::string>& candidates, Iterator begin, Iterator end);
 
     // コマンド機能
-    void executeCommand(const Command* cmd, const std::string& argument);
+    void executeCommand(Command* cmd, const std::string& argument);
     Command* getCommandFromInputString(std::string& inputString);
 
     // History
@@ -536,7 +536,7 @@ public:
 
     virtual std::string getKey() const { return "help"; }
     virtual void printHelp() const { std::cout << "Usage help [command]:\n   Display [command] help" << std::endl;; }
-    virtual void execute(std::string param) const {
+    virtual void execute(std::string param) {
         std::string str = param;
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
@@ -577,7 +577,7 @@ public:
 
     virtual std::string getKey() const { return "history"; }
     virtual void printHelp() const { std::cout << "Usage history [filter string] ... [History Number]" << std::endl; }
-    virtual void execute(std::string param) const {
+    virtual void execute(std::string param) {
         std::string str = param;
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
@@ -660,7 +660,7 @@ public:
 
     virtual std::string getKey() const { return "exit"; }
     virtual void printHelp() const { std::cout << "make typescript end." << std::endl; }
-    virtual void execute(std::string param) const {
+    virtual void execute(std::string param) {
         _console->loggingMode(false);
 
         _console->uninstallCommand("exit", false);
@@ -684,7 +684,7 @@ public:
 
     virtual std::string getKey() const { return "script"; }
     virtual void printHelp() const { std::cout << "make typescript of terminal session.\nUsage script [filename]:" << std::endl; }
-    virtual void execute(std::string param) const {
+    virtual void execute(std::string param) {
 
         bool ret = false;
         std::string filename = param;
@@ -1198,6 +1198,9 @@ void Console::execute(const std::string& inputString) {
     std::string argument = "";
     if(sp != std::string::npos) {
         argument = inputString.substr(sp);
+        argument = argument.erase(0, argument.find_first_not_of(" "));
+        argument = argument.erase(argument.find_last_not_of(" ")+1);
+
     }
 
     if(key.empty()) {
@@ -1237,7 +1240,7 @@ void Console::execute(const std::string& inputString) {
     }
 }
 
-void Console::executeCommand(const Command* cmd, const std::string& argument) {
+void Console::executeCommand(Command* cmd, const std::string& argument) {
     // ターミナル状態をもとに戻す
     setTermIOS(_save_term);
 
@@ -1725,7 +1728,7 @@ public:
 
     virtual std::string getKey() const { return _command; }
     virtual void printHelp() const { _helpBehavior->printHelp(); }
-    virtual void execute(std::string param) const { 
+    virtual void execute(std::string param) { 
         std::string cmd = _command + " " + param;
         if(_console->isLogging()) {
             std::cout << _command + " : not supporting during \"script\" execution." << std::endl;

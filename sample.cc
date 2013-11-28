@@ -24,7 +24,7 @@ public:
 
     virtual std::string getKey() const { return "export"; }
     virtual void printHelp() const { std::cout << "setting the environment variable.\n   Usage: export VAR=VALUE" << std::endl; }
-    virtual void execute(std::string parameter) const {
+    virtual void execute(std::string parameter) {
         parameter = parameter.erase(0, parameter.find_first_not_of(" "));
         parameter = parameter.erase(parameter.find_last_not_of(" ")+1);
         std::string var = parameter.substr(0, parameter.find("="));
@@ -95,7 +95,7 @@ public:
 
     virtual std::string getKey() const { return "sample"; }
     virtual void printHelp() const { std::cout << "sample command." << std::endl; }
-    virtual void execute(std::string parameter) const { std::cout << parameter << std::endl; }
+    virtual void execute(std::string parameter) { std::cout << parameter << std::endl; }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(std::find(inputtedList.begin(), inputtedList.end(), "hoge") == inputtedList.end()) {
             matchList.push_back("hoge");
@@ -122,7 +122,7 @@ public:
 
     virtual std::string getKey() const { return "cd"; }
     virtual void printHelp() const { system("man cd"); }
-    virtual void execute(std::string parameter) const { 
+    virtual void execute(std::string parameter) { 
         std::string str = parameter;
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
@@ -152,7 +152,7 @@ public:
 
     virtual std::string getKey() const { return "exit"; }
     virtual void printHelp() const { std::cout << "console exit." << std::endl; }
-    virtual void execute(std::string parameter) const { _console->actionTerminate(); std::cout << "end."; }
+    virtual void execute(std::string parameter) { _console->actionTerminate(); std::cout << "end."; }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
     }
 
@@ -168,7 +168,7 @@ public:
 
     virtual std::string getKey() const { return "git"; }
     virtual void printHelp() const { _manBehavior.printHelp(); }
-    virtual void execute(std::string parameter) const {
+    virtual void execute(std::string parameter) {
         std::string cmd = "git " + parameter;
         system(cmd.c_str());
     }

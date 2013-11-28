@@ -16,7 +16,7 @@ public:
 
     virtual std::string getKey() const = 0;
     virtual void printHelp() const = 0;
-    virtual void execute(std::string param) const = 0;
+    virtual void execute(std::string param) = 0;
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const = 0;
     virtual bool isHistoryAdd() { return true; }
     virtual void setConsole(Console* console) { _console = console; }
