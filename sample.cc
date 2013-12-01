@@ -246,6 +246,8 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
+    console.installCommand(new EditorCommand("vim", new FileListBehavior(), new ManBehavior("vim")));
+
     console.run();
     std::cout << std::endl;
     return 0;

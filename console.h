@@ -80,7 +80,7 @@ public:
     virtual std::string getKey() const { return _command; }
     virtual void printHelp() const { _helpBehavior->printHelp(); return; }
     virtual void execute(std::string param) { 
-        std::string cmd = _command + " " + _option + param;
+        std::string cmd = _command + " " + _option + " " + param;
         system(cmd.c_str()); 
         return;
     }

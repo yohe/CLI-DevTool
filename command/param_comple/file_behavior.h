@@ -8,6 +8,30 @@
 #include "command/param_comple/behavior_base.h"
 
 class FileListBehavior : public ParameterBehavior {
+    class SpecialCharEscaper {
+    public:
+        std::string operator()(std::string str) {
+            std::string ret;
+            std::string::iterator ite = str.begin();
+            for(; ite != str.end(); ++ite) {
+                switch(*ite) {
+                    case ' ':
+                        ret += "\\ ";
+                        break;
+                    case '\\':
+                        ret += "\\\\";
+                        break;
+                    case '|':
+                        ret += "\\|";
+                        break;
+                    default:
+                        ret += *ite;
+                        break;
+                }
+            }
+            return ret;
+        }
+    };
 public:
     FileListBehavior() {}
     virtual ~FileListBehavior() {}
@@ -47,7 +71,10 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
             if(str.empty()) {
                 continue;
             }
-            std::string name = path+str;
+            
+            SpecialCharEscaper e;
+            std::string name = path;
+            name += e(str);
             if(name.find(inputting) == std::string::npos) {
                 continue;
             } else {
