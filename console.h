@@ -438,6 +438,9 @@ public:
         gethostname(buf, 128);
         return buf;
     }
+    std::string getHomeDirectory() const {
+        return _user_homeDir;
+    }
     std::string getCurrentDirectory() const {
         size_t size = pathconf(".", _PC_PATH_MAX);
         char* buf = new char[size];

@@ -128,12 +128,17 @@ public:
         str = str.erase(str.find_last_not_of(" ")+1);
         if(str.size() == 0) {
             str = getenv("HOME");
+        } else {
+            if(str[0] == '~') {
+                std::string homeDir = _console->getHomeDirectory();
+                str.replace(0,1, homeDir);
+            }
         }
         if(chdir(str.c_str()) == -1) {
             perror("cd");
         }
         system("pwd");
-        std::cout << std::endl;
+        //std::cout << std::endl;
     }
 
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
