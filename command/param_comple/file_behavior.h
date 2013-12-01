@@ -24,6 +24,18 @@ class FileListBehavior : public ParameterBehavior {
                     case '|':
                         ret += "\\|";
                         break;
+                    case '<':
+                        ret += "\\<";
+                        break;
+                    case '>':
+                        ret += "\\>";
+                        break;
+                    case '\"':
+                        ret += "\\\"";
+                        break;
+                    case '\'':
+                        ret += "\\\'";
+                        break;
                     default:
                         ret += *ite;
                         break;
