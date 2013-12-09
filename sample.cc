@@ -5,17 +5,112 @@
 #include <sstream>
 #include <fstream>
 
-class InsertExeAction : public UserAction {
+void consoleInit(Console& console);
+
+int main(int argc, char const* argv[])
+{
+    int historySize = 100;
+    const char* homeDir = getenv("HOME");
+    std::string historyFileName(homeDir);
+    historyFileName += "/.cli_history";
+
+    // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
+    // Console console(history); 
+    // Console console(history, ctrl_c);
+    Console console(historySize, historyFileName.c_str());
+
+    consoleInit(console);
+
+    console.run();
+    std::cout << std::endl;
+    return 0;
+}
+
+// Set the prompt string for the command line.
+std::string Console::printPromptImpl() const {
+    std::string dir = getCurrentDirectory();
+    std::string prompt = "[" + getUserName() + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
+    return prompt;
+}
+
+// Set the title to be displayed after startup.
+void Console::printTitle() {
+    std::cout << "+------------------------------------+\n";
+    std::cout << "|              Console               |\n";
+    std::cout << "+------------------------------------+\n";
+}
+
+class InsertStringAction : public UserAction {
 public:
-    InsertExeAction() {}
-    virtual ~InsertExeAction() {}
+    InsertStringAction(std::string str) : _str(str) {}
+    virtual ~InsertStringAction() {}
 
     virtual void operator()() {
         Console* console = get();
         console->actionClearLine();
-        console->insertStringToTerminal("exe ");
+        console->insertStringToTerminal(_str);
     }
+private:
+    std::string _str;
 };
+
+class ExecuteStringAction : public UserAction {
+public:
+    ExecuteStringAction(std::string str) : _str(str) {}
+    virtual ~ExecuteStringAction() {}
+
+    virtual void operator()() {
+        Console* console = get();
+        console->actionClearLine();
+        console->insertStringToTerminal(_str);
+        console->actionEnter();
+    }
+private:
+    std::string _str;
+};
+
+// キー入力発生時に実行する関数を登録
+void Console::keyBindInitialize() {
+
+    // Delete Character
+    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
+    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
+    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
+    registerKeyBinding(KeyCode::KEY_CTRL_K, &Console::actionDeleteFromCursorToEnd);
+    registerKeyBinding(KeyCode::KEY_CTRL_U, &Console::actionDeleteFromHeadToCursor);
+    registerKeyBinding(KeyCode::KEY_CTRL_L, &Console::actionClearScreen);
+    registerKeyBinding(KeyCode::KEY_CTRL_S, &Console::actionClearLine);
+    registerKeyBinding(KeyCode::KEY_CTRL_G, &Console::actionDeleteParam);
+
+    // Complete
+    registerKeyBinding(KeyCode::KEY_TAB, &Console::actionComplete);
+    registerKeyBinding(KeyCode::KEY_CTRL_SPACE, &Console::actionComplete);
+
+    // History select
+    registerKeyBinding(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory);
+    registerKeyBinding(KeyCode::KEY_ALT_K, &Console::actionBackwardHistory);
+    registerKeyBinding(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory);
+    registerKeyBinding(KeyCode::KEY_ALT_J, &Console::actionForwardHistory);
+
+    // cursor move
+    registerKeyBinding(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight);
+    registerKeyBinding(KeyCode::KEY_CTRL_F, &Console::actionMoveCursorRight);
+    registerKeyBinding(KeyCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft);
+    registerKeyBinding(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft);
+    registerKeyBinding(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop);
+    registerKeyBinding(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom);
+
+    UserAction* action = new InsertStringAction("exe ");
+    registerKeyBinding(KeyCode::KEY_CTRL_W, action);
+
+    // command execute
+    registerKeyBinding(KeyCode::KEY_CR, &Console::actionEnter);
+    registerKeyBinding(KeyCode::KEY_CTRL_N, &Console::actionMoveCursorForwardParam);
+    registerKeyBinding(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam);
+
+    // CTRL-C
+    registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionTerminate);
+}
 
 class ExportCommand : public Command {
 public:
@@ -202,114 +297,25 @@ public:
 private:
 };
 
-int main(int argc, char const* argv[])
-{
-    int historySize = 100;
-    std::string historyFileName = ".cli_history";
+void consoleInit(Console& console) {
+    console.installCommand(new ExitCommand());
+    console.installCommand(new ChangeDirCommand());
+    console.installCommand(new ExportCommand());
+    console.installCommand(new SampleCommand());
+    console.installCommand(new GitCommand());
 
-    // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
-    // Console console(history); 
-    // Console console(history, ctrl_c);
-    Console console(historySize, historyFileName.c_str());
-
-    if(console.installCommand(new ExitCommand()) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
-    if(console.installCommand(new ChangeDirCommand()) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
-    if(console.installCommand(new ExportCommand()) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
-    if(console.installCommand(new SampleCommand()) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
-    if(console.installCommand(new GitCommand()) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
-
-    if(console.installCommand(new ShellCommandExecutor("exe")) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
+    console.installCommand(new ShellCommandExecutor("exe"));
 
     // SystemFuncCommand(std::string commandName, std::string commandOption, ParameterBehavior* p, HelpBehavior* h)
     // 
     // -G : Enable colorized for Mac OS X.
     // --color=auto : Enable colorized for Linux.
-    if(console.installCommand(new SystemFuncCommand("ls", "-G", new FileListBehavior(), new ManBehavior("ls"))) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
-    if(console.installCommand(new SystemFuncCommand("env", "", new FileListBehavior(), new ManBehavior("env"))) == false) {
-        std::cout << "install false" << std::endl;
-        return -1;
-    }
+    console.installCommand(new SystemFuncCommand("ls", "-G", new FileListBehavior(), new ManBehavior("ls")));
+    console.installCommand(new SystemFuncCommand("env", "", new FileListBehavior(), new ManBehavior("env")));
 
     console.installCommand(new EditorCommand("vim", new FileListBehavior(), new ManBehavior("vim")));
-
-    console.run();
-    std::cout << std::endl;
-    return 0;
-}
-
-std::string Console::printPromptImpl() const {
-    std::string dir = getCurrentDirectory();
-    //std::string prompt = "$ ";
-    std::string prompt = "[" + _user_name + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
-    return prompt;
-}
-void Console::printTitle() {
-    std::cout << "+------------------------------------+\n";
-    std::cout << "|              Console               |\n";
-    std::cout << "+------------------------------------+\n";
-}
-
-// キー入力発生時に実行する関数を登録
-void Console::keyBindInitialize() {
-
-    // Delete Character
-    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
-    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
-    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
-    registerKeyBinding(KeyCode::KEY_CTRL_K, &Console::actionDeleteFromCursorToEnd);
-    registerKeyBinding(KeyCode::KEY_CTRL_U, &Console::actionDeleteFromHeadToCursor);
-    registerKeyBinding(KeyCode::KEY_CTRL_L, &Console::actionClearScreen);
-    registerKeyBinding(KeyCode::KEY_CTRL_S, &Console::actionClearLine);
-    registerKeyBinding(KeyCode::KEY_CTRL_G, &Console::actionDeleteParam);
-
-    // Complete
-    registerKeyBinding(KeyCode::KEY_TAB, &Console::actionComplete);
-    registerKeyBinding(KeyCode::KEY_CTRL_SPACE, &Console::actionComplete);
-
-    // History select
-    registerKeyBinding(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory);
-    registerKeyBinding(KeyCode::KEY_ALT_K, &Console::actionBackwardHistory);
-    registerKeyBinding(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory);
-    registerKeyBinding(KeyCode::KEY_ALT_J, &Console::actionForwardHistory);
-
-    // cursor move
-    registerKeyBinding(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight);
-    registerKeyBinding(KeyCode::KEY_CTRL_F, &Console::actionMoveCursorRight);
-    registerKeyBinding(KeyCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft);
-    registerKeyBinding(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft);
-    registerKeyBinding(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop);
-    registerKeyBinding(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom);
-
-    UserAction* action = new InsertExeAction();
-    registerKeyBinding(KeyCode::KEY_CTRL_W, action);
-
-    // command execute
-    registerKeyBinding(KeyCode::KEY_CR, &Console::actionEnter);
-    registerKeyBinding(KeyCode::KEY_CTRL_N, &Console::actionMoveCursorForwardParam);
-    registerKeyBinding(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam);
-
-    // CTRL-C
-    registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionTerminate);
+    console.installCommand(new CommandAlias("vi", "vim"));
+    console.installCommand(new CommandAlias("..", "cd", "../"));
+    console.installCommand(new CommandAlias("ll", "ls", "-alG"));
 }
 

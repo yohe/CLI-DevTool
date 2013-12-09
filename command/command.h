@@ -30,7 +30,23 @@ private:
 
 };
 
+class CommandAlias : public Command {
+public:
+    CommandAlias(std::string aliasName, std::string commandName, std::string option = "") : 
+        Command(),
+        _aliasName(aliasName),
+        _commandName(commandName), _option(option) {}
 
+    virtual std::string getKey() const { return _aliasName; }
+    virtual void printHelp() const;
+    virtual void execute(std::string param);
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const;
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const;
+protected:
+    std::string _aliasName;
+    std::string _commandName;
+    std::string _option;
+};
 
 
 #endif /* end of include guard */
