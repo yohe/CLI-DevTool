@@ -1,5 +1,5 @@
-#ifndef _COMMAND_H_
-#define _COMMAND_H_
+#ifndef CLI_DEV_COMMAND_H
+#define CLI_DEV_COMMAND_H
 
 #include <vector>
 #include <string>
@@ -50,3 +50,4 @@ protected:
 
 
 #endif /* end of include guard */
+

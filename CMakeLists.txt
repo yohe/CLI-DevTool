@@ -11,8 +11,30 @@ IF(APPLE)
     link_directories(/opt/local/lib /usr/lib)
 ENDIF(APPLE)
 
-ADD_EXECUTABLE(console sample.cc console.cc key_seq.cc key_map.cc command/command.cc command/param_comple/file_behavior.cc )
-ADD_EXECUTABLE(key_trace sample.cc console.cc key_seq.cc key_map.cc command/command.cc command/param_comple/file_behavior.cc )
+ADD_EXECUTABLE(console
+              sample.cc
+              console.cc
+              key/key_seq.cc
+              key/key_map.cc
+              command/command.cc
+              command/param_comple/file_behavior.cc
+              command/builtin/help.cc
+              command/builtin/history.cc
+              command/builtin/script.cc
+              command/builtin/editor.cc
+              )
+ADD_EXECUTABLE(key_trace
+              sample.cc
+              console.cc
+              key/key_seq.cc
+              key/key_map.cc
+              command/command.cc
+              command/param_comple/file_behavior.cc
+              command/builtin/help.cc
+              command/builtin/history.cc
+              command/builtin/script.cc
+              command/builtin/editor.cc
+              )
 #ADD_EXECUTABLE(test/test_main test/main.cpp key_seq.cc key_map.cc)
 
 set_directory_properties(PROPERTIES

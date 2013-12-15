@@ -795,7 +795,7 @@ void Console::getInputParameter(std::string& inputString, std::vector<std::strin
     }
 }
 
-void Console::printAllHistory(Filter* filter) {
+void Console::printAllHistory(HistoryFilter* filter) {
     size_t count = _history.size()-1;
     for(std::deque<std::string>::reverse_iterator ite = _history.rbegin();
         ite != _history.rend();

@@ -312,10 +312,12 @@ void consoleInit(Console& console) {
     // --color=auto : Enable colorized for Linux.
     console.installCommand(new SystemFuncCommand("ls", "-G", new FileListBehavior(), new ManBehavior("ls")));
     console.installCommand(new SystemFuncCommand("env", "", new FileListBehavior(), new ManBehavior("env")));
+    console.installCommand(new SystemFuncCommand("pwd", "", new FileListBehavior(), new ManBehavior("pwd")));
 
     console.installCommand(new EditorCommand("vim", new FileListBehavior(), new ManBehavior("vim")));
     console.installCommand(new CommandAlias("vi", "vim"));
     console.installCommand(new CommandAlias("..", "cd", "../"));
+    console.installCommand(new CommandAlias("...", "cd", "../../"));
     console.installCommand(new CommandAlias("ll", "ls", "-alG"));
 }
 
