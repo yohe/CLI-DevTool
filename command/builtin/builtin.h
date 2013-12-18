@@ -6,5 +6,8 @@
 #include "command/builtin/help.h"
 #include "command/builtin/editor.h"
 #include "command/builtin/script.h"
+#include "command/builtin/mode_select.h"
+#include "command/builtin/system_func.h"
+#include "command/builtin/shell_exe.h"
 
 #endif

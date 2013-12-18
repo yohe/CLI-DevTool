@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+namespace clidevt {
+
 class ParameterBehavior {
 public:
     ParameterBehavior() {}
@@ -23,5 +25,6 @@ public:
     }
 };
 
+}
 
 #endif /* end of include guard */

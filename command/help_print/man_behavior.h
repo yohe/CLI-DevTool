@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "command/help_print/behavior_base.h"
 
+namespace clidevt {
+
 class ManBehavior : public HelpBehavior {
     std::string _commandName;
 public:
@@ -17,6 +19,8 @@ public:
         return "";
     }
 };
+
+}
 
 #endif /* end of include guard */
 

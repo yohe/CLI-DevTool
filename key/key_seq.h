@@ -8,6 +8,8 @@
 
 #include "key_code.h"
 
+namespace clidevt {
+
 class KeySequenceEntry {
 public:
     KeySequenceEntry(char endSeqCode, KeyCode::Code keyCode);
@@ -45,5 +47,7 @@ public:
 protected:
      GroupMap _group;
 };
+
+}
 
 #endif /* end of include guard */

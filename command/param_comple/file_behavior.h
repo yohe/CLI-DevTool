@@ -7,6 +7,8 @@
 
 #include "command/param_comple/behavior_base.h"
 
+namespace clidevt {
+
 class FileListBehavior : public ParameterBehavior {
     class SpecialCharEscaper {
     public:
@@ -53,6 +55,8 @@ public:
     virtual void stripParentPath(std::vector<std::string>& candidates) const;
     virtual void stripFile(std::vector<std::string>& candidates) const;
 };
+
+}
 
 #endif /* end of include guard */
 

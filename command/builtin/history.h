@@ -8,6 +8,8 @@
 
 #include "command/command.h"
 
+namespace clidevt {
+
 class HistoryFilter {
 public:
     virtual ~HistoryFilter() {}
@@ -52,8 +54,10 @@ public:
                                     std::string inputting,
                                     std::vector<std::string>& candidates) const ;
 
-    virtual bool isHistoryAdd() { return false; }
+    virtual bool isHistoryAdd() const { return false; }
 };
+
+}
 
 #endif
 

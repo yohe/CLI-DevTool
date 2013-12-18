@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "command/help_print/behavior_base.h"
 
+namespace clidevt {
+
 class ShellHelpOptionBehavior : public HelpBehavior {
     std::string _commandName;
     std::string _helpOption;
@@ -18,6 +20,8 @@ public:
         return "";
     }
 };
+
+}
 
 #endif /* end of include guard */
 

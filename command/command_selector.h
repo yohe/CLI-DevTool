@@ -5,7 +5,7 @@
 #include <string>
 #include <list>
 
-//#include "console.h"
+namespace clidevt {
 
 class CommandSelector {
 public:
@@ -113,5 +113,6 @@ public:
 
 };
 
+}
 
 #endif /* end of include guard */

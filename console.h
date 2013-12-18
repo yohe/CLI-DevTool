@@ -46,7 +46,10 @@ namespace {
         }
     };
 }
-//namespace console {
+
+namespace clidevt {
+
+class Mode;
 
 class Action {
 public:
@@ -67,109 +70,6 @@ private:
     Console* console_;
 };
 
-class SystemFuncCommand : public Command {
-    std::string _command;
-    std::string _option;
-    ParameterBehavior* _behavior;
-    HelpBehavior* _helpBehavior;
-public:
-    SystemFuncCommand(std::string commandName, std::string option, ParameterBehavior* behavior, HelpBehavior* helpBehavior) :
-        _command(commandName), _option(option), _behavior(behavior), _helpBehavior(helpBehavior) {}
-
-    virtual ~SystemFuncCommand() { delete _behavior; delete _helpBehavior; }
-
-    virtual std::string getKey() const { return _command; }
-    virtual void printHelp() const { _helpBehavior->printHelp(); return; }
-    virtual void execute(std::string param) { 
-        std::string cmd = _command + " " + _option + " " + param;
-        system(cmd.c_str()); 
-        return;
-    }
-    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
-        _behavior->getParamCandidates(inputtedList, inputting, candidates);
-    }
-    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
-        FileListBehavior fileListBehavior;
-        fileListBehavior.stripParentPath(candidates);
-    }
-};
-
-class ShellCommandExecutor : public Command {
-    std::string _command;
-    // 遅延評価させるための措置
-    mutable bool _initFlag;
-    mutable std::set<std::string> _commandList;
-    FileListBehavior _fileListBehavior;
-public:
-    ShellCommandExecutor(const std::string& commandName ) : _command(commandName), _initFlag(false) {
-    }
-
-    virtual ~ShellCommandExecutor() {
-    }
-
-    virtual std::string getKey() const { return _command; }
-    virtual void printHelp() const {
-        std::cout << "Usage : exe [command]" << std::endl;
-    }
-    virtual void execute(std::string param) {
-        system(param.c_str()); 
-    }
-    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
-        if(_initFlag == false) {
-            const char* c_env = getenv("PATH");
-            std::string env(c_env);
-            std::string::size_type pos = 0;
-            while(true) {
-                std::string::size_type findpos = env.find(':', pos);
-                std::string path = env.substr(pos, (findpos-pos));
-                if(findpos == std::string::npos || path.empty()) {
-                    //std::cout << "--------------------- END!!!!!!!!!!" << std::endl;
-                    break;
-                }
-                //std::cout << "---------------------" << path << std::endl;
-                pos = findpos+1;
-                struct dirent** namelist;
-                int entrySize = scandir(path.c_str(), &namelist, NULL, alphasort);
-                if( entrySize == -1 ) {
-                    continue;
-                }
-                //std::cout << "---------------------" << entrySize << std::endl;
-                if(path.at(path.length()-1) != '/') {
-                    path+='/';
-                }
-                for(int i=0; i < entrySize; ++i) {
-                    std::string fullPath = path + namelist[i]->d_name;
-                    //std::cout << "---------------------" << fullPath.c_str() << std::endl;
-                    int ret = access(fullPath.c_str(), X_OK);
-                    if(ret == 0) {
-                        _commandList.insert(namelist[i]->d_name);
-                    }
-                    free(namelist[i]);
-                }
-                free(namelist);
-            }
-            _initFlag = true;
-        }
-
-        if(inputting.find("./") != std::string::npos) {
-            _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
-            return;
-        }
-        if(inputtedList.empty()) {
-            candidates.insert(candidates.begin(), _commandList.begin(), _commandList.end());
-        } else {
-            if(inputtedList[0] == "man") {
-                candidates.insert(candidates.begin(), _commandList.begin(), _commandList.end());
-            } else {
-                _fileListBehavior.getParamCandidates(inputtedList, inputting, candidates);
-            }
-        }
-    }
-    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
-        FileListBehavior fileListBehavior;
-        fileListBehavior.stripParentPath(candidates);
-    }
-};
 
 class BuiltInScriptCommand;
 class BuiltInScriptExitCommand;
@@ -178,6 +78,7 @@ class Console {
     typedef void (Console::*ConsoleMethod)();
     typedef CommandSelector::CommandSet CommandSet;
     typedef std::map<KeyCode::Code, Action*> KeyBindMap;
+    typedef std::map<std::string, Mode*> ModeMap;
     
     friend class BuiltInScriptCommand;
     friend class BuiltInScriptExitCommand;
@@ -242,6 +143,36 @@ public:
         return true;
     }
 
+    Mode* getCurrentMode() const {
+        return _currentMode;
+    }
+
+    Mode* setMode(Mode* new_mode) {
+        Mode* cur = _currentMode;
+        _currentMode = new_mode;
+        return cur;
+    }
+    const ModeMap& getModeMap() const {
+        return _modeMap;
+    }
+    bool registMode(Mode* mode) ;
+    Mode* unregistMode(std::string name) ;
+
+    const KeyMap& getKeyMap() const {
+        return _keyMap;
+    }
+
+    // アクション
+    Action* getAction(KeyCode::Code keyCode) const {
+        KeyBindMap::const_iterator ite = _keyBindMap.find(keyCode);
+        if(ite == _keyBindMap.end()) {
+            return NULL;
+        }
+
+        return ite->second;
+    }
+
+
     // 定義済みアクション
     void actionBackwardHistory() { selectHistory(true); }
     void actionForwardHistory(){ selectHistory(false); }
@@ -262,21 +193,12 @@ public:
     void actionDeleteFromHeadToCursor();
     void actionClearScreen();
 
-    void insertStringToTerminal(const std::string& str) {
-        _inputString.insert(_stringPos, str);
-        _stringPos += str.length();
-        std::string tmpStr = _inputString;
-        size_t pos = _stringPos;
-        actionClearLine();
-        std::cout << tmpStr;
-        _inputString = tmpStr;
-        _stringPos = pos;
-        setCursorPos(_stringPos);
+    void redraw() {
+        clearLine(false);
+        std::cout << _inputString;
     }
-    void printStringOnTerminal(const std::string& str) {
-        std::cout << str;
-        _stringPos += str.length();
-    }
+    void insertStringToTerminal(const std::string& str) ;
+    void printStringOnTerminal(const std::string& str) ;
     std::string getInputtingString() {
         return _inputString;
     }
@@ -300,16 +222,6 @@ private:
     void keyMapInitialize();
     void keyBindInitialize();
 
-    // アクション
-    Action* getAction(KeyCode::Code keyCode) const {
-        KeyBindMap::const_iterator ite = _keyBindMap.find(keyCode);
-        if(ite == _keyBindMap.end()) {
-            return NULL;
-        }
-
-        return ite->second;
-    }
-
     // 補完機能
     CompletionType completeCommandName();
     void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList);
@@ -318,6 +230,7 @@ private:
     bool completeStringList(std::string& key, std::vector<std::string>& candidates, Iterator begin, Iterator end);
 
     // コマンド機能
+    void executeShellCommand(const std::string& string);
     void executeCommand(Command* cmd, const std::string& argument);
     Command* getCommandFromInputString(std::string& inputString);
 
@@ -327,14 +240,9 @@ private:
     void addHistory(std::string str, bool save = true);
 
      // 画面フォーマット出力
-    void printPrompt() {
-        printf("\r");
-        std::string str = printPromptImpl();
-        std::cout << "\x1b[36m" << str << "\x1b[39m";
-        _inputString = "";
-        _stringPos = 0;
-    }
+    void printPrompt();
     std::string printPromptImpl() const;
+
     // ターミナル操作機能
     bool moveCursor(bool left);
     void clearLine(bool clearString = true) {
@@ -522,8 +430,10 @@ protected:
     long _user_uid;
     std::string _user_homeDir;
     int _systemErrorNumber;
+    Mode* _currentMode;
+    ModeMap _modeMap;
 };
 
-//}
+}
 
 #endif /* end of include guard */

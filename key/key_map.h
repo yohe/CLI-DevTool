@@ -6,6 +6,8 @@
 
 #include "key_seq.h"
 
+namespace clidevt {
+
 class KeyMap {
 public:
     typedef std::map<char, KeySequenceEntry*> GroupMap;
@@ -25,5 +27,7 @@ protected:
     GroupMap _keyMap;
     RegisteredKeyMap _registeredMap;
 };
+
+}
 
 #endif /* end of include guard */

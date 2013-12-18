@@ -2,6 +2,8 @@
 #include "command/command.h"
 #include "console.h"
 
+namespace clidevt {
+
 void CommandAlias::printHelp() const {
     Command* cmd = _console->getCommand(_commandName);
     if(cmd != NULL) {
@@ -41,4 +43,6 @@ void CommandAlias::afterCompletionHook(std::vector<std::string>& inputtedList) c
     } else {
         std::cout << _commandName << "is not found." << std::endl;
     }
+}
+
 }

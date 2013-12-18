@@ -3,6 +3,8 @@
 
 #include "key_seq.h"
 
+namespace clidevt {
+
 KeySequenceEntry::KeySequenceEntry(char endSeqCode, KeyCode::Code keyCode) :
     _sequenceCode(endSeqCode), _virtualKeyCode(keyCode)
 {
@@ -67,5 +69,7 @@ void KeySequenceGroup::deleteKeySequence(char keyCode) {
     _group.erase(ite);
     KeySequenceEntry* entry = ite->second;
     delete entry;
+}
+
 }
 

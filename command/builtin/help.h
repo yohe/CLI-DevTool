@@ -8,6 +8,8 @@
 
 #include "command/command.h"
 
+namespace clidevt {
+
 class BuiltInHelpCommand : public Command {
 public:
     BuiltInHelpCommand() {}
@@ -20,6 +22,8 @@ public:
                                     std::string inputting,
                                     std::vector<std::string>& candidates) const;
 };
+
+}
 
 #endif
 

@@ -1,4 +1,7 @@
 #include "command/param_comple/file_behavior.h"
+#include <iostream>
+
+namespace clidevt {
 
 void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         FILE* in_pipe = NULL;
@@ -36,19 +39,36 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
             if(name.find(inputting) == std::string::npos) {
                 continue;
             } else {
-                if(name[name.size()-1] == '*') {
+                switch (name[name.size()-1]) {
+                case '*':
                     name.erase(name.size()-1);
-                } else if (name[name.size()-1] == '/') {
-                    // nop
-                } else if (name[name.size()-1] == '|') {
+                    break;
+                case '/':
+                    
+                    break;
+                case '|':
                     name.erase(name.size()-1);
-                } else if(name[name.size()-1] == '@') {
+                    break;
+                case '@':
                     name[name.size()-1] = '/';
-                } else {
-                    // ファイルを補完する場合は スペースを追加することで、
-                    // シェルライクなファイル名補完になる
+                    break;
+                default:
                     name += " ";
+                    break;
                 }
+                //if(name[name.size()-1] == '*') {
+                //    name.erase(name.size()-1);
+                //} else if (name[name.size()-1] == '/') {
+                //    // nop
+                //} else if (name[name.size()-1] == '|') {
+                //    name.erase(name.size()-1);
+                //} else if(name[name.size()-1] == '@') {
+                //    name[name.size()-1] = '/';
+                //} else {
+                //    // ファイルを補完する場合は スペースを追加することで、
+                //    // シェルライクなファイル名補完になる
+                //    name += " ";
+                //}
             }
             candidates.push_back(name);
         }
@@ -81,5 +101,7 @@ void FileListBehavior::stripFile(std::vector<std::string>& candidates) const {
         }
     }
     candidates.swap(after);
+}
+
 }
 

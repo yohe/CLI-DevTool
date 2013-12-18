@@ -4,6 +4,8 @@
 
 #include "key_map.h"
 
+namespace clidevt {
+
 KeyMap::KeyMap() {
 
 }
@@ -147,4 +149,6 @@ KeySequenceEntry* KeyMap::getKeyEntry(const KeyCode::Code keyCode) const {
         entry = group->getKeySequenceEntry(*keyIte);
     }
     return entry;
+}
+
 }

@@ -9,6 +9,8 @@
 #include "command/param_comple/behavior_base.h"
 #include "command/help_print/behavior_base.h"
 
+namespace clidevt {
+
 class EditorCommand : public Command {
     std::string _command;
     ParameterBehavior* _behavior;
@@ -25,8 +27,10 @@ public:
     virtual void getParamCandidates(std::vector<std::string>& inputtedList,
                                     std::string inputting,
                                     std::vector<std::string>& candidates) const; 
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const ;
 };
 
+}
 
 #endif
 

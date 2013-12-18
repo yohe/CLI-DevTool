@@ -3,6 +3,8 @@
 
 #include "console.h"
 
+namespace clidevt {
+
 void BuiltInScriptExitCommand::execute(std::string param) {
     _console->loggingMode(false);
 
@@ -34,4 +36,6 @@ void BuiltInScriptCommand::execute(std::string param) {
         std::cout << "script " << filename << ": " <<  _console->getSystemError() << std::endl;
     }
     return;
+}
+
 }

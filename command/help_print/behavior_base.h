@@ -4,6 +4,8 @@
 
 #include <string>
 
+namespace clidevt {
+
 class HelpBehavior {
 public:
     HelpBehavior() {}
@@ -11,5 +13,7 @@ public:
 
     virtual std::string printHelp() const = 0;
 };
+
+}
 
 #endif /* end of include guard */

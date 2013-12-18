@@ -4,6 +4,8 @@
 #include "command/builtin/editor.h"
 #include "console.h"
 
+namespace clidevt {
+
 void EditorCommand::execute(std::string param) { 
     std::string cmd = _command + " " + param;
     if(_console->isLogging()) {
@@ -16,4 +18,10 @@ void EditorCommand::getParamCandidates(std::vector<std::string>& inputtedList,
                                        std::vector<std::string>& candidates) const {
 
     _behavior->getParamCandidates(inputtedList, inputting, candidates);
+}
+void EditorCommand::afterCompletionHook(std::vector<std::string>& candidates) const {
+    FileListBehavior fileListBehavior;
+    fileListBehavior.stripParentPath(candidates);
+}
+
 }

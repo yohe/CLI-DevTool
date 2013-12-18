@@ -9,6 +9,7 @@
 #include "command/command.h"
 #include "command/param_comple/file_behavior.h"
 
+namespace clidevt {
 
 class BuiltInScriptExitCommand : public Command {
     FileListBehavior _fileListBehavior;
@@ -42,6 +43,7 @@ public:
     }
 };
 
+}
 
 #endif
 

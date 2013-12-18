@@ -22,6 +22,10 @@ ADD_EXECUTABLE(console
               command/builtin/history.cc
               command/builtin/script.cc
               command/builtin/editor.cc
+              command/builtin/mode_select.cc
+              command/builtin/system_func.cc
+              command/builtin/shell_exe.cc
+              mode/builtin/normal.cc
               )
 ADD_EXECUTABLE(key_trace
               sample.cc
@@ -34,7 +38,12 @@ ADD_EXECUTABLE(key_trace
               command/builtin/history.cc
               command/builtin/script.cc
               command/builtin/editor.cc
+              command/builtin/mode_select.cc
+              command/builtin/system_func.cc
+              command/builtin/shell_exe.cc
+              mode/builtin/normal.cc
               )
+
 #ADD_EXECUTABLE(test/test_main test/main.cpp key_seq.cc key_map.cc)
 
 set_directory_properties(PROPERTIES

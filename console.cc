@@ -1,4 +1,10 @@
 #include "console.h"
+#include "mode/mode.h"
+#include "mode/builtin/builtin.h"
+
+#include "command/param_comple/file_behavior.h"
+
+namespace clidevt {
 
 void Console::keyMapInitialize() {
 
@@ -64,6 +70,7 @@ bool Console::initialize() {
     installCommand(new BuiltInHelpCommand());
     installCommand(new BuiltInHistoryCommand());
     installCommand(new BuiltInScriptCommand());
+    installCommand(new BuiltInModeSelectCommand());
 
 #ifdef DEBUG
     std::cout << " ------------------ Load History Start" << std::endl;
@@ -79,7 +86,25 @@ bool Console::initialize() {
     _user_name = userInfo->pw_name;
     _user_uid = userInfo->pw_uid;
     _user_homeDir = userInfo->pw_dir;
+
+
+    setMode(new NormalMode());
+    registMode(getCurrentMode());
+
     return true;
+}
+
+void Console::printPrompt() {
+    printf("\r");
+    std::string str = printPromptImpl();
+    Mode* mode = getCurrentMode();
+    if(mode->getFlags() & PROMPT_DISPLAY_HOOK) {
+        mode->hookPromptDisplay(str, this);
+    } else {
+        std::cout << "\x1b[36m" << str << "\x1b[39m";
+    }
+    _inputString = "";
+    _stringPos = 0;
 }
 
 void Console::run() {
@@ -88,22 +113,25 @@ void Console::run() {
     _inputString ="";
     _stringPos=0;
     _historyIndex = 0;
-    bool isKeyStrokeBeginning = false;
-#ifndef KEY_TRACE
-    const KeySequenceEntry* entry = NULL;
-#endif
+
+    std::pair<bool, Action*> ret;
+    NormalMode normal_mode;
+
     while(!isEnd()) {
+        Mode* mode = getCurrentMode();
         char input = fgetc(stdin);
-        //bool ret = userKeyHookProc(input);
+        if(mode->getFlags() & INPUT_KEY_HOOK) {
+            ret = mode->hookInputKey(input, this);
+        } else {
+            ret = normal_mode.hookInputKey(input, this);
+        }
 #ifdef KEY_TRACE
         std::cout << (int)input << " "; // for key trace 
         if(input == 3) {
             return;
         }
 #endif
-        if( !isKeyStrokeBeginning ) {
-            // space and symble or alphanumeric is output without do something.
-            if( input >= 0x20 && input <= 0x7E) {
+        if(ret.first) {
 #ifndef KEY_TRACE
                 _inputString.insert(_stringPos, 1, input);
                 ++_stringPos;
@@ -116,37 +144,13 @@ void Console::run() {
                 putp(tigetstr(exitIns));
 #endif
                 continue;
-            }
         }
         
 #ifndef KEY_TRACE
-        // Defined action execute if non alphanumeric charactor.
-        if( entry == NULL ) {
-            entry = _keyMap.getKeyEntry(input);
-        } else {
-            entry = entry->getKeySequenceEntry(input);
-        }
 
-        if(entry == NULL) {
-            beep();
-            isKeyStrokeBeginning = false;
-            continue;
-        }
-
-        if(entry->isEntry()) {
-            if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
-                continue;
-            }
-            KeyCode::Code actionCode = entry->getVirtualKeyCode();
-            Action* action = getAction(actionCode);
-            if(action != NULL) {
-                (*action)();
-            }
-            entry = NULL;
-            isKeyStrokeBeginning = false;
-        } else {
-            isKeyStrokeBeginning = true;
-            continue;
+        if(ret.second != NULL) {
+            Action* action = ret.second;
+            (*action)();
         }
 #endif
 
@@ -428,10 +432,16 @@ void Console::actionDeleteParam() {
 }
 
 void Console::actionEnter() {
+    if(getCurrentMode()->getFlags() & EXECUTE_CMD_BEFORE) {
+        getCurrentMode()->hookExecuteCmdBefore(this);
+    }
     execute(_inputString);
     clearStatus();
     if(!isEnd()) {
         printPrompt();
+    }
+    if(getCurrentMode()->getFlags() & EXECUTE_CMD_AFTER) {
+        getCurrentMode()->hookExecuteCmdAfter(this);
     }
     return;
 }
@@ -477,22 +487,49 @@ void Console::actionClearScreen() {
     return;
 }
 
+void Console::insertStringToTerminal(const std::string& str) {
+    std::cout << str;
+    _inputString.insert(_stringPos, str);
+    _stringPos += str.length();
+    setCursorPos(_stringPos);
+    //_inputString.insert(_stringPos, str);
+    //_stringPos += str.length();
+    //std::string tmpStr = _inputString;
+    //size_t pos = _stringPos;
+    //actionClearLine();
+    //std::cout << tmpStr;
+    //_inputString = tmpStr;
+    //_stringPos = pos;
+    //setCursorPos(_stringPos);
+}
+void Console::printStringOnTerminal(const std::string& str) {
+    std::cout << str;
+    _stringPos += str.length();
+}
+
 void Console::execute(const std::string& inputString) {
     std::cout << std::endl;
 
-    // コマンド名、引数に分離
-    size_t sp = inputString.find(' ');
-    std::string key = inputString.substr(0, sp);
-    std::string argument = "";
-    if(sp != std::string::npos) {
-        argument = inputString.substr(sp);
-        argument = argument.erase(0, argument.find_first_not_of(" "));
-        argument = argument.erase(argument.find_last_not_of(" ")+1);
+    bool isSystem = false;
+    std::string key;
+    std::string argument;
+    if(inputString.compare(0, 2, "./") == 0) {
+        isSystem = true;
+    } else {
+        // コマンド名、引数に分離
+        size_t sp = inputString.find(' ');
+        key = inputString.substr(0, sp);
+        argument = "";
+        if(sp != std::string::npos) {
+            argument = inputString.substr(sp);
+            argument = argument.erase(0, argument.find_first_not_of(" "));
+            argument = argument.erase(argument.find_last_not_of(" ")+1);
 
-    }
+        }
 
-    if(key.empty()) {
-        return;
+        if(key.empty()) {
+            return;
+        }
     }
 
     if(_isLogging && _logFlag == false) {
@@ -506,17 +543,22 @@ void Console::execute(const std::string& inputString) {
         _before_fpos = ftell(_typeLog);
     }
 
-    Command* cmd = getCommand(key);
-    executeCommand(cmd, argument);
+    if(isSystem) {
+#ifdef SHELL_SUPPORT
+        executeShellCommand(inputString);
+#endif
+    } else {
+        Command* cmd = getCommand(key);
+        executeCommand(cmd, argument);
+        // 文字列が一文字以上であればヒストリに追加
+        if(!inputString.empty()) {
 
-    // 文字列が一文字以上であればヒストリに追加
-    if(!inputString.empty()) {
-
-        // 実行したコマンドがある場合は、そのコマンドをヒストリに残すべきかを判定する.
-        //
-        // history コマンド自体を ヒストリに残さない. これは [history 0] などで history から historyを呼び出す再帰を防ぐため
-        if(cmd != NULL && cmd->isHistoryAdd()) {
-            addHistory(inputString);
+            // 実行したコマンドがある場合は、そのコマンドをヒストリに残すべきかを判定する.
+            //
+            // history コマンド自体を ヒストリに残さない. これは [history 0] などで history から historyを呼び出す再帰を防ぐため
+            if(cmd != NULL && cmd->isHistoryAdd()) {
+                addHistory(inputString);
+            }
         }
     }
 
@@ -528,6 +570,18 @@ void Console::execute(const std::string& inputString) {
     }
 }
 
+void Console::executeShellCommand(const std::string& inputString) {
+    // ターミナル状態をもとに戻す
+    setTermIOS(_save_term);
+    system(inputString.c_str());
+    addHistory(inputString);
+    if(_isLogging) {
+        std::cout << std::flush;
+    }
+
+    // ターミナル状態をもとに戻す
+    setTermIOS(_term_setting);
+}
 void Console::executeCommand(Command* cmd, const std::string& argument) {
     // ターミナル状態をもとに戻す
     setTermIOS(_save_term);
@@ -582,67 +636,96 @@ void Console::actionComplete() {
         return;
     }
 
-    if(_inputString.find(" ") == std::string::npos) {
-        if(completeCommandName() == ERROR) {
-            assert(false);
-        }
-        return;
-    }
-
-    // 以降ではコマンド名が確定している場合の処理
+    bool ret = false;
+    bool cmdUse = true;
+    std::string param = "";
+    std::string after = "";
     Command* cmd = NULL;
+    std::vector<std::string> argumentList;
+    FileListBehavior fileCompl;
+    if(_inputString.compare(0, 2, "./") == 0) {
+#ifdef SHELL_SUPPORT
+        cmdUse = false;
+        std::string fixedInput = _inputString.substr(0, _stringPos);
+        std::list<std::string> delimiterList;
+        delimiterList.push_back(" ");
+        std::vector<std::string>* tokenList = divideStringToVector(fixedInput, delimiterList);
 
-    std::string fixedInput = _inputString.substr(0, _stringPos);
-    std::list<std::string> delimiterList;
-    delimiterList.push_back(" ");
-    std::vector<std::string>* tokenList = divideStringToVector(fixedInput, delimiterList);
+        std::vector<std::string> candidates;
 
-    cmd = getCommand((*tokenList)[0]);
-    if(cmd == NULL) {
+        if(fixedInput[fixedInput.size()-1] == ' ') {
+        } else {
+            param = tokenList->back();
+            tokenList->pop_back();
+        }
+        fileCompl.getParamCandidates(*tokenList, param, candidates);
+        std::vector<std::string>::iterator begin = candidates.begin();
+        std::vector<std::string>::iterator end = candidates.end();
+        ret = completeStringList(after, argumentList, begin, end);
         delete tokenList;
-        return;
-    }
+#endif
+    } else {
+        if(_inputString.find(" ") == std::string::npos) {
+            if(completeCommandName() == ERROR) {
+                assert(false);
+            }
+            return;
+        }
 
-    // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
-    if(tokenList->size() == 1) {
-        std::cout << std::endl;
-        std::vector<std::string> argumentList;
-        std::string param = "";
+        // 以降ではコマンド名が確定している場合の処理
+
+        std::string fixedInput = _inputString.substr(0, _stringPos);
+        std::list<std::string> delimiterList;
+        delimiterList.push_back(" ");
+        std::vector<std::string>* tokenList = divideStringToVector(fixedInput, delimiterList);
+
+        cmd = getCommand((*tokenList)[0]);
+        if(cmd == NULL) {
+            delete tokenList;
+            return;
+        }
+
+        // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
+        if(tokenList->size() == 1) {
+            std::cout << std::endl;
+            std::vector<std::string> argumentList_;
+            std::string param = "";
+            std::vector<std::string> candidates;
+            cmd->getParamCandidates(argumentList_, param, candidates);
+            cmd->afterCompletionHook(candidates);
+            printStringList(candidates.begin(), candidates.end());
+            size_t pos = _stringPos;
+            clearLine(false);
+            _stringPos = 0;
+            printStringOnTerminal(_inputString);
+            setCursorPos(pos);
+            delete tokenList; tokenList = NULL;
+            return;
+        }
+
+
+        getInputParameter(fixedInput, tokenList, param, argumentList);
+
+        delete tokenList; tokenList = NULL;
+
+
+        // paramのサイズが0の場合はパラメータを一文字も入力していない, そもそもこっちまで来ない
+        // paramのサイズが0以上の場合はパラメータ入力中
+
+        // パラメータ補完を実施
+        // 補完が完全補完の場合は表示して終了
+        // 補完が一部補完である場合は、補完されている場合はそのまま表示して終了
+        // 補完候補がない場合は beep
         std::vector<std::string> candidates;
         cmd->getParamCandidates(argumentList, param, candidates);
-        cmd->afterCompletionHook(candidates);
-        printStringList(candidates.begin(), candidates.end());
-        size_t pos = _stringPos;
-        clearLine(false);
-        _stringPos = 0;
-        printStringOnTerminal(_inputString);
-        setCursorPos(pos);
 
-        return;
+        after = param;
+        argumentList.clear();
+        std::vector<std::string>::iterator begin = candidates.begin();
+        std::vector<std::string>::iterator end = candidates.end();
+        ret = completeStringList(after, argumentList, begin, end);
     }
 
-
-    std::vector<std::string> argumentList;
-    std::string param = "";
-    getInputParameter(fixedInput, tokenList, param, argumentList);
-
-    delete tokenList; tokenList = NULL;
-
-    // paramのサイズが0の場合はパラメータを一文字も入力していない, そもそもこっちまで来ない
-    // paramのサイズが0以上の場合はパラメータ入力中
-
-    // パラメータ補完を実施
-    // 補完が完全補完の場合は表示して終了
-    // 補完が一部補完である場合は、補完されている場合はそのまま表示して終了
-    // 補完候補がない場合は beep
-    std::vector<std::string> candidates;
-    cmd->getParamCandidates(argumentList, param, candidates);
-
-    std::string after = param;
-    argumentList.clear();
-    std::vector<std::string>::iterator begin = candidates.begin();
-    std::vector<std::string>::iterator end = candidates.end();
-    bool ret = completeStringList(after, argumentList, begin, end);
 
     // 補完結果をカーソル位置に反映させる
     if( ret ) {
@@ -699,7 +782,11 @@ void Console::actionComplete() {
             } else {
                 // 変更がないので候補表示
                 std::cout << std::endl;
-                cmd->afterCompletionHook(argumentList);
+                if(cmdUse) {
+                    cmd->afterCompletionHook(argumentList);
+                } else {
+                    fileCompl.stripParentPath(argumentList);
+                }
                 printStringList(argumentList.begin(), argumentList.end());
                 size_t cursorPos = _stringPos;
                 clearLine(false);
@@ -1002,4 +1089,24 @@ std::vector<std::string>* Console::divideStringToVector(std::string& src, std::l
     }
 
     return result;
+}
+
+bool Console::registMode(Mode* mode) {
+    if(_modeMap.count(mode->getName()) != 0) {
+        return false;
+    }
+
+    _modeMap.insert(std::make_pair(mode->getName(), mode));
+    return true;
+}
+Mode* Console::unregistMode(std::string name) {
+    if(_modeMap.count(name) == 0) {
+        return NULL;
+    }
+
+    Mode* mode = _modeMap[name];
+    _modeMap.erase(name);
+    return mode;
+}
+
 }

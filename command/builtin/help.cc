@@ -2,6 +2,8 @@
 #include "command/builtin/help.h"
 #include "console.h"
 
+namespace clidevt {
+
 void BuiltInHelpCommand::execute(std::string param) {
     std::string str = param;
     str = str.erase(0, str.find_first_not_of(" "));
@@ -19,4 +21,6 @@ void BuiltInHelpCommand::getParamCandidates(std::vector<std::string>& inputtedLi
                                             std::string inputting,
                                             std::vector<std::string>& candidates) const {
     _console->getCommandNameList(candidates);
+}
+
 }

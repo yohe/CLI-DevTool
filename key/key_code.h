@@ -4,6 +4,8 @@
 
 #include <map>
 
+namespace clidevt {
+
 class KeyCode{
 public:
     enum Code {
@@ -209,5 +211,7 @@ public:
 private:
     std::map<Code, std::string> _code;
 };
+
+}
 
 #endif /* end of include guard */

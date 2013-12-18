@@ -2,6 +2,8 @@
 #include "command/builtin/history.h"
 #include "console.h"
 
+namespace clidevt {
+
 void BuiltInHistoryCommand::execute(std::string param) {
     std::string str = param;
     str = str.erase(0, str.find_first_not_of(" "));
@@ -63,7 +65,7 @@ void BuiltInHistoryCommand::getParamCandidates(std::vector<std::string>& inputte
         BuiltInHistoryFilter filter(filterList);
         _console->printAllHistory(&filter);
         std::cout << std::endl;
-        _console->insertStringToTerminal("");
+        _console->redraw();
         return;
     }
 
@@ -74,4 +76,6 @@ void BuiltInHistoryCommand::getParamCandidates(std::vector<std::string>& inputte
 void BuiltInHistoryCommand::printHistory() const {
     NonHistoryFilter nonFilter;
     _console->printAllHistory(&nonFilter);
+}
+
 }

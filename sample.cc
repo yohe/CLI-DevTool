@@ -5,6 +5,33 @@
 #include <sstream>
 #include <fstream>
 
+#include "mode/mode.h"
+
+using namespace clidevt;
+
+class ExeInsertMode : public Mode {
+public:
+    ExeInsertMode() : 
+        Mode("exe", PROMPT_DISPLAY_HOOK | EXECUTE_CMD_AFTER) { }
+
+    virtual void enter(Console* console, Mode* current) {}
+    virtual void leave(Console* console) {}
+    virtual std::pair<bool, Action*>
+        hookInputKey(char input, Console* console)
+        {
+            return std::make_pair(false, (Action*)NULL);
+        }
+    virtual void hookPromptDisplay(const std::string& prompt, Console* console) {
+        std::cout << "\x1b[34m" << prompt << "\x1b[39m";
+    }
+    virtual void hookExecuteCmdBefore(Console* console) {}
+    virtual void hookExecuteCmdAfter(Console* console) {
+        console->insertStringToTerminal("exe ");
+    }
+
+private:
+};
+
 void consoleInit(Console& console);
 
 int main(int argc, char const* argv[])
@@ -109,7 +136,9 @@ void Console::keyBindInitialize() {
     registerKeyBinding(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam);
 
     // CTRL-C
-    registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionTerminate);
+    registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionClearLine);
+    // CTRL-D
+    registerKeyBinding(KeyCode::KEY_CTRL_D, &Console::actionTerminate);
 }
 
 class ExportCommand : public Command {
@@ -319,5 +348,7 @@ void consoleInit(Console& console) {
     console.installCommand(new CommandAlias("..", "cd", "../"));
     console.installCommand(new CommandAlias("...", "cd", "../../"));
     console.installCommand(new CommandAlias("ll", "ls", "-alG"));
+
+    console.registMode(new ExeInsertMode());
 }
 
