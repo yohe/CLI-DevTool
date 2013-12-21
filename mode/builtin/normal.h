@@ -18,13 +18,8 @@ public:
     {
     }
 
-    virtual void enter(Console* console, Mode* current) {}
-    virtual void leave(Console* console) {}
     virtual std::pair<bool, Action*>
         hookInputKey(char input, Console* console);
-    virtual void hookPromptDisplay(const std::string& prompt, Console* console) {}
-    virtual void hookExecuteCmdBefore(Console* console) {}
-    virtual void hookExecuteCmdAfter(Console* console) {}
 
 private:
     const KeySequenceEntry* _keyEntry;

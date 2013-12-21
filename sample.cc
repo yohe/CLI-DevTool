@@ -12,21 +12,32 @@ using namespace clidevt;
 class ExeInsertMode : public Mode {
 public:
     ExeInsertMode() : 
-        Mode("exe", PROMPT_DISPLAY_HOOK | EXECUTE_CMD_AFTER) { }
+        Mode("exe", PROMPT_DISPLAY_HOOK | PREPARE_INSERT_STR ) { }
 
-    virtual void enter(Console* console, Mode* current) {}
-    virtual void leave(Console* console) {}
-    virtual std::pair<bool, Action*>
-        hookInputKey(char input, Console* console)
-        {
-            return std::make_pair(false, (Action*)NULL);
-        }
     virtual void hookPromptDisplay(const std::string& prompt, Console* console) {
         std::cout << "\x1b[34m" << prompt << "\x1b[39m";
     }
-    virtual void hookExecuteCmdBefore(Console* console) {}
-    virtual void hookExecuteCmdAfter(Console* console) {
+    virtual void hookPrepareInsert(Console* console) {
         console->insertStringToTerminal("exe ");
+    }
+
+private:
+};
+
+class LsMode : public Mode {
+public:
+    LsMode() : 
+        Mode("ls", PROMPT_DISPLAY_HOOK | EXECUTE_CMD_AFTER) { }
+
+    virtual void hookPromptDisplay(const std::string& prompt, Console* console) {
+        std::cout << "\x1b[34m" << prompt << "\x1b[39m";
+    }
+    virtual void hookExecuteCmdAfter(Command* cmd, Console* console) {
+        if(cmd->getKey() == "ls" || cmd->getKey() == "ll") {
+            return;
+        } else {
+            system("ls -GF");
+        }
     }
 
 private:
@@ -350,5 +361,6 @@ void consoleInit(Console& console) {
     console.installCommand(new CommandAlias("ll", "ls", "-alG"));
 
     console.registMode(new ExeInsertMode());
+    console.registMode(new LsMode());
 }
 

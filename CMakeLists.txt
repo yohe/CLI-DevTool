@@ -44,15 +44,36 @@ ADD_EXECUTABLE(key_trace
               mode/builtin/normal.cc
               )
 
-#ADD_EXECUTABLE(test/test_main test/main.cpp key_seq.cc key_map.cc)
+add_library(clidevt SHARED
+            sample.cc
+            console.cc
+            key/key_seq.cc
+            key/key_map.cc
+            command/command.cc
+            command/param_comple/file_behavior.cc
+            command/builtin/help.cc
+            command/builtin/history.cc
+            command/builtin/script.cc
+            command/builtin/editor.cc
+            command/builtin/mode_select.cc
+            command/builtin/system_func.cc
+            command/builtin/shell_exe.cc
+            mode/builtin/normal.cc
+           )
+
+make_directory(lib)
+
+set_target_properties(clidevt PROPERTIES LIBRARY_OUTPUT_DIRECTORY "lib/")
 
 set_directory_properties(PROPERTIES
                          ADDITIONAL_MAKE_CLEAN_FILES "test/test_main")
 
 set_target_properties(console PROPERTIES LINK_FLAGS -lncurses)
-set_target_properties(console PROPERTIES COMPILE_FLAGS "-Wall")
+set_target_properties(console PROPERTIES COMPILE_FLAGS "-Wall -DSHELL_SUPPORT")
 set_target_properties(key_trace PROPERTIES COMPILE_FLAGS "-Wall -DKEY_TRACE")
 set_target_properties(key_trace PROPERTIES LINK_FLAGS -lncurses)
+set_target_properties(clidevt PROPERTIES LINK_FLAGS -lncurses)
+set_target_properties(clidevt PROPERTIES COMPILE_FLAGS "-Wall -DSHELL_SUPPORT")
 #set_target_properties(test/test_main PROPERTIES COMPILE_FLAGS "-Wall -I ../ -I ../iunit/cpp")
 #set_target_properties(test/test_main PROPERTIES LINK_FLAGS -lncurses)
 

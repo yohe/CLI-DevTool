@@ -8,15 +8,17 @@
 namespace clidevt {
 
     enum ModeHookBit {
-        INPUT_KEY_HOOK = 1,
-        PROMPT_DISPLAY_HOOK = 2,
-        EXECUTE_CMD_BEFORE = 4,
-        EXECUTE_CMD_AFTER = 8,
-        HOOK_ALL = 15,
+        INPUT_KEY_HOOK = (1 << 0),
+        PROMPT_DISPLAY_HOOK = (1 << 1),
+        EXECUTE_CMD_BEFORE = (1 << 2),
+        EXECUTE_CMD_AFTER = (1 << 3),
+        PREPARE_INSERT_STR = (1 << 4),
+        HOOK_ALL = ((1 << 5) -1),
     };
 
-    class Console;
-    class Action;
+class Console;
+class Action;
+class Command;
 
 class Mode {
 public:
@@ -34,12 +36,27 @@ public:
         return _flags;
     }
 
-    virtual void enter(Console* console, Mode* current) = 0;
-    virtual void leave(Console* console) = 0;
-    virtual std::pair<bool, Action*> hookInputKey(char input, Console* console) = 0;
-    virtual void hookPromptDisplay(const std::string& prompt, Console* console) = 0;
-    virtual void hookExecuteCmdBefore(Console* console) = 0;
-    virtual void hookExecuteCmdAfter(Console* console) = 0;
+    virtual void enter(Console* console, Mode* current) {}
+    virtual void leave(Console* console) {};
+
+    /**
+     * @brief hookinputkey
+     *
+     * @param[in] input     This is a character that is inputted by keyboard.
+     * @param[in] console   Console class.
+     *
+     * If boolean is true, the input character insert to console.
+     * If boolean is false and Action is NULL, System execute nothing.
+     * If boolean is false and Action is specified, System execute a Action.
+     */
+    virtual std::pair<bool, Action*> hookInputKey(char input, Console* console) {
+        return std::make_pair(true, (Action*)NULL);
+    } 
+
+    virtual void hookPromptDisplay(const std::string& prompt, Console* console) {};
+    virtual void hookExecuteCmdBefore(Command* cmd, Console* console) {};
+    virtual void hookExecuteCmdAfter(Command* cmd, Console* console) {};
+    virtual void hookPrepareInsert(Console* console) {};
 
 private:
     std::string _name;

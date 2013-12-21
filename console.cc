@@ -432,16 +432,13 @@ void Console::actionDeleteParam() {
 }
 
 void Console::actionEnter() {
-    if(getCurrentMode()->getFlags() & EXECUTE_CMD_BEFORE) {
-        getCurrentMode()->hookExecuteCmdBefore(this);
-    }
     execute(_inputString);
     clearStatus();
     if(!isEnd()) {
         printPrompt();
     }
-    if(getCurrentMode()->getFlags() & EXECUTE_CMD_AFTER) {
-        getCurrentMode()->hookExecuteCmdAfter(this);
+    if(getCurrentMode()->getFlags() & PREPARE_INSERT_STR) {
+        getCurrentMode()->hookPrepareInsert(this);
     }
     return;
 }
@@ -549,6 +546,11 @@ void Console::execute(const std::string& inputString) {
 #endif
     } else {
         Command* cmd = getCommand(key);
+        if(getCurrentMode()->getFlags() & EXECUTE_CMD_BEFORE) {
+            if(cmd != NULL) {
+                getCurrentMode()->hookExecuteCmdBefore(cmd, this);
+            }
+        }
         executeCommand(cmd, argument);
         // 文字列が一文字以上であればヒストリに追加
         if(!inputString.empty()) {
@@ -558,6 +560,11 @@ void Console::execute(const std::string& inputString) {
             // history コマンド自体を ヒストリに残さない. これは [history 0] などで history から historyを呼び出す再帰を防ぐため
             if(cmd != NULL && cmd->isHistoryAdd()) {
                 addHistory(inputString);
+            }
+        }
+        if(getCurrentMode()->getFlags() & EXECUTE_CMD_AFTER) {
+            if(cmd != NULL) {
+                getCurrentMode()->hookExecuteCmdAfter(cmd, this);
             }
         }
     }
