@@ -46,7 +46,6 @@ void BuiltInHistoryCommand::execute(std::string param) {
         std::cout << "-------------------";
         _console->execute(cmd);
         delete filterList;
-        std::cout << "end" << std::endl;
     } else {
         BuiltInHistoryFilter filter(*filterList);
         _console->printAllHistory(&filter);

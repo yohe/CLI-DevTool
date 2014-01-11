@@ -55,7 +55,7 @@ int main(int argc, char const* argv[])
     // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
     // Console console(history); 
     // Console console(history, ctrl_c);
-    Console console(historySize, historyFileName.c_str());
+    Console console(argc, argv, historySize, historyFileName.c_str());
 
     consoleInit(console);
 

@@ -27,7 +27,8 @@ void Console::keyMapInitialize() {
     
 }
 
-bool Console::initialize() {
+bool Console::initialize(int argc, char const* argv[]) {
+    _consolePath = argv[0];
     if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
         return false;
     }

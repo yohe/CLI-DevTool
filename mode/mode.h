@@ -13,7 +13,7 @@ namespace clidevt {
         EXECUTE_CMD_BEFORE = (1 << 2),
         EXECUTE_CMD_AFTER = (1 << 3),
         PREPARE_INSERT_STR = (1 << 4),
-        HOOK_ALL = ((1 << 5) -1),
+        HOOK_ALL = ((1 << 5) -1)
     };
 
 class Console;

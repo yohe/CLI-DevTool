@@ -104,7 +104,7 @@ public:
         ERROR
     };
 
-    Console(size_t histroySize = 20, std::string filename = ".cli_history") :
+    Console(int argc, char const* argv[], size_t histroySize = 20, std::string filename = ".cli_history") :
         _commandSelector(NULL),
         _historyMax(histroySize),
         _historyFile(filename),
@@ -113,7 +113,7 @@ public:
     {
         _commandSelector = new DefaultCommandSelector();
         //_commandSelector = new AbbreviatedCommandSelector();
-        initialize();
+        initialize(argc, argv);
     }
     virtual ~Console() {
         unInitialize();
@@ -205,7 +205,7 @@ public:
 
 private:
     // 初期化
-    bool initialize();
+    bool initialize(int argc, char const* argv[]);
     bool setTermIOS(struct termios& setting) {
         if(tcsetattr(fileno(stdin), TCSANOW, &setting) == -1) {
             return false;
@@ -432,6 +432,8 @@ protected:
     int _systemErrorNumber;
     Mode* _currentMode;
     ModeMap _modeMap;
+
+    std::string _consolePath;
 };
 
 }
