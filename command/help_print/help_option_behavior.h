@@ -1,6 +1,6 @@
 
 #ifndef CLI_DEV_COMMAND_HELP_PRINT_HELP_OPTION_BEHAVIOR_H
-#define CLI_DEV_COMMAND_HELP_PRINT_HELP_OPTION__BEHAVIOR_H
+#define CLI_DEV_COMMAND_HELP_PRINT_HELP_OPTION_BEHAVIOR_H
 
 #include <stdlib.h>
 #include "command/help_print/behavior_base.h"

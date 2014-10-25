@@ -2,6 +2,9 @@
 #include <unistd.h>
 #include <dirent.h>
 
+#include <list>
+#include <console.h>
+
 #include "command/builtin/shell_exe.h"
 
 namespace clidevt {
@@ -11,7 +14,34 @@ void ShellCommandExecutor::execute(std::string param) {
         _historyAdd = false;
         return;
     }
-    system(param.c_str()); 
+    std::string cmd = param.substr(0, param.find(" "));
+    const char* argv[64];
+    std::list<std::string> delimiterList;
+    delimiterList.push_back(" ");
+    std::vector<char*> data;
+    std::vector<std::string>* paramList = divideStringToVector(param, delimiterList);
+    std::vector<std::string>::iterator ite = paramList->begin();
+    int i=0;
+    for(; ite != paramList->end() && i < 64; ite++, i++) {
+        argv[i] = ite->c_str();
+    }
+    argv[i] = NULL;
+    pid_t pid = fork();
+    if(pid < 0) {
+        perror("fork");
+        return;
+    } else if(pid == 0) {
+        execvp(cmd.c_str(), (char* const *)argv);
+        exit(-1);
+    }
+
+    int status;
+    pid_t r = waitpid(pid, &status, 0);
+    delete paramList;
+    if(r < 0) {
+        perror("waitpid");
+        return;
+    }
     _historyAdd = true;
 }
 void ShellCommandExecutor::getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {

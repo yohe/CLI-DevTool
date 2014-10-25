@@ -49,6 +49,9 @@ namespace {
 
 namespace clidevt {
 
+// 文字列分割
+std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
+
 class Mode;
 
 class Action {
@@ -388,9 +391,6 @@ public:
 
     // 処理ループ
     void run();
-
-    // 文字列分割
-    std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
 
     int getTerminalColumnSize() const ;
     int getTerminalLineSize() const ;

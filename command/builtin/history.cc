@@ -16,7 +16,7 @@ void BuiltInHistoryCommand::execute(std::string param) {
 
     std::list<std::string> delimiterList;
     delimiterList.push_back(" ");
-    std::vector<std::string>* filterList = _console->divideStringToVector(param, delimiterList);
+    std::vector<std::string>* filterList = divideStringToVector(param, delimiterList);
     std::string endStr = filterList->back();
     bool isExecute = true;;
     for(std::string::iterator ite = endStr.begin(); ite != endStr.end(); ++ite) {
