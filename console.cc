@@ -581,7 +581,9 @@ void Console::execute(const std::string& inputString) {
 void Console::executeShellCommand(const std::string& inputString) {
     // ターミナル状態をもとに戻す
     setTermIOS(_save_term);
-    system(inputString.c_str());
+    std::string tmp;
+    ShellCommandExecutor executor(tmp);
+    executor.execute(inputString);
     addHistory(inputString);
     if(_isLogging) {
         std::cout << std::flush;
@@ -662,10 +664,21 @@ void Console::actionComplete() {
         std::vector<std::string> candidates;
 
         if(fixedInput[fixedInput.size()-1] == ' ') {
+            fileCompl.setCandidatesType(FileListBehavior::ALL);
         } else {
             param = tokenList->back();
             tokenList->pop_back();
+            if(tokenList->size() == 0) {
+                fileCompl.setCandidatesType(
+                        FileListBehavior::EXECUTABLE |
+                        FileListBehavior::DIRECTORY |
+                        FileListBehavior::SYMBOLIC_LINK
+                        );
+            } else {
+                fileCompl.setCandidatesType(FileListBehavior::ALL);
+            }
         }
+        after = param;
         fileCompl.getParamCandidates(*tokenList, param, candidates);
         std::vector<std::string>::iterator begin = candidates.begin();
         std::vector<std::string>::iterator end = candidates.end();
@@ -1058,7 +1071,7 @@ void Console::printStringList(Iterator lh, Iterator rh) {
     std::cout << std::endl;
 }
 
-std::vector<std::string>* Console::divideStringToVector(std::string& src, std::list<std::string>& delimiter) {
+std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter) {
 
     std::vector<std::string>* result = new std::vector<std::string>();
 

@@ -46,14 +46,29 @@ class FileListBehavior : public ParameterBehavior {
             return ret;
         }
     };
+
 public:
-    FileListBehavior() {}
+    enum CandidateType {
+        DIRECTORY = 1,
+        EXECUTABLE = 2,
+        NON_EXECUTABLE = 4,
+        SYMBOLIC_LINK = 8,
+        ALL = 15
+    };
+
+    FileListBehavior() : candidateType_(ALL) {}
     virtual ~FileListBehavior() {}
 
-    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const ;
-    
+    void setCandidatesType(int type) {
+        candidateType_ = type;
+    }
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const;
+
     virtual void stripParentPath(std::vector<std::string>& candidates) const;
     virtual void stripFile(std::vector<std::string>& candidates) const;
+private:
+    int candidateType_;
+
 };
 
 }

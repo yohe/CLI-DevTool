@@ -5,6 +5,7 @@ namespace clidevt {
 
 void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
         FILE* in_pipe = NULL;
+        CandidateType type;
 
         std::string path("");
         if(inputting.rfind('/') == std::string::npos) {
@@ -13,7 +14,7 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
             path = inputting.substr(0,inputting.rfind('/')+1);
         }
 
-        std::string cmd = "ls -1Fa " + path + " 2> /dev/null";
+        std::string cmd = "ls -1LFa " + path + " 2> /dev/null";
 
         in_pipe = popen(cmd.c_str(), "r");
         std::stringstream paramList("");
@@ -41,36 +42,29 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
             } else {
                 switch (name[name.size()-1]) {
                 case '*':
+                    type = EXECUTABLE;
                     name.erase(name.size()-1);
                     break;
                 case '/':
-                    
+                    type = DIRECTORY;
                     break;
                 case '|':
+                    type = NON_EXECUTABLE;
                     name.erase(name.size()-1);
                     break;
                 case '@':
-                    name[name.size()-1] = '/';
+                    type = SYMBOLIC_LINK;
+                    name[name.size()-1] = ' ';
                     break;
                 default:
+                    type = NON_EXECUTABLE;
                     name += " ";
                     break;
                 }
-                //if(name[name.size()-1] == '*') {
-                //    name.erase(name.size()-1);
-                //} else if (name[name.size()-1] == '/') {
-                //    // nop
-                //} else if (name[name.size()-1] == '|') {
-                //    name.erase(name.size()-1);
-                //} else if(name[name.size()-1] == '@') {
-                //    name[name.size()-1] = '/';
-                //} else {
-                //    // ファイルを補完する場合は スペースを追加することで、
-                //    // シェルライクなファイル名補完になる
-                //    name += " ";
-                //}
             }
-            candidates.push_back(name);
+            if(candidateType_ & type) {
+                candidates.push_back(name);
+            }
         }
         return ;
 }

@@ -166,6 +166,13 @@ public:
         std::string val;
         if(parameter.find("=") != std::string::npos) {
             val = parameter.substr(parameter.find("=")+1);
+        } else {
+            const char* tmp;
+            tmp = getenv(var.c_str());
+            if(tmp != NULL) {
+                std::cout << var << "=" << tmp << std::endl;
+            }
+            return;
         }
         std::string ret;
         if(setenv(var.c_str(), val.c_str(), 1) != 0) {
@@ -252,7 +259,9 @@ private:
 class ChangeDirCommand : public Command {
     FileListBehavior _behavior;
 public:
-    ChangeDirCommand(){}
+    ChangeDirCommand(){
+        _behavior.setCandidatesType(FileListBehavior::DIRECTORY);
+    }
     virtual ~ChangeDirCommand() {}
 
     virtual std::string getKey() const { return "cd"; }
@@ -262,7 +271,13 @@ public:
         str = str.erase(0, str.find_first_not_of(" "));
         str = str.erase(str.find_last_not_of(" ")+1);
         if(str.size() == 0) {
-            str = getenv("HOME");
+            const char* tmp = NULL;
+            tmp = getenv("HOME");
+            if(tmp != NULL) {
+                str = tmp;
+            } else {
+                str = "";
+            }
         } else {
             if(str[0] == '~') {
                 std::string homeDir = _console->getHomeDirectory();
@@ -310,7 +325,8 @@ public:
     virtual void printHelp() const { _manBehavior.printHelp(); }
     virtual void execute(std::string parameter) {
         std::string cmd = "git " + parameter;
-        system(cmd.c_str());
+        ShellCommandExecutor executor(getKey());
+        executor.execute(cmd.c_str());
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
         if(inputtedList.empty()) {
