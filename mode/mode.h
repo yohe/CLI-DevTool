@@ -36,7 +36,7 @@ public:
         return _flags;
     }
 
-    virtual void enter(Console* console, Mode* current) {}
+    virtual void enter(Console* console, Mode* current, const std::string& param) {}
     virtual void leave(Console* console) {};
 
     /**

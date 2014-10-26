@@ -20,12 +20,13 @@ ADD_EXECUTABLE(console
               command/param_comple/file_behavior.cc
               command/builtin/help.cc
               command/builtin/history.cc
-              command/builtin/script.cc
+              #command/builtin/script.cc
               command/builtin/editor.cc
               command/builtin/mode_select.cc
               command/builtin/system_func.cc
               command/builtin/shell_exe.cc
               mode/builtin/normal.cc
+              mode/builtin/logging.cc
               )
 ADD_EXECUTABLE(key_trace
               sample.cc
@@ -36,12 +37,13 @@ ADD_EXECUTABLE(key_trace
               command/param_comple/file_behavior.cc
               command/builtin/help.cc
               command/builtin/history.cc
-              command/builtin/script.cc
+              #command/builtin/script.cc
               command/builtin/editor.cc
               command/builtin/mode_select.cc
               command/builtin/system_func.cc
               command/builtin/shell_exe.cc
               mode/builtin/normal.cc
+              mode/builtin/logging.cc
               )
 
 set_directory_properties(PROPERTIES

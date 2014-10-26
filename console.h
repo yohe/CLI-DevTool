@@ -111,7 +111,6 @@ public:
         _commandSelector(NULL),
         _historyMax(histroySize),
         _historyFile(filename),
-        _isLogging(false),
         _isTerminatePermit(true)
     {
         _commandSelector = new DefaultCommandSelector();
@@ -206,6 +205,11 @@ public:
         return _inputString;
     }
 
+    std::string getPromptString() const {
+        return printPromptImpl();
+    }
+    std::string getDateString() const;
+
 private:
     // 初期化
     bool initialize(int argc, char const* argv[]);
@@ -227,7 +231,8 @@ private:
 
     // 補完機能
     CompletionType completeCommandName();
-    void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList, std::string& lastParam, std::vector<std::string>& paramList);
+    void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList,
+                           std::string& lastParam, std::vector<std::string>& paramList);
     bool completeCommand(std::string& key, std::vector<std::string>& candidates);
     template <class Iterator>
     bool completeStringList(std::string& key, std::vector<std::string>& candidates, Iterator begin, Iterator end);
@@ -295,32 +300,6 @@ private:
 
     template <class Iterator>
     void printStringList(Iterator begin, Iterator end);
-
-    // script コマンド対応
-    bool loggingMode(bool flag, std::string filename = "typescript"); 
-    void updateDisplayFromScriptLog() {
-
-        fseek(_typeLog, 0, SEEK_END);
-        _after_fpos = ftell(_typeLog);
-        if(_before_fpos >= _after_fpos) {
-            return;
-        }
- 
-        char* buf = new char[_after_fpos - _before_fpos + 1];
-        size_t size = _after_fpos - _before_fpos;
-        if(fseek(_typeLog, _before_fpos, SEEK_SET) != 0) {
-            assert(false);
-        }
-        if(fread(buf, size, 1, _typeLog) == 0) {
-            assert(false);
-        }
-        _before_fpos = ftell(_typeLog);
-        buf[size] = '\0';
-        dup2(_stdinBackup, 1);
-        dup2(_stderrBackup, 2);
-
-        std::cout << buf;
-    }
 
 public:
     // エラー
@@ -401,8 +380,6 @@ public:
         return _stringPos;
     }
 
-    bool isLogging() { return _isLogging; }
-
 protected:
 
     KeyMap _keyMap;
@@ -414,13 +391,7 @@ protected:
     size_t _historyIndex;
     size_t _historyMax;
     std::string _historyFile;
-    bool _isLogging;
     bool _isTerminatePermit;
-    bool _logFlag;
-    FILE* _typeLog;
-    size_t _before_fpos, _after_fpos;
-    int _typeLogFd, _stdinBackup, _stderrBackup;
-    std::string _typeLogName;
 
     std::string _inputString;
     size_t _stringPos;

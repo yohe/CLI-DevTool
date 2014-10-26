@@ -21,7 +21,7 @@ public:
     SystemFuncCommand(std::string commandName, std::string option, ParameterBehavior* behavior, HelpBehavior* helpBehavior) :
         _command(commandName), _option(option), _behavior(behavior), _helpBehavior(helpBehavior) {}
 
-    virtual ~SystemFuncCommand() { delete _behavior; delete _helpBehavior; }
+    virtual ~SystemFuncCommand();
 
     virtual std::string getKey() const { return _command; }
     virtual void printHelp() const ;

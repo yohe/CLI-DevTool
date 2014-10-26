@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include "command/help_print/behavior_base.h"
+#include "command/builtin/shell_exe.h"
 
 namespace clidevt {
 
@@ -16,7 +17,9 @@ public:
 
     virtual std::string printHelp() const {
         std::string cmd = _commandName + " " + _helpOption;
-        system(cmd.c_str());
+        std::string dummy;
+        ShellCommandExecutor executor(dummy);
+        executor.execute(cmd);
         return "";
     }
 };

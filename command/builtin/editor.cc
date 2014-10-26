@@ -8,11 +8,9 @@ namespace clidevt {
 
 void EditorCommand::execute(std::string param) { 
     std::string cmd = _command + " " + param;
-    if(_console->isLogging()) {
-        std::cout << _command + " : not supporting during \"script\" execution." << std::endl;
-        return;
-    }
-    system(cmd.c_str()); 
+    std::string dummy;
+    ShellCommandExecutor executor(dummy);
+    executor.execute(cmd);
 }
 void EditorCommand::getParamCandidates(std::vector<std::string>& inputtedList,
                                        std::string inputting,

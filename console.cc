@@ -70,7 +70,7 @@ bool Console::initialize(int argc, char const* argv[]) {
 
     installCommand(new BuiltInHelpCommand());
     installCommand(new BuiltInHistoryCommand());
-    installCommand(new BuiltInScriptCommand());
+    //installCommand(new BuiltInScriptCommand());
     installCommand(new BuiltInModeSelectCommand());
 
 #ifdef DEBUG
@@ -91,6 +91,7 @@ bool Console::initialize(int argc, char const* argv[]) {
 
     setMode(new NormalMode());
     registMode(getCurrentMode());
+    registMode(new LoggingMode());
 
     return true;
 }
@@ -447,6 +448,8 @@ void Console::actionEnter() {
 void Console::actionTerminate() {
     if(_isTerminatePermit) {
         _consoleExit = true;
+        Mode* mode = getCurrentMode();
+        mode->leave(this);
         return;
     }
     return;
@@ -483,6 +486,12 @@ void Console::actionClearScreen() {
 
     clearLine();
     return;
+}
+
+std::string Console::getDateString() const {
+    time_t sec;
+    time(&sec);
+    return ctime(&sec);
 }
 
 void Console::insertStringToTerminal(const std::string& str) {
@@ -530,26 +539,16 @@ void Console::execute(const std::string& inputString) {
         }
     }
 
-    if(_isLogging && _logFlag == false) {
-        _stdinBackup = dup(1);
-        _stderrBackup = dup(2);
-        dup2(_typeLogFd, 1);
-        dup2(_typeLogFd, 2);
-        _logFlag = true;
-        fprintf(_typeLog, "$ %s\n", inputString.c_str());
-        fseek(_typeLog, 0, SEEK_END);
-        _before_fpos = ftell(_typeLog);
-    }
-
     if(isSystem) {
 #ifdef SHELL_SUPPORT
         executeShellCommand(inputString);
 #endif
     } else {
         Command* cmd = getCommand(key);
-        if(getCurrentMode()->getFlags() & EXECUTE_CMD_BEFORE) {
+        Mode* mode = getCurrentMode();
+        if(mode->getFlags() & EXECUTE_CMD_BEFORE) {
             if(cmd != NULL) {
-                getCurrentMode()->hookExecuteCmdBefore(cmd, this);
+                mode->hookExecuteCmdBefore(cmd, this);
             }
         }
         executeCommand(cmd, argument);
@@ -563,19 +562,13 @@ void Console::execute(const std::string& inputString) {
                 addHistory(inputString);
             }
         }
-        if(getCurrentMode()->getFlags() & EXECUTE_CMD_AFTER) {
+        if(mode->getFlags() & EXECUTE_CMD_AFTER) {
             if(cmd != NULL) {
-                getCurrentMode()->hookExecuteCmdAfter(cmd, this);
+                mode->hookExecuteCmdAfter(cmd, this);
             }
         }
     }
 
-    if(_isLogging) {
-        dup2(_stdinBackup, 1);
-        dup2(_stderrBackup, 2);
-        _logFlag = false;
-        updateDisplayFromScriptLog();
-    }
 }
 
 void Console::executeShellCommand(const std::string& inputString) {
@@ -585,9 +578,6 @@ void Console::executeShellCommand(const std::string& inputString) {
     ShellCommandExecutor executor(tmp);
     executor.execute(inputString);
     addHistory(inputString);
-    if(_isLogging) {
-        std::cout << std::flush;
-    }
 
     // ターミナル状態をもとに戻す
     setTermIOS(_term_setting);
@@ -602,10 +592,6 @@ void Console::executeCommand(Command* cmd, const std::string& argument) {
         std::cout << ret << std::endl;
     } else {
         cmd->execute(argument);
-    }
-
-    if(_isLogging) {
-        std::cout << std::flush;
     }
 
     // ターミナル状態をもとに戻す
@@ -986,59 +972,6 @@ void Console::printAllCommandName() {
             i = 0;
         }
     }
-}
-bool Console::loggingMode(bool flag, std::string filename) {
-    if(_isLogging == flag) {
-        std::cout << "Now Logging." << std::endl;
-        return false;
-    }
-
-    // logging中はCTRL-Cは不可, 必ずexitを使用させる
-    // logging終了後は以前の状態に戻す
-    _isLogging = flag;
-    if(_isLogging) {
-        // ロギング開始
-        _before_fpos = _after_fpos = 0;
-        _typeLog = NULL;
-        _typeLogFd = 0;
-        _typeLog = fopen(filename.c_str(), "w+");
-        if(_typeLog == NULL) {
-            _systemErrorNumber = errno;
-            _isLogging = false;
-            return false;
-        }
-        _typeLogFd = fileno(_typeLog);
-        _typeLogName = filename;
-
-
-        // 標準出力 -> _typeLog
-        _stdinBackup = dup(1);
-        _stderrBackup = dup(2);
-        dup2(_typeLogFd, 1);
-        dup2(_typeLogFd, 2);
-        _logFlag = true;
-
-        std::cout << "Script started, output file is " << _typeLogName << "." << std::endl;
-        system("date");
-
-        _isTerminatePermit = false;
-    } else {
-        std::cout << "Script done, output file is " << _typeLogName << "." << std::endl;
-        system("date");
-
-        dup2(_stdinBackup, 1);
-        dup2(_stderrBackup, 2);
-        std::cout << std::endl << "Script done, output file is " << _typeLogName << "." << std::endl;
-        //updateDisplayFromScriptLog();
-
-        fclose(_typeLog);
-        close(_stdinBackup);
-        close(_stderrBackup);
-
-        _isTerminatePermit = true;
-    }
-
-    return true;
 }
 
 template <class Iterator>

@@ -5,14 +5,27 @@
 
 namespace clidevt {
 
+void BuiltInModeSelectCommand::printHelp() const {
+    std::cout << "The command of mode selecting.\nUsage mode <mode-name>" << std::endl;
+}
+
 void BuiltInModeSelectCommand::execute(std::string param) {
+    size_t pos = param.find(" ");
+    std::string modeName;
+    if(pos == std::string::npos) {
+        modeName = param;
+        param = "";
+    } else {
+        modeName = param.substr(0,pos);
+        param = param.erase(0,param.find_first_not_of(" ", pos));
+    }
     const ModeMap& modeMap = _console->getModeMap();
-    if(modeMap.count(param) == 1) {
-        Mode* mode = modeMap.at(param);
+    if(modeMap.count(modeName) == 1) {
+        Mode* mode = modeMap.at(modeName);
         Mode* cur_mode = _console->getCurrentMode();
         if(mode != cur_mode) {
             cur_mode->leave(_console);
-            mode->enter(_console, cur_mode);
+            mode->enter(_console, cur_mode, param);
             _console->setMode(mode);
         }
     } else {

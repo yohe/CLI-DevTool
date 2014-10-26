@@ -1,6 +1,7 @@
 
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/wait.h>
 
 #include <list>
 #include <console.h>

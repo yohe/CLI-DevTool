@@ -20,7 +20,7 @@ public:
     virtual ~BuiltInModeSelectCommand() {}
 
     virtual std::string getKey() const { return "mode"; }
-    virtual void printHelp() const { std::cout << "The command of mode selecting.\nUsage mode <mode-name>" << std::endl; }
+    virtual void printHelp() const;
     virtual void execute(std::string param); 
 
     virtual void getParamCandidates(std::vector<std::string>& inputtedList,

@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "mode/mode.h"
+#include "command/help_print/man_behavior.h"
 
 using namespace clidevt;
 
@@ -106,51 +107,6 @@ public:
 private:
     std::string _str;
 };
-
-// キー入力発生時に実行する関数を登録
-void Console::keyBindInitialize() {
-
-    // Delete Character
-    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
-    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
-    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
-    registerKeyBinding(KeyCode::KEY_CTRL_K, &Console::actionDeleteFromCursorToEnd);
-    registerKeyBinding(KeyCode::KEY_CTRL_U, &Console::actionDeleteFromHeadToCursor);
-    registerKeyBinding(KeyCode::KEY_CTRL_L, &Console::actionClearScreen);
-    registerKeyBinding(KeyCode::KEY_CTRL_S, &Console::actionClearLine);
-    registerKeyBinding(KeyCode::KEY_CTRL_G, &Console::actionDeleteParam);
-
-    // Complete
-    registerKeyBinding(KeyCode::KEY_TAB, &Console::actionComplete);
-    registerKeyBinding(KeyCode::KEY_CTRL_SPACE, &Console::actionComplete);
-
-    // History select
-    registerKeyBinding(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory);
-    registerKeyBinding(KeyCode::KEY_ALT_K, &Console::actionBackwardHistory);
-    registerKeyBinding(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory);
-    registerKeyBinding(KeyCode::KEY_ALT_J, &Console::actionForwardHistory);
-
-    // cursor move
-    registerKeyBinding(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight);
-    registerKeyBinding(KeyCode::KEY_CTRL_F, &Console::actionMoveCursorRight);
-    registerKeyBinding(KeyCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft);
-    registerKeyBinding(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft);
-    registerKeyBinding(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop);
-    registerKeyBinding(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom);
-
-    UserAction* action = new InsertStringAction("exe ");
-    registerKeyBinding(KeyCode::KEY_CTRL_W, action);
-
-    // command execute
-    registerKeyBinding(KeyCode::KEY_CR, &Console::actionEnter);
-    registerKeyBinding(KeyCode::KEY_CTRL_N, &Console::actionMoveCursorForwardParam);
-    registerKeyBinding(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam);
-
-    // CTRL-C
-    registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionClearLine);
-    // CTRL-D
-    registerKeyBinding(KeyCode::KEY_CTRL_D, &Console::actionTerminate);
-}
 
 class ExportCommand : public Command {
 public:
@@ -369,14 +325,58 @@ void consoleInit(Console& console) {
     console.installCommand(new SystemFuncCommand("ls", "-G", new FileListBehavior(), new ManBehavior("ls")));
     console.installCommand(new SystemFuncCommand("env", "", new FileListBehavior(), new ManBehavior("env")));
     console.installCommand(new SystemFuncCommand("pwd", "", new FileListBehavior(), new ManBehavior("pwd")));
+    console.installCommand(new SystemFuncCommand("make", "", new FileListBehavior(), new ManBehavior("make")));
 
     console.installCommand(new EditorCommand("vim", new FileListBehavior(), new ManBehavior("vim")));
     console.installCommand(new CommandAlias("vi", "vim"));
     console.installCommand(new CommandAlias("..", "cd", "../"));
     console.installCommand(new CommandAlias("...", "cd", "../../"));
     console.installCommand(new CommandAlias("ll", "ls", "-alG"));
+    console.installCommand(new CommandAlias("quit", "exit"));
 
-    console.registMode(new ExeInsertMode());
     console.registMode(new LsMode());
+}
+
+// キー入力発生時に実行する関数を登録
+void Console::keyBindInitialize() {
+
+    // Delete Character
+    registerKeyBinding(KeyCode::KEY_BS, &Console::actionDeleteBackwardCharacter);
+    registerKeyBinding(KeyCode::KEY_DEL, &Console::actionDeleteForwardCharacter);
+    registerKeyBinding(KeyCode::KEY_CTRL_L, &Console::actionClearScreen);
+    registerKeyBinding(KeyCode::KEY_CTRL_G, &Console::actionDeleteParam);
+
+    // Complete
+    registerKeyBinding(KeyCode::KEY_TAB, &Console::actionComplete);
+    registerKeyBinding(KeyCode::KEY_CTRL_SPACE, &Console::actionComplete);
+
+    // History select
+    registerKeyBinding(KeyCode::KEY_UP_ARROW, &Console::actionBackwardHistory);
+    registerKeyBinding(KeyCode::KEY_ALT_K, &Console::actionBackwardHistory);
+    registerKeyBinding(KeyCode::KEY_DOWN_ARROW, &Console::actionForwardHistory);
+    registerKeyBinding(KeyCode::KEY_ALT_J, &Console::actionForwardHistory);
+
+    // cursor move
+    registerKeyBinding(KeyCode::KEY_RIGHT_ARROW, &Console::actionMoveCursorRight);
+    registerKeyBinding(KeyCode::KEY_CTRL_F, &Console::actionMoveCursorRight);
+    registerKeyBinding(KeyCode::KEY_LEFT_ARROW, &Console::actionMoveCursorLeft);
+    registerKeyBinding(KeyCode::KEY_CTRL_B, &Console::actionMoveCursorLeft);
+    registerKeyBinding(KeyCode::KEY_CTRL_A, &Console::actionMoveCursorTop);
+    registerKeyBinding(KeyCode::KEY_CTRL_E, &Console::actionMoveCursorBottom);
+
+    UserAction* action = new InsertStringAction("exe ");
+    registerKeyBinding(KeyCode::KEY_CTRL_W, action);
+    UserAction* make = new ExecuteStringAction("make");
+    registerKeyBinding(KeyCode::KEY_CTRL_R, make);
+
+    // command execute
+    registerKeyBinding(KeyCode::KEY_CR, &Console::actionEnter);
+    registerKeyBinding(KeyCode::KEY_CTRL_N, &Console::actionMoveCursorForwardParam);
+    registerKeyBinding(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam);
+
+    // CTRL-C
+    registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionClearLine);
+    // CTRL-D
+    registerKeyBinding(KeyCode::KEY_CTRL_D, &Console::actionTerminate);
 }
 
