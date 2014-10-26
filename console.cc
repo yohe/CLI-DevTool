@@ -446,10 +446,15 @@ void Console::actionEnter() {
 }
 
 void Console::actionTerminate() {
+    Mode* mode = getCurrentMode();
+    if(mode->getName() != "normal") {
+        BuiltInModeSelectCommand cmd;
+        cmd.setConsole(this);
+        cmd.execute("normal");
+        return;
+    }
     if(_isTerminatePermit) {
         _consoleExit = true;
-        Mode* mode = getCurrentMode();
-        mode->leave(this);
         return;
     }
     return;
