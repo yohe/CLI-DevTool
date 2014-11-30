@@ -38,6 +38,7 @@ void ShellCommandExecutor::execute(std::string param) {
         return;
     } else if(pid == 0) {
         execvp(cmd.c_str(), (char* const *)argv);
+        perror(cmd.c_str());
         _exit(-1);
     }
 

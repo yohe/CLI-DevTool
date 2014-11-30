@@ -102,7 +102,7 @@ public:
         Console* console = get();
         console->actionClearLine();
         console->insertStringToTerminal(_str);
-        console->actionEnter();
+        console->actionExecuteCommandLine();
     }
 private:
     std::string _str;
@@ -372,7 +372,7 @@ void Console::keyBindInitialize() {
     registerKeyBinding(KeyCode::KEY_CTRL_R, make);
 
     // command execute
-    registerKeyBinding(KeyCode::KEY_CR, &Console::actionEnter);
+    registerKeyBinding(KeyCode::KEY_CR, &Console::actionExecuteCommandLine);
     registerKeyBinding(KeyCode::KEY_CTRL_N, &Console::actionMoveCursorForwardParam);
     registerKeyBinding(KeyCode::KEY_CTRL_P, &Console::actionMoveCursorBackwardParam);
 

@@ -427,8 +427,14 @@ void Console::actionDeleteParam() {
     return;
 }
 
-void Console::actionEnter() {
-    execute(_inputString);
+void Console::actionExecuteCommandLine() {
+    if(getCurrentMode()->getFlags() & EXECUTE_CMD_LINE_BEFORE) {
+        getCurrentMode()->hookExecuteCommandLineBefore(getInputtingString(), this);
+    }
+    execute(getInputtingString());
+    if(getCurrentMode()->getFlags() & EXECUTE_CMD_LINE_AFTER) {
+        getCurrentMode()->hookExecuteCommandLineAfter(this);
+    }
     clearStatus();
     if(!isEnd()) {
         printPrompt();
@@ -494,19 +500,11 @@ std::string Console::getDateString() const {
 }
 
 void Console::insertStringToTerminal(const std::string& str) {
-    std::cout << str;
+    clearLine(false);
     _inputString.insert(_stringPos, str);
     _stringPos += str.length();
+    std::cout << _inputString;
     setCursorPos(_stringPos);
-    //_inputString.insert(_stringPos, str);
-    //_stringPos += str.length();
-    //std::string tmpStr = _inputString;
-    //size_t pos = _stringPos;
-    //actionClearLine();
-    //std::cout << tmpStr;
-    //_inputString = tmpStr;
-    //_stringPos = pos;
-    //setCursorPos(_stringPos);
 }
 void Console::printStringOnTerminal(const std::string& str) {
     std::cout << str;
@@ -547,9 +545,7 @@ void Console::executeStatement(const Statement& statement) {
         Command* cmd = getCommand(key);
         Mode* mode = getCurrentMode();
         if(mode->getFlags() & EXECUTE_CMD_BEFORE) {
-            if(cmd != NULL) {
-                mode->hookExecuteCmdBefore(cmd, this);
-            }
+            mode->hookExecuteCmdBefore(cmd, this);
         }
         executeCommand(cmd, argument);
         // 文字列が一文字以上であればヒストリに追加
@@ -563,9 +559,7 @@ void Console::executeStatement(const Statement& statement) {
             }
         }
         if(mode->getFlags() & EXECUTE_CMD_AFTER) {
-            if(cmd != NULL) {
-                mode->hookExecuteCmdAfter(cmd, this);
-            }
+            mode->hookExecuteCmdAfter(cmd, this);
         }
     }
 
@@ -596,7 +590,6 @@ void Console::execute(const std::string& inputString) {
         }
     } catch (SyntaxError& e) {
         std::cout << e.what() << std::endl;
-        return;
     }
 
     // ターミナル状態をもとに戻す
@@ -691,7 +684,6 @@ void Console::actionComplete() {
 }
 
 void Console::executeComplete(std::string input) {
-    size_t cursorPos = input.length() - 1;
     // コマンド名を入力中であればコマンド名を補完する
     // コマンド名が確定している場合はパラメータ補完
 

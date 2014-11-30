@@ -11,6 +11,7 @@ class LoggingMode : public Mode {
 public:
     LoggingMode() : Mode("logger",
             PROMPT_DISPLAY_HOOK |
+            EXECUTE_CMD_LINE_BEFORE |
             EXECUTE_CMD_BEFORE |
             EXECUTE_CMD_AFTER
             )
@@ -20,6 +21,7 @@ public:
     virtual void enter(Console* console, Mode* current, const std::string& param);
     virtual void leave(Console* console);
     virtual void hookPromptDisplay(const std::string& prompt, Console* console);
+    virtual void hookExecuteCommandLineBefore(const std::string& input, Console* console);
     virtual void hookExecuteCmdBefore(Command* cmd, Console* console); 
     virtual void hookExecuteCmdAfter(Command* cmd, Console* console);
 

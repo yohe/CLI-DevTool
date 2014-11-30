@@ -31,6 +31,9 @@ namespace clidevt {
     void LoggingMode::hookPromptDisplay(const std::string& prompt, Console* console) {
         std::cout << "\x1b[33m" "Logging:" << prompt << "\x1b[39m";
     }
+    void LoggingMode::hookExecuteCommandLineBefore(const std::string& input, Console* console) {
+        ofs_ << console->getPromptString() << console->getInputtingString() << std::endl;
+    }
     void LoggingMode::hookExecuteCmdBefore(Command* cmd, Console* console) {
         if(pipe(pipefd_) == -1) {
             std::cerr << "Enter failed : pipe could not create." << std::endl;
@@ -46,7 +49,6 @@ namespace clidevt {
             // child process
             close(pipefd_[1]);
 
-            ofs_ << console->getPromptString() << console->getInputtingString() << std::endl;
             char buf[128];
             size_t size = 0;
             while((size = read(pipefd_[0], &buf, 128)) != 0) {

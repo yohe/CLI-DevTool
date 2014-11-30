@@ -186,7 +186,7 @@ public:
     void actionDeleteForwardCharacter();
     void actionDeleteBackwardCharacter();
     void actionDeleteParam();
-    void actionEnter();
+    void actionExecuteCommandLine();
     void actionComplete();
     void actionMoveCursorTop() { setCursorPos(0); return;}
     void actionTerminate();
