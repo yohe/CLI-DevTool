@@ -44,6 +44,7 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
                 case '*':
                     type = EXECUTABLE;
                     name.erase(name.size()-1);
+                    name += ' ';
                     break;
                 case '/':
                     type = DIRECTORY;

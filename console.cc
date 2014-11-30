@@ -1,6 +1,7 @@
 #include "console.h"
 #include "mode/mode.h"
 #include "mode/builtin/builtin.h"
+#include "parser/input_parser.h"
 
 #include "command/param_comple/file_behavior.h"
 
@@ -32,14 +33,7 @@ bool Console::initialize(int argc, char const* argv[]) {
     if(setupterm(NULL, fileno(stdout), (int*)0) == ERR) {
         return false;
     }
-    //char str[8] = "clear";
-    //char* cmd;
-    //if((cmd = tigetstr(str)) == NULL) {
-    //    return false;
-    //}
-    //if(putp(cmd) == ERR) {
-    //    return false;
-    //}
+
     if(tcgetattr(fileno(stdin), &_save_term) == -1) {
         return false;
     } else {
@@ -519,12 +513,13 @@ void Console::printStringOnTerminal(const std::string& str) {
     _stringPos += str.length();
 }
 
-void Console::execute(const std::string& inputString) {
-    std::cout << std::endl;
+void Console::executeStatement(const Statement& statement) {
 
+    const std::string& inputString = statement.getString();
     bool isSystem = false;
     std::string key;
     std::string argument;
+
     if(inputString.compare(0, 2, "./") == 0) {
         isSystem = true;
     } else {
@@ -536,7 +531,6 @@ void Console::execute(const std::string& inputString) {
             argument = inputString.substr(sp);
             argument = argument.erase(0, argument.find_first_not_of(" "));
             argument = argument.erase(argument.find_last_not_of(" ")+1);
-
         }
 
         if(key.empty()) {
@@ -547,6 +541,7 @@ void Console::execute(const std::string& inputString) {
     if(isSystem) {
 #ifdef SHELL_SUPPORT
         executeShellCommand(inputString);
+        addHistory(inputString);
 #endif
     } else {
         Command* cmd = getCommand(key);
@@ -576,20 +571,65 @@ void Console::execute(const std::string& inputString) {
 
 }
 
-void Console::executeShellCommand(const std::string& inputString) {
+void Console::execute(const std::string& inputString) {
+    std::cout << std::endl;
+
     // ターミナル状態をもとに戻す
     setTermIOS(_save_term);
+
+    DefaultParser parser;
+    try {
+        std::vector<Statement> statements = parser.parse(inputString);
+#ifdef DEBUG
+        typedef std::vector<Statement>::iterator Iterator;
+        Iterator begin = statements.begin();
+        Iterator end = statements.end();
+        std::cout << "-----------------------------" << std::endl;
+        for(; begin != end; begin++) {
+            std::cout << begin->getString() << std::endl;
+        }
+        std::cout << "-----------------------------" << std::endl;
+#endif
+        execute(statements.begin(), statements.end());
+        if(statements.size() > 1) {
+            addHistory(inputString);
+        }
+    } catch (SyntaxError& e) {
+        std::cout << e.what() << std::endl;
+        return;
+    }
+
+    // ターミナル状態をもとに戻す
+    setTermIOS(_term_setting);
+}
+void Console::execute(StatementIterator begin, StatementIterator end) {
+    if(begin == end) {
+        return;
+    }
+    pid_t pid = begin->setupOfExecution();
+    if(begin->isParent(pid) == true) {
+        begin->setupRedirection();
+        executeStatement(*begin);
+        begin->teardownRedirection();
+        //std::cout << "executeStatement end" << std::endl;
+    }
+    if(begin->isChild(pid) == true) {
+        // child process
+        StatementIterator next = begin + 1;
+        execute(next , end);
+    }
+    begin->teardownOfExecution();
+}
+
+void Console::executeShellCommand(const std::string& inputString) {
+
     std::string tmp;
     ShellCommandExecutor executor(tmp);
     executor.execute(inputString);
     addHistory(inputString);
 
-    // ターミナル状態をもとに戻す
-    setTermIOS(_term_setting);
 }
 void Console::executeCommand(Command* cmd, const std::string& argument) {
-    // ターミナル状態をもとに戻す
-    setTermIOS(_save_term);
 
     std::string ret("");
     if(cmd == NULL) {
@@ -599,8 +639,6 @@ void Console::executeCommand(Command* cmd, const std::string& argument) {
         cmd->execute(argument);
     }
 
-    // ターミナル状態をもとに戻す
-    setTermIOS(_term_setting);
 }
 
 Command* Console::getCommandFromInputString(std::string& inputString) {
@@ -623,11 +661,43 @@ Command* Console::getCommandFromInputString(std::string& inputString) {
 
 void Console::actionComplete() {
 
+    std::string fixedInput = _inputString.substr(0,_stringPos);
+
+    DefaultSentenceTerminatorLex stLex;
+    DefaultPipeLex pipeLex;
+
+    std::vector<SyntaxToken> ret = stLex.split(fixedInput);
+    if(ret.size() > 0) {
+        if(ret[ret.size()-1].type() != SentenceTerminator) {
+            std::string tmp = ret[ret.size()-1].value();
+            ret.clear();
+            ret = pipeLex.split(tmp);
+        }
+        if(ret[ret.size()-1].type() == Pipe || ret[ret.size()-1].type() == SentenceTerminator) {
+            std::string tmp = _inputString;
+            executeComplete("");
+            _inputString = tmp;
+            _stringPos = tmp.size();
+            std::cout << tmp;
+        } else {
+            //std::cout << ret[ret.size()-1].value() + ", type=" << ret[ret.size()-1].type() << std::endl;
+            executeComplete(ret[ret.size()-1].value());
+        }
+    } else {
+        executeComplete("");
+    }
+
+
+}
+
+void Console::executeComplete(std::string input) {
+    size_t cursorPos = input.length() - 1;
     // コマンド名を入力中であればコマンド名を補完する
     // コマンド名が確定している場合はパラメータ補完
 
+    //std::cout << "--------- input = [" + input + "]" << std::endl;
     // コマンド名が空の場合は全てのコマンド名を表示
-    if(_inputString.empty()) {
+    if(input.empty()) {
         std::cout << std::endl;
         // 文字列が入力されていないので、全コマンドをリストアップ
         printAllCommandName();
@@ -644,10 +714,11 @@ void Console::actionComplete() {
     Command* cmd = NULL;
     std::vector<std::string> argumentList;
     FileListBehavior fileCompl;
-    if(_inputString.compare(0, 2, "./") == 0) {
+    if(input.compare(0, 2, "./") == 0) {
 #ifdef SHELL_SUPPORT
         cmdUse = false;
-        std::string fixedInput = _inputString.substr(0, _stringPos);
+        //std::string fixedInput = input.substr(0, _stringPos);
+        std::string fixedInput = input;
         std::list<std::string> delimiterList;
         delimiterList.push_back(" ");
         std::vector<std::string>* tokenList = divideStringToVector(fixedInput, delimiterList);
@@ -677,8 +748,10 @@ void Console::actionComplete() {
         delete tokenList;
 #endif
     } else {
-        if(_inputString.find(" ") == std::string::npos) {
-            if(completeCommandName() == ERROR) {
+        //std::cout << "point A" << std::endl;
+        if(input.find(" ") == std::string::npos) {
+            //std::cout << "point C" << std::endl;
+            if(completeCommandName(input) == ERROR) {
                 assert(false);
             }
             return;
@@ -686,7 +759,8 @@ void Console::actionComplete() {
 
         // 以降ではコマンド名が確定している場合の処理
 
-        std::string fixedInput = _inputString.substr(0, _stringPos);
+        std::string fixedInput = input;
+        //std::string fixedInput = input.substr(0, _stringPos);
         std::list<std::string> delimiterList;
         delimiterList.push_back(" ");
         std::vector<std::string>* tokenList = divideStringToVector(fixedInput, delimiterList);
@@ -697,6 +771,8 @@ void Console::actionComplete() {
             return;
         }
 
+        //std::cout << "point B" << std::endl;
+        //std::cout << tokenList->size() << std::endl;
         // トークンリストが 1 つまりコマンド名のみである場合は、パラメータリストを表示して終了
         if(tokenList->size() == 1) {
             std::cout << std::endl;
@@ -817,19 +893,21 @@ void Console::actionComplete() {
     return;
 }
 
-Console::CompletionType Console::completeCommandName() {
+Console::CompletionType Console::completeCommandName(const std::string& input) {
 
     std::vector<std::string> candidates;
-    std::string tmp = _inputString;
+    std::string tmp = input;
     // ret = true : コマンド名を完全補完
     // ret = false: コマンド名を一部補完 or 補完候補なし
     bool ret = completeCommand(tmp, candidates);
+    std::string diff = tmp.substr(input.size());
+    //std::cout << "[" + diff + "]" << std::endl;
     if( ret ) {
         // 完全補完
-        clearLine();
-        _inputString = tmp + " ";
-        _stringPos = tmp.size()+1;
-        std::cout << _inputString;
+        redraw();
+        //clearLine(false);
+        //std::cout << _inputString;
+        insertStringToTerminal(diff+" ");
         return FULL_COMPLETE;
     } else {
         // 一部補完 or 補完候補なし
@@ -837,20 +915,24 @@ Console::CompletionType Console::completeCommandName() {
         if(candidates.size() > 0) {
             // 補完が行われた場合は、そのまま表示
             // 変更がない場合は、候補を表示する。
-            if(tmp != _inputString) {
-                clearLine();
-                _inputString = tmp;
-                _stringPos = tmp.size();
-                std::cout << _inputString;
+            if(tmp != input) {
+                redraw();
+                //clearLine(false);
+                //std::cout << "["+_inputString+"]" << std::endl;;
+                insertStringToTerminal(diff);
+                //_inputString = tmp;
+                //_stringPos = tmp.size();
                 return PARTIAL_COMPLETE;
             } else {
                 // 変更がないので候補表示
                 std::cout << std::endl;
                 printStringList(candidates.begin(), candidates.end());
-                printPrompt();
-                _inputString = tmp;
-                _stringPos = tmp.size();
+                //printPrompt();
+                clearLine(false);
                 std::cout << _inputString;
+                //_inputString = tmp;
+                //_stringPos = tmp.size();
+                //std::cout << _inputString;
                 return NO_CHANGE;
             }
         } else {

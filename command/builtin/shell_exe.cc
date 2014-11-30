@@ -15,6 +15,11 @@ void ShellCommandExecutor::execute(std::string param) {
         _historyAdd = false;
         return;
     }
+
+    //FILE* fp = fopen("aaaa", "r");
+    //int fd = fileno(fp);
+    //int in_bak = dup2(fd,0);
+
     std::string cmd = param.substr(0, param.find(" "));
     const char* argv[64];
     std::list<std::string> delimiterList;
@@ -33,17 +38,22 @@ void ShellCommandExecutor::execute(std::string param) {
         return;
     } else if(pid == 0) {
         execvp(cmd.c_str(), (char* const *)argv);
-        exit(-1);
+        _exit(-1);
     }
 
+    sig_t old = signal(SIGINT, SIG_IGN);
     int status;
     pid_t r = waitpid(pid, &status, 0);
+    signal(SIGINT, old);
     delete paramList;
     if(r < 0) {
         perror("waitpid");
         return;
     }
     _historyAdd = true;
+
+    //fclose(fp);
+    //dup2(in_bak, 0);
 }
 void ShellCommandExecutor::getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const {
     if(_initFlag == false) {
@@ -69,7 +79,11 @@ void ShellCommandExecutor::getParamCandidates(std::vector<std::string>& inputted
                 std::string fullPath = path + namelist[i]->d_name;
                 int ret = access(fullPath.c_str(), X_OK);
                 if(ret == 0) {
-                    _commandList.insert(namelist[i]->d_name);
+                    std::string cmd(namelist[i]->d_name);
+                    if(cmd[0] != '.') {
+                        cmd+=" ";
+                    }
+                    _commandList.insert(cmd);
                 }
                 free(namelist[i]);
             }

@@ -2,10 +2,11 @@
 #include <test_case.hpp>
 #include <test_macros.hpp>
 
-#include "key_seq.h"
-#include "key_code.h"
+#include "key/key_seq.h"
+#include "key/key_code.h"
 
 using namespace iunit;
+using namespace clidevt;
 
 class KeySequenceEntryTest : public CppTestCase {
     KeySequenceEntry* entry;

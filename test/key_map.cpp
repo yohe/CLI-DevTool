@@ -2,10 +2,11 @@
 #include <test_case.hpp>
 #include <test_macros.hpp>
 
-#include "key_map.h"
-#include "key_code.h"
+#include "key/key_map.h"
+#include "key/key_code.h"
 
 using namespace iunit;
+using namespace clidevt;
 
 #define SEMICOLON_SPLIT_1(x) stroke.push_back(x);
 #define SEMICOLON_SPLIT_2(x) stroke.push_back(x); SEMICOLON_SPLIT_1

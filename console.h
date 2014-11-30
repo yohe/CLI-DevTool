@@ -53,6 +53,7 @@ namespace clidevt {
 std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
 
 class Mode;
+class Statement;
 
 class Action {
 public:
@@ -230,14 +231,18 @@ private:
     void keyBindInitialize();
 
     // 補完機能
-    CompletionType completeCommandName();
+    void executeComplete(std::string input);
+    CompletionType completeCommandName(const std::string& input);
     void getInputParameter(std::string& inputString, std::vector<std::string>* tokenList,
                            std::string& lastParam, std::vector<std::string>& paramList);
     bool completeCommand(std::string& key, std::vector<std::string>& candidates);
     template <class Iterator>
     bool completeStringList(std::string& key, std::vector<std::string>& candidates, Iterator begin, Iterator end);
 
+    typedef std::vector<Statement>::iterator StatementIterator;
     // コマンド機能
+    void execute(StatementIterator begin, StatementIterator end);
+    void executeStatement(const Statement& statement);
     void executeShellCommand(const std::string& string);
     void executeCommand(Command* cmd, const std::string& argument);
     Command* getCommandFromInputString(std::string& inputString);

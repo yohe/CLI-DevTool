@@ -34,6 +34,7 @@ namespace clidevt {
     void LoggingMode::hookExecuteCmdBefore(Command* cmd, Console* console) {
         if(pipe(pipefd_) == -1) {
             std::cerr << "Enter failed : pipe could not create." << std::endl;
+            return;
         }
 
         child_ = fork();
@@ -58,7 +59,7 @@ namespace clidevt {
             ofs_ << std::flush;
 
             close(pipefd_[0]);
-            exit(1);
+            _exit(1);
         } else {
 
             // 標準出力,標準エラーをpipeへ出力
@@ -75,7 +76,10 @@ namespace clidevt {
         close(pipefd_[1]);
         dup2(stdoutBackup_, 1);
         dup2(stderrBackup_, 2);
+        close(stdoutBackup_);
+        close(stderrBackup_);
         int status;
+
         waitpid(child_, &status, 0);
     }
 }

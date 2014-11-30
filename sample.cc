@@ -86,7 +86,7 @@ public:
 
     virtual void operator()() {
         Console* console = get();
-        console->actionClearLine();
+        //console->actionClearLine();
         console->insertStringToTerminal(_str);
     }
 private:
@@ -326,6 +326,8 @@ void consoleInit(Console& console) {
     console.installCommand(new SystemFuncCommand("env", "", new FileListBehavior(), new ManBehavior("env")));
     console.installCommand(new SystemFuncCommand("pwd", "", new FileListBehavior(), new ManBehavior("pwd")));
     console.installCommand(new SystemFuncCommand("make", "", new FileListBehavior(), new ManBehavior("make")));
+    console.installCommand(new SystemFuncCommand("cat", "", new FileListBehavior(), new ManBehavior("cat")));
+    console.installCommand(new SystemFuncCommand("grep", "", new FileListBehavior(), new ManBehavior("grep")));
 
     console.installCommand(new EditorCommand("vim", new FileListBehavior(), new ManBehavior("vim")));
     console.installCommand(new CommandAlias("vi", "vim"));

@@ -11,7 +11,7 @@ IF(APPLE)
     link_directories(/opt/local/lib /usr/lib)
 ENDIF(APPLE)
 
-ADD_EXECUTABLE(test_main main.cpp ../key_seq.cc ../key_map.cc)
+ADD_EXECUTABLE(test_main main.cpp ../key/key_seq.cc ../key/key_map.cc ../parser/input_parser.cc)
 
 set_target_properties(test_main PROPERTIES COMPILE_FLAGS "-Wall -I ../ -I ../submod/iunit/cpp")
 set_target_properties(test_main PROPERTIES LINK_FLAGS -lncurses)

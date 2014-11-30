@@ -27,6 +27,7 @@ ADD_EXECUTABLE(console
               command/builtin/shell_exe.cc
               mode/builtin/normal.cc
               mode/builtin/logging.cc
+              parser/input_parser.cc
               )
 ADD_EXECUTABLE(key_trace
               sample.cc
@@ -44,6 +45,7 @@ ADD_EXECUTABLE(key_trace
               command/builtin/shell_exe.cc
               mode/builtin/normal.cc
               mode/builtin/logging.cc
+              parser/input_parser.cc
               )
 
 set_directory_properties(PROPERTIES

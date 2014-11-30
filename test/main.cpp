@@ -11,8 +11,10 @@
 
 #include "key_seq.cpp"
 #include "key_map.cpp"
+#include "parser.cpp"
 
 using namespace iunit;
+using namespace clidevt;
 
 int main(int argc, char const* argv[])
 {
@@ -23,6 +25,7 @@ int main(int argc, char const* argv[])
     suite.addTest(new KeySequenceEntryTest());
     suite.addTest(new KeySequenceGroupTest());
     suite.addTest(new KeyMapTest());
+    suite.addTest(new ParserTest());
     suite.config(config);
 
     suite.start();
