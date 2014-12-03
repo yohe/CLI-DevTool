@@ -329,7 +329,7 @@ void consoleInit(Console& console) {
     console.installCommand(new SystemFuncCommand("cat", "", new FileListBehavior(), new ManBehavior("cat")));
     console.installCommand(new SystemFuncCommand("grep", "", new FileListBehavior(), new ManBehavior("grep")));
 
-    console.installCommand(new EditorCommand("vim", new FileListBehavior(), new ManBehavior("vim")));
+    console.installCommand(new SystemFuncCommand("vim", "", new FileListBehavior(), new ManBehavior("vim")));
     console.installCommand(new CommandAlias("vi", "vim"));
     console.installCommand(new CommandAlias("..", "cd", "../"));
     console.installCommand(new CommandAlias("...", "cd", "../../"));

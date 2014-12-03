@@ -161,6 +161,7 @@ class InputParser {
         IN_REDIRECTED,
         OUT_REDIRECTED,
     };
+    typedef std::vector<SyntaxToken> SyntaxTokens;
 public:
     InputParser() : tokenizer_() {}
 
@@ -168,8 +169,7 @@ public:
         std::vector<Statement> ret;
 
         const std::vector<SyntaxToken>& tokens = tokenizer_.tokenize(input);
-        typedef std::vector<SyntaxToken> SytaxTokens;
-        SytaxTokens::const_iterator ite = tokens.begin();
+        SyntaxTokens::const_iterator ite = tokens.begin();
         int state = INIT;
         for(; ite != tokens.end(); ite++) {
             switch (state) {
@@ -204,46 +204,18 @@ public:
                 }
                 break;
             case TERMINATED:
-                if(ite->type() == OneSentence) {
-                    std::string token = ite->value();
-                    token = token.erase(0, token.find_first_not_of(" "));
-                    state = NORMAL;
-                    Statement st(token);
-                    ret.push_back(st);
-                } else if(ite->type() == SentenceTerminator) {
-                } else {
-                    //std::cout << "point b" << std::endl;
-                    throw SyntaxError("SyntaxError");
-                }
+                state = addAfterPipeOrTerminateStatement(ite, ret, false);
                 break;
             case PIPED:
-                if(ite->type() == OneSentence) {
-                    std::string token = ite->value();
-                    token = token.erase(0, token.find_first_not_of(" "));
-                    state = NORMAL;
-                    Statement st(token);
-                    ret.push_back(st);
-                } else {
-                    //std::cout << "point c" << std::endl;
-                    throw SyntaxError("SyntaxError");
-                }
+                state = addAfterPipeOrTerminateStatement(ite, ret, true);
                 break;
             case IN_REDIRECTED:
-                if(ite->type() == OneSentence) {
-                    state = NORMAL;
-                    ret[ret.size()-1].setInputRedirection(true, ite->value());
-                } else {
-                    //std::cout << "point d" << std::endl;
-                    throw SyntaxError("SyntaxError");
-                }
+                state = NORMAL;
+                setRedirection(ite, ret, true);
+                break;
             case OUT_REDIRECTED:
-                if(ite->type() == OneSentence) {
-                    state = NORMAL;
-                    ret[ret.size()-1].setOutputRedirection(true, ite->value());
-                } else {
-                    //std::cout << "point e" << std::endl;
-                    throw SyntaxError("SyntaxError");
-                }
+                state = NORMAL;
+                setRedirection(ite, ret, false);
                 break;
             }
         }
@@ -265,6 +237,34 @@ public:
         return ret;
     }
 private:
+    template <typename Iterator>
+    int addAfterPipeOrTerminateStatement(Iterator syntax, std::vector<Statement>& ret, bool piped) {
+        if(syntax->type() == OneSentence) {
+            std::string token = syntax->value();
+            token = token.erase(0, token.find_first_not_of(" "));
+            Statement st(token);
+            ret.push_back(st);
+            return NORMAL;
+        } else if(piped == false && syntax->type() == SentenceTerminator) {
+            return TERMINATED;
+        } else {
+            //std::cout << "point b" << std::endl;
+            throw SyntaxError("SyntaxError");
+        }
+    }
+
+    template <typename Iterator>
+    void setRedirection(Iterator syntax, std::vector<Statement>& ret, bool input) {
+        if(syntax->type() == OneSentence) {
+            if(input) {
+                ret[ret.size()-1].setInputRedirection(true, syntax->value());
+            } else {
+                ret[ret.size()-1].setOutputRedirection(true, syntax->value());
+            }
+        } else {
+            throw SyntaxError("SyntaxError");
+        }
+    }
 
     Tokenizer tokenizer_;
 };

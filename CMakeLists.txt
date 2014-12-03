@@ -21,7 +21,7 @@ ADD_EXECUTABLE(console
               command/builtin/help.cc
               command/builtin/history.cc
               #command/builtin/script.cc
-              command/builtin/editor.cc
+              #command/builtin/editor.cc
               command/builtin/mode_select.cc
               command/builtin/system_func.cc
               command/builtin/shell_exe.cc
@@ -39,7 +39,7 @@ ADD_EXECUTABLE(key_trace
               command/builtin/help.cc
               command/builtin/history.cc
               #command/builtin/script.cc
-              command/builtin/editor.cc
+              #command/builtin/editor.cc
               command/builtin/mode_select.cc
               command/builtin/system_func.cc
               command/builtin/shell_exe.cc
