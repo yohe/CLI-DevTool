@@ -13,7 +13,7 @@ namespace clidevt {
         } else {
             file_ = param.substr(0,param.find(" "));
         }
-        ofs_.open(file_);
+        ofs_.open(file_.c_str());
         if(!ofs_) {
             std::cerr << "file could not open" << std::endl;
             return;

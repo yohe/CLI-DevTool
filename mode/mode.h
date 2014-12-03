@@ -13,9 +13,10 @@ namespace clidevt {
         EXECUTE_CMD_LINE_BEFORE = (1 << 2),
         EXECUTE_CMD_LINE_AFTER = (1 << 3),
         EXECUTE_CMD_BEFORE = (1 << 4),
-        EXECUTE_CMD_AFTER = (1 << 5),
-        PREPARE_INSERT_STR = (1 << 6),
-        HOOK_ALL = ((1 << 7) -1)
+        EXECUTE_CMD = (1 << 5),
+        EXECUTE_CMD_AFTER = (1 << 6),
+        PREPARE_INSERT_STR = (1 << 7),
+        HOOK_ALL = ((1 << 8) -1)
     };
 
 class Console;
@@ -59,6 +60,7 @@ public:
     virtual void hookExecuteCommandLineBefore(const std::string& input, Console* console) {}
     virtual void hookExecuteCommandLineAfter(Console* console) {}
     virtual void hookExecuteCmdBefore(Command* cmd, Console* console) {};
+    virtual bool hookExecuteCmd(Command* cmd, Console* console, const std::string& argument) { return false; };
     virtual void hookExecuteCmdAfter(Command* cmd, Console* console) {};
     virtual void hookPrepareInsert(Console* console) {};
 

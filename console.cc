@@ -501,10 +501,11 @@ std::string Console::getDateString() const {
 
 void Console::insertStringToTerminal(const std::string& str) {
     clearLine(false);
+    size_t tmp = _stringPos;
     _inputString.insert(_stringPos, str);
-    _stringPos += str.length();
     std::cout << _inputString;
-    setCursorPos(_stringPos);
+    _stringPos = _inputString.length();
+    setCursorPos(tmp+str.length());
 }
 void Console::printStringOnTerminal(const std::string& str) {
     std::cout << str;
@@ -547,7 +548,14 @@ void Console::executeStatement(const Statement& statement) {
         if(mode->getFlags() & EXECUTE_CMD_BEFORE) {
             mode->hookExecuteCmdBefore(cmd, this);
         }
-        executeCommand(cmd, argument);
+
+        if(mode->getFlags() & EXECUTE_CMD) {
+            if(mode->hookExecuteCmd(cmd, this, argument) == false) {
+                executeCommand(cmd, argument);
+            }
+        } else {
+            executeCommand(cmd, argument);
+        }
         // 文字列が一文字以上であればヒストリに追加
         if(!inputString.empty()) {
 

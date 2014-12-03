@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <sys/wait.h>
 #include <iostream>
+#include <stdexcept>
 
 namespace clidevt {
 
@@ -51,7 +52,9 @@ Tokenizer<RL,PL,SL>::tokenize(const std::string& input) {
     SentenceLexer sl;
     std::vector<SyntaxToken> v = sl.split(input);
     typedef PL PipeLexer;
+#ifdef REDIRECTION_SUPPORT
     typedef RL RedirectionLexer;
+#endif
     PipeLexer pl;
     typedef std::vector<SyntaxToken>::iterator Iterator;
     for (Iterator vIte = v.begin(); vIte != v.end(); vIte++ ) {

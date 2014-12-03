@@ -1,7 +1,7 @@
 
+#include <sys/wait.h>
 #include <cassert>
 #include <iostream>
-#include <exception>
 #include "parser/input_parser.h"
 
 using namespace clidevt;
@@ -170,12 +170,11 @@ void Statement::setupRedirection() {
     if(inputR_) {
         inputFileP_ = fopen(inputFile_.c_str(), "r");
         stdinBackup_ = dup2(fileno(inputFileP_), 0);
-        //dup2(stdinBackup_, 0);
     }
-    //if(outputR_) {
-    //    outputFileP_ = fopen(outputFile_.c_str(), "w");
-    //    dup2(fileno(inputFileP_), 1);
-    //}
+    if(outputR_) {
+        outputFileP_ = fopen(outputFile_.c_str(), "w");
+        dup2(fileno(inputFileP_), 1);
+    }
 }
 void Statement::teardownRedirection() {
     if(inputR_) {
@@ -183,6 +182,6 @@ void Statement::teardownRedirection() {
         close(stdinBackup_);
         fclose(inputFileP_);
     }
-    //fclose(outputFileP_);
+    fclose(outputFileP_);
 }
 

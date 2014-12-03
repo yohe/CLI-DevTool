@@ -320,7 +320,7 @@ public:
     void printAllCommandName();
 
     void beep() { printf("\a"); }
-    std::string getUserName() const { return _user_name; }
+    std::string getUserName() const { return getpwuid(geteuid())->pw_name; }
     std::string getHostName() const {
         char buf[128];
         gethostname(buf, 128);
