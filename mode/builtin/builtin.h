@@ -4,5 +4,6 @@
 
 #include "mode/builtin/normal.h"
 #include "mode/builtin/logging.h"
+#include "mode/builtin/vi.h"
 
 #endif

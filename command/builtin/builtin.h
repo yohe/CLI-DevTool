@@ -7,7 +7,7 @@
 //#include "command/builtin/editor.h"  deprecated
 //#include "command/builtin/script.h"  deprecated
 #include "command/builtin/mode_select.h"
-#include "command/builtin/system_func.h"
+#include "command/builtin/system_cmd.h"
 #include "command/builtin/shell_exe.h"
 
 #endif

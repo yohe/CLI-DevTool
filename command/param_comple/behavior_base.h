@@ -13,6 +13,9 @@ public:
     virtual ~ParameterBehavior() {}
 
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const = 0;
+
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
+    }
 };
 
 class NullParameterBehavior : public ParameterBehavior {

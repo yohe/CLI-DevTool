@@ -7,6 +7,7 @@
 
 #include "mode/mode.h"
 #include "command/help_print/man_behavior.h"
+#include "command/param_comple/external_script.h"
 
 using namespace clidevt;
 
@@ -330,6 +331,8 @@ void consoleInit(Console& console) {
     console.installCommand(new SystemFuncCommand("grep", "", new FileListBehavior(), new ManBehavior("grep")));
 
     console.installCommand(new SystemFuncCommand("vim", "", new FileListBehavior(), new ManBehavior("vim")));
+    console.installCommand(new SystemFuncCommand("kill", "",
+                new ExternalScriptBehavior("/Users/sekiguchi/aa.sh", "/Users/sekiguchi/aa_output.sh"), new ManBehavior("kill")));
     console.installCommand(new CommandAlias("vi", "vim"));
     console.installCommand(new CommandAlias("..", "cd", "../"));
     console.installCommand(new CommandAlias("...", "cd", "../../"));

@@ -44,6 +44,7 @@ public:
         KEY_NL,
         KEY_CR,
         KEY_DEL,
+        KEY_ESCAPE,
 
         KEY_UP_ARROW,
         KEY_RIGHT_ARROW,
@@ -147,6 +148,8 @@ public:
 #else
         _code[KEY_DEL]    = "27 91 51 126";
 #endif
+        _code[KEY_ESCAPE] = "27";
+
         _code[KEY_UP_ARROW] = "27 91 65";
         _code[KEY_DOWN_ARROW] = "27 91 66";
         _code[KEY_RIGHT_ARROW] = "27 91 67";

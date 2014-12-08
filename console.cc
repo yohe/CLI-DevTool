@@ -86,6 +86,7 @@ bool Console::initialize(int argc, char const* argv[]) {
     setMode(new NormalMode());
     registMode(getCurrentMode());
     registMode(new LoggingMode());
+    registMode(new ViMode());
 
     return true;
 }
@@ -493,6 +494,15 @@ void Console::actionClearScreen() {
     return;
 }
 
+void Console::redraw() {
+    clearLine(false);
+    std::cout << _inputString;
+    size_t tmp = _stringPos;
+    _stringPos = _inputString.length();
+    //std::cout << _stringPos << std::endl;
+    setCursorPos(tmp);
+}
+
 std::string Console::getDateString() const {
     time_t sec;
     time(&sec);
@@ -632,11 +642,11 @@ void Console::executeShellCommand(const std::string& inputString) {
 }
 void Console::executeCommand(Command* cmd, const std::string& argument) {
 
-    std::string ret("");
     if(cmd == NULL) {
-        ret =  _commandSelector->errorCause();
+        std::string ret =  _commandSelector->errorCause();
         std::cout << ret << std::endl;
     } else {
+        //std::cout << "["+argument+"]" << std::endl;
         cmd->execute(argument);
     }
 
@@ -1074,13 +1084,23 @@ void Console::printStringList(Iterator lh, Iterator rh) {
     }
 
     max += 2;
+    if(max > getTerminalColumnSize()) {
+        max = getTerminalColumnSize();
+    }
     size_t num = getTerminalColumnSize()/max;
+    size_t term_col = getTerminalColumnSize();
     num--;
     size_t i=0;
     lh = begin;
     rh = end;
     while(lh != rh) {
-        std::cout << std::left << std::setw(max) << *lh;
+        if(term_col < lh->length()) {
+            std::string tmp = *lh;
+            tmp.erase(term_col);
+            std::cout << std::left << std::setw(max) << tmp;
+        } else {
+            std::cout << std::left << std::setw(max) << *lh;
+        }
         ++i;
         ++lh;
         if(i > num && lh != rh) {
@@ -1148,6 +1168,28 @@ Mode* Console::unregistMode(std::string name) {
     Mode* mode = _modeMap[name];
     _modeMap.erase(name);
     return mode;
+}
+
+std::string Console::replaceTildeToHomeDir(std::string input) const {
+    size_t pos = input.find("~");
+    if(input.size() >= 1 && std::string::npos != pos) {
+        if(pos > 0 && input.at(input.find("~")-1) != '/') {
+            input.replace(input.find("/~"),1, getHomeDirectory());
+        }
+    }
+    return input;
+}
+
+std::string Console::getCurrentDirectory() const {
+    size_t size = pathconf(".", _PC_PATH_MAX);
+    char* buf = new char[size];
+
+    if(getcwd(buf, size) == NULL) {
+        return "ERANGE";
+    }
+    std::string ret(buf);
+    delete[] buf;
+    return ret;
 }
 
 }

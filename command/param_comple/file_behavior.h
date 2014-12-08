@@ -64,6 +64,9 @@ public:
     }
     virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& candidates) const;
 
+    virtual void afterCompletionHook(std::vector<std::string>& candidates) const {
+        stripParentPath(candidates);
+    }
     virtual void stripParentPath(std::vector<std::string>& candidates) const;
     virtual void stripFile(std::vector<std::string>& candidates) const;
 private:

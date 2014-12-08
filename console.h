@@ -196,10 +196,7 @@ public:
     void actionDeleteFromHeadToCursor();
     void actionClearScreen();
 
-    void redraw() {
-        clearLine(false);
-        std::cout << _inputString;
-    }
+    void redraw() ;
     void insertStringToTerminal(const std::string& str) ;
     void printStringOnTerminal(const std::string& str) ;
     std::string getInputtingString() {
@@ -329,17 +326,8 @@ public:
     std::string getHomeDirectory() const {
         return _user_homeDir;
     }
-    std::string getCurrentDirectory() const {
-        size_t size = pathconf(".", _PC_PATH_MAX);
-        char* buf = new char[size];
-
-        if(getcwd(buf, size) == NULL) {
-            return "ERANGE";
-        }
-        std::string ret(buf);
-        delete[] buf;
-        return ret;
-    }
+    std::string replaceTildeToHomeDir(std::string input) const;
+    std::string getCurrentDirectory() const;
 
     // コマンド登録, 登録解除, 取得
     void execute(const std::string& inputStr);

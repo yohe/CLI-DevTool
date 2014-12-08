@@ -14,7 +14,12 @@ void CommandAlias::printHelp() const {
 }
 
 void CommandAlias::execute(std::string param) {
-    std::string cmdParam = " " + _option + " " + param;
+    std::string cmdParam;
+    if(_option.empty()) {
+        cmdParam = param;
+    } else {
+        cmdParam = " " + _option + " " + param;
+    }
     Command* cmd = _console->getCommand(_commandName);
     if(cmd != NULL) {
         cmd->execute(cmdParam);

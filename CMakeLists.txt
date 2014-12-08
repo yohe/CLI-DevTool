@@ -18,15 +18,17 @@ ADD_EXECUTABLE(console
               key/key_map.cc
               command/command.cc
               command/param_comple/file_behavior.cc
+              command/param_comple/external_script.cc
               command/builtin/help.cc
               command/builtin/history.cc
               #command/builtin/script.cc
               #command/builtin/editor.cc
               command/builtin/mode_select.cc
-              command/builtin/system_func.cc
+              command/builtin/system_cmd.cc
               command/builtin/shell_exe.cc
               mode/builtin/normal.cc
               mode/builtin/logging.cc
+              mode/builtin/vi.cc
               parser/input_parser.cc
               )
 ADD_EXECUTABLE(key_trace
@@ -36,15 +38,17 @@ ADD_EXECUTABLE(key_trace
               key/key_map.cc
               command/command.cc
               command/param_comple/file_behavior.cc
+              command/param_comple/external_script.cc
               command/builtin/help.cc
               command/builtin/history.cc
               #command/builtin/script.cc
               #command/builtin/editor.cc
               command/builtin/mode_select.cc
-              command/builtin/system_func.cc
+              command/builtin/system_cmd.cc
               command/builtin/shell_exe.cc
               mode/builtin/normal.cc
               mode/builtin/logging.cc
+              mode/builtin/vi.cc
               parser/input_parser.cc
               )
 

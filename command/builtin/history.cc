@@ -68,8 +68,7 @@ void BuiltInHistoryCommand::getParamCandidates(std::vector<std::string>& inputte
         return;
     }
 
-    NonHistoryFilter nonFilter;
-    _console->printAllHistory(&nonFilter);
+    printHistory();
 }
 
 void BuiltInHistoryCommand::printHistory() const {
