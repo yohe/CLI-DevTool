@@ -30,6 +30,7 @@ ADD_EXECUTABLE(console
               mode/builtin/logging.cc
               mode/builtin/vi.cc
               parser/input_parser.cc
+              parser/tokenize_argument.cc
               )
 ADD_EXECUTABLE(key_trace
               sample.cc
@@ -50,6 +51,7 @@ ADD_EXECUTABLE(key_trace
               mode/builtin/logging.cc
               mode/builtin/vi.cc
               parser/input_parser.cc
+              parser/tokenize_argument.cc
               )
 
 set_directory_properties(PROPERTIES

@@ -26,6 +26,7 @@ int main(int argc, char const* argv[])
     suite.addTest(new KeySequenceGroupTest());
     suite.addTest(new KeyMapTest());
     suite.addTest(new ParserTest());
+    suite.addTest(new DivideArgumentTest());
     suite.config(config);
 
     suite.start();

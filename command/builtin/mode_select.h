@@ -27,7 +27,7 @@ public:
                                     std::string inputting,
                                     std::vector<std::string>& candidates) const ;
 
-    virtual bool isHistoryAdd() const { return false; }
+    virtual bool isHistoryAdd() const { return true; }
 };
 
 }

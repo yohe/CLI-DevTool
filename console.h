@@ -179,6 +179,8 @@ public:
     // 定義済みアクション
     void actionBackwardHistory() { selectHistory(true); }
     void actionForwardHistory(){ selectHistory(false); }
+    void actionFirstHistory() { selectHistory(true, _historyMax); }
+    void actionLastHistory() { selectHistory(false, _historyMax); }
     void actionMoveCursorRight() { moveCursor(false); }
     void actionMoveCursorLeft() { moveCursor(true); }
     void actionMoveCursorForwardParam();
@@ -246,7 +248,7 @@ private:
 
     // History
     void loadHistory();
-    bool selectHistory(bool up);
+    bool selectHistory(bool up, int size=1);
     void addHistory(std::string str, bool save = true);
 
      // 画面フォーマット出力
@@ -311,7 +313,10 @@ public:
 
     // ヒストリ機能
     void printAllHistory(HistoryFilter* fileter);
-    std::string getHistory(size_t index); 
+    std::string getHistory(size_t index) const; 
+    size_t getHistorySize() const {
+        return _historyMax;
+    }
 
     void printTitle(); 
     void printAllCommandName();

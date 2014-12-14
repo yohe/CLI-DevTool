@@ -1,3 +1,6 @@
+
+#include <stdexcept>
+
 #include "console.h"
 #include "mode/mode.h"
 #include "mode/builtin/builtin.h"
@@ -262,18 +265,24 @@ bool Console::completeStringList(std::string& inputStr, std::vector<std::string>
     return false;
 }
 
-bool Console::selectHistory(bool up) {
+bool Console::selectHistory(bool up, int size) {
 
     bool isGetHistory=false;
 
     if(up) {
         if(!_history.empty() && _historyIndex < _history.size()) {
-            _historyIndex++;
+            _historyIndex += size;
             isGetHistory=true;
+            if(_historyIndex > _history.size()) {
+                _historyIndex = _history.size();
+            }
         }
     } else {
-        if(_historyIndex > 0) {
-            _historyIndex--;
+        if(_historyIndex > size) {
+            _historyIndex -= size;
+            isGetHistory=true;
+        } else {
+            _historyIndex = 0;
             isGetHistory=true;
         }
     }
@@ -998,7 +1007,7 @@ void Console::printAllHistory(HistoryFilter* filter) {
     }
 }
 
-std::string Console::getHistory(size_t index) {
+std::string Console::getHistory(size_t index) const{
     if(!_history.empty() && _history.size() > index) {
         return _history.at(index);
     }

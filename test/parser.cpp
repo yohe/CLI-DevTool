@@ -2,6 +2,7 @@
 #include <test_macros.hpp>
 
 #include "parser/input_parser.h"
+#include "parser/tokenize_argument.h"
 
 using namespace iunit;
 using namespace clidevt;
@@ -80,3 +81,31 @@ void ParserTest::test() {
         IUNIT_EQ("cat", ret[4].value());
     }
 }
+
+
+class DivideArgumentTest : public CppTestCase {
+    std::string argument_1;
+public:
+    DivideArgumentTest() : CppTestCase("DivideArgumentTest") {
+        argument_1 = "aaa bbb \"ccc\" ddd";
+    }
+
+    virtual void setup() {
+    }
+    virtual void teardown() {
+    }
+
+    virtual void test() {
+        std::vector<std::string>* ret = clidevt::divideArgumentList(argument_1);
+        IUNIT_EQ(std::string("aaa"), ret->at(0));
+        IUNIT_EQ(std::string("bbb"), ret->at(1));
+        IUNIT_EQ(std::string("ccc"), ret->at(2));
+        IUNIT_EQ(size_t(4), ret->size());
+        IUNIT_EQ(std::string("ddd"), ret->at(3));
+    }
+
+    virtual void init() {
+        IUNIT_ADD_TEST(DivideArgumentTest, test);
+    }
+};
+
