@@ -5,6 +5,7 @@
 
 #include <list>
 #include <console.h>
+#include <parser/tokenize_argument.h>
 
 #include "command/builtin/shell_exe.h"
 
@@ -25,7 +26,7 @@ void ShellCommandExecutor::execute(std::string param) {
     std::list<std::string> delimiterList;
     delimiterList.push_back(" ");
     std::vector<char*> data;
-    std::vector<std::string>* paramList = divideStringToVector(param, delimiterList);
+    std::vector<std::string>* paramList = divideArgumentList(param);
     std::vector<std::string>::iterator ite = paramList->begin();
     int i=0;
     for(; ite != paramList->end() && i < 64; ite++, i++) {
