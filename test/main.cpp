@@ -12,6 +12,7 @@
 #include "key_seq.cpp"
 #include "key_map.cpp"
 #include "parser.cpp"
+#include "directory.cpp"
 
 using namespace iunit;
 using namespace clidevt;
@@ -27,6 +28,7 @@ int main(int argc, char const* argv[])
     suite.addTest(new KeyMapTest());
     suite.addTest(new ParserTest());
     suite.addTest(new DivideArgumentTest());
+    suite.addTest(new DirectoryScanTest());
     suite.config(config);
 
     suite.start();
