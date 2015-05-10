@@ -19,6 +19,8 @@ ADD_EXECUTABLE(console
               command/command.cc
               command/param_comple/file_behavior.cc
               command/param_comple/external_script.cc
+              command/param_comple/tool/directory.cc
+              command/param_comple/tool/wildcard.cc
               command/builtin/help.cc
               command/builtin/history.cc
               #command/builtin/script.cc
@@ -40,6 +42,8 @@ ADD_EXECUTABLE(key_trace
               command/command.cc
               command/param_comple/file_behavior.cc
               command/param_comple/external_script.cc
+              command/param_comple/tool/directory.cc
+              command/param_comple/tool/wildcard.cc
               command/builtin/help.cc
               command/builtin/history.cc
               #command/builtin/script.cc

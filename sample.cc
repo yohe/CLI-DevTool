@@ -8,6 +8,7 @@
 #include "mode/mode.h"
 #include "command/help_print/man_behavior.h"
 #include "command/param_comple/external_script.h"
+#include "command/param_comple/tool/directory.h"
 
 using namespace clidevt;
 
@@ -35,7 +36,7 @@ public:
         std::cout << "\x1b[34m" << prompt << "\x1b[39m";
     }
     virtual void hookExecuteCmdAfter(Command* cmd, Console* console) {
-        if(cmd->getKey() == "ls" || cmd->getKey() == "ll") {
+        if(cmd != NULL && (cmd->getKey() == "ls" || cmd->getKey() == "ll")) {
             return;
         } else {
             system("ls -GF");
@@ -187,6 +188,37 @@ private:
 
 };
 
+class SampleWildCardCommand : public Command {
+public:
+    SampleWildCardCommand() {}
+    virtual ~SampleWildCardCommand() {}
+
+    virtual std::string getKey() const { return "sample_wildcard"; }
+    virtual void printHelp() const { std::cout << "sample command." << std::endl; }
+    virtual void execute(std::string parameter) { std::cout << parameter << std::endl; }
+    virtual void getParamCandidates(std::vector<std::string>& inputtedList, std::string inputting, std::vector<std::string>& matchList) const {
+        std::string str = inputting;
+        str = str.erase(0, str.find_first_not_of(" "));
+        str = str.erase(str.find_last_not_of(" ")+1);
+        std::string dir = str.substr(0,str.find_last_of("/")+1);
+        if(dir.find("*") != std::string::npos) {
+            return;
+        }
+        std::string filter = str.substr(str.find_last_of("/")+1);
+        filter+="*";
+        if(dir.empty()) {
+            dir+="./";
+        }
+        tool::DirectoryScan scanner(dir.c_str());
+        tool::DirectoryScan::iterator ite = scanner.begin(filter.c_str());
+        for(; ite != scanner.end(); ite++) {
+            matchList.push_back(ite->getPath());
+        }
+    }
+
+private:
+};
+
 class SampleCommand : public Command {
 public:
     SampleCommand() {}
@@ -315,6 +347,7 @@ void consoleInit(Console& console) {
     console.installCommand(new ChangeDirCommand());
     console.installCommand(new ExportCommand());
     console.installCommand(new SampleCommand());
+    console.installCommand(new SampleWildCardCommand());
     console.installCommand(new GitCommand());
 
     console.installCommand(new ShellCommandExecutor("exe"));
