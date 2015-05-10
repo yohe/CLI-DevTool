@@ -332,6 +332,7 @@ public:
         return _user_homeDir;
     }
     std::string replaceTildeToHomeDir(std::string input) const;
+    std::string expandWordExp(std::string exp) const;
     std::string getCurrentDirectory() const;
 
     // コマンド登録, 登録解除, 取得

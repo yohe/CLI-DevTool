@@ -1,4 +1,5 @@
 
+#include <wordexp.h>
 #include <stdexcept>
 
 #include "console.h"
@@ -830,6 +831,20 @@ void Console::executeComplete(std::string input) {
         argumentList.clear();
         std::vector<std::string>::iterator begin = candidates.begin();
         std::vector<std::string>::iterator end = candidates.end();
+
+        if(after.find("*") != std::string::npos) {
+            // wildcard 使用時 Fake impl
+            std::cout << std::endl;
+            cmd->afterCompletionHook(candidates);
+            printStringList(candidates.begin(), candidates.end());
+            size_t cursorPos = _stringPos;
+            clearLine(false);
+            _stringPos = 0;
+            printStringOnTerminal(_inputString);
+            setCursorPos(cursorPos);
+            return;
+        }
+
         ret = completeStringList(after, argumentList, begin, end);
     }
 
@@ -1187,6 +1202,19 @@ std::string Console::replaceTildeToHomeDir(std::string input) const {
         }
     }
     return input;
+}
+
+std::string Console::expandWordExp(std::string exp) const {
+    wordexp_t we;
+    char** w;
+    wordexp(exp.c_str(), &we, WRDE_NOCMD);
+    w = we.we_wordv;
+    std::string ret;
+    for(int i=0; i < we.we_wordc; i++) {
+        ret += w[i];
+        ret += " ";
+    }
+    return ret;
 }
 
 std::string Console::getCurrentDirectory() const {
