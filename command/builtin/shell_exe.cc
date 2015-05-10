@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <sys/wait.h>
 
+#include <cstdio>
 #include <list>
 #include <console.h>
 #include <parser/tokenize_argument.h>
