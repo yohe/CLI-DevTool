@@ -105,9 +105,9 @@ ViMode::hookInputKey(char input, Console* console) {
 
 void ViMode::hookPromptDisplay(const std::string& prompt, Console* console) {
     if(state_ == NORMAL) {
-        std::cout << "\x1b[31mN " << prompt << "\x1b[39m";
+        std::cout << "\x1b[32mN " << prompt << "\x1b[39m";
     } else if(state_ == INSERT) {
-        std::cout << "\x1b[32mI " << prompt << "\x1b[39m";
+        std::cout << "\x1b[31mI " << prompt << "\x1b[39m";
     }
 }
 
