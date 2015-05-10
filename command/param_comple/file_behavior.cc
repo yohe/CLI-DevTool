@@ -1,4 +1,5 @@
 #include "command/param_comple/file_behavior.h"
+#include "command/param_comple/tool/wildcard.h"
 #include <iostream>
 
 namespace clidevt {
@@ -8,10 +9,12 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
         CandidateType type;
 
         std::string path("");
+        std::string file;
         if(inputting.rfind('/') == std::string::npos) {
-            // nop
+            file = inputting;
         } else {
             path = inputting.substr(0,inputting.rfind('/')+1);
+            file = inputting.substr(inputting.rfind('/')+1);
         }
 
         std::string cmd = "ls -1LFa " + path + " 2> /dev/null";
@@ -26,6 +29,7 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
                 readed_num = fread(buffer, sizeof(char), 512, in_pipe);
             }
         }
+        inputting+="*";
         pclose(in_pipe);
         while(!paramList.eof()) {
             std::string str;
@@ -33,11 +37,17 @@ void FileListBehavior::getParamCandidates(std::vector<std::string>& inputtedList
             if(str.empty()) {
                 continue;
             }
+
+            if(!file.empty() and file.at(0) == '.') {
+                if(str.at(0) != '.') continue;
+            } else {
+                if(str.at(0) == '.') continue;
+            }
             
             SpecialCharEscaper e;
             std::string name = path;
             name += e(str);
-            if(name.find(inputting) == std::string::npos) {
+            if (tool::wildcard_is_match(inputting, name) == false){
                 continue;
             } else {
                 switch (name[name.size()-1]) {
