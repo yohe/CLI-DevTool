@@ -1,4 +1,5 @@
 
+#include <cstdio>
 #include <sys/wait.h>
 #include <cassert>
 #include <iostream>
