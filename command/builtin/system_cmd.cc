@@ -11,7 +11,7 @@ SystemFuncCommand::~SystemFuncCommand() {
 }
 
 void SystemFuncCommand::execute(std::string param) { 
-    param = _console->replaceTildeToHomeDir(param);
+    param = _console->expandWordExp(param);
     std::string cmd = _command + " " + _option + " " + param;
     std::string dummy;
     ShellCommandExecutor executor(dummy);
