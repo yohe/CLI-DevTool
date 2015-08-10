@@ -48,39 +48,7 @@ private:
 
 void consoleInit(Console& console);
 
-int main(int argc, char const* argv[])
-{
-    int historySize = 100;
-    const char* homeDir = getenv("HOME");
-    std::string historyFileName(homeDir);
-    historyFileName += "/.cli_history";
-
-    // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
-    // Console console(history); 
-    // Console console(history, ctrl_c);
-    Console console(argc, argv, historySize, historyFileName.c_str());
-
-    consoleInit(console);
-
-    console.run();
-    std::cout << std::endl;
-    return 0;
-}
-
 // Set the prompt string for the command line.
-std::string Console::printPromptImpl() const {
-    std::string dir = getCurrentDirectory();
-    std::string prompt = "[" + getUserName() + ":" + dir.substr(dir.rfind("/")+1) + "]$ ";
-    return prompt;
-}
-
-// Set the title to be displayed after startup.
-void Console::printTitle() {
-    std::cout << "+------------------------------------+\n";
-    std::cout << "|              Console               |\n";
-    std::cout << "+------------------------------------+\n";
-}
-
 class InsertStringAction : public UserAction {
 public:
     InsertStringAction(std::string str) : _str(str) {}
@@ -342,6 +310,19 @@ public:
 private:
 };
 
+void consoleTitle() {
+    std::cout << "+-----------------------------------+" << std::endl;
+    std::cout << "|          Console start            +" << std::endl;
+    std::cout << "+-----------------------------------+" << std::endl;
+}
+std::string consolePrompt(const Console* console) {
+    if(console->getUserName() == "root") {
+        return "# ";
+    } else {
+        return "$ ";
+    }
+}
+
 void consoleInit(Console& console) {
     console.installCommand(new ExitCommand());
     console.installCommand(new ChangeDirCommand());
@@ -416,5 +397,28 @@ void Console::keyBindInitialize() {
     registerKeyBinding(KeyCode::KEY_CTRL_C, &Console::actionClearLine);
     // CTRL-D
     registerKeyBinding(KeyCode::KEY_CTRL_D, &Console::actionTerminate);
+}
+
+
+int main(int argc, char const* argv[])
+{
+    int historySize = 100;
+    const char* homeDir = getenv("HOME");
+    std::string historyFileName(homeDir);
+    historyFileName += "/.cli_history";
+
+    // Console console;             // use default : historySize = 20, ctrl_c = true, historyFileName = ".cli_history"
+    // Console console(history); 
+    // Console console(history, ctrl_c);
+    Console console(argc, argv, historySize, historyFileName.c_str());
+
+    consoleInit(console);
+    // customizable application title and prompt string.
+    //console.setConsoleTitleFunction(&consoleTitle);
+    //console.setConsolePromptFunction(&consolePrompt);
+
+    console.run();
+    std::cout << std::endl;
+    return 0;
 }
 

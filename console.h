@@ -49,6 +49,11 @@ namespace {
 
 namespace clidevt {
 
+class Console;
+
+void defaultTitle();
+std::string defaultPrompt(const Console*);
+
 // 文字列分割
 std::vector<std::string>* divideStringToVector(std::string& src, std::list<std::string>& delimiter); 
 
@@ -62,7 +67,6 @@ public:
     virtual void operator()() = 0;
 };
 
-class Console;
 class UserAction : public Action {
 public:
     UserAction() {}
@@ -83,6 +87,8 @@ class Console {
     typedef CommandSelector::CommandSet CommandSet;
     typedef std::map<KeyCode::Code, Action*> KeyBindMap;
     typedef std::map<std::string, Mode*> ModeMap;
+    typedef void (*ConsoleTitleFunc)(void);
+    typedef std::string (*ConsolePromptFunc)(const Console*);
     
     friend class BuiltInScriptCommand;
     friend class BuiltInScriptExitCommand;
@@ -206,7 +212,7 @@ public:
     }
 
     std::string getPromptString() const {
-        return printPromptImpl();
+        return (*_promptFunc)(this);
     }
     std::string getDateString() const;
 
@@ -253,7 +259,6 @@ private:
 
      // 画面フォーマット出力
     void printPrompt();
-    std::string printPromptImpl() const;
 
     // ターミナル操作機能
     bool moveCursor(bool left);
@@ -305,6 +310,7 @@ private:
     template <class Iterator>
     void printStringList(Iterator begin, Iterator end);
 
+
 public:
     // エラー
     std::string getSystemError() {
@@ -318,8 +324,16 @@ public:
         return _historyMax;
     }
 
-    void printTitle(); 
     void printAllCommandName();
+    void setConsolePromptFunction(ConsolePromptFunc func) {
+        _promptFunc = func;
+    }
+    void setConsoleTitleFunction(ConsoleTitleFunc func) {
+        _titleFunc = func;
+    }
+    void setTerminalTitle(const std::string& title) {
+        std::cout << "\033];" << title << "\007";
+    }
 
     void beep() { printf("\a"); }
     std::string getUserName() const { return getpwuid(geteuid())->pw_name; }
@@ -373,7 +387,7 @@ public:
     int getTerminalColumnSize() const ;
     int getTerminalLineSize() const ;
     int getCursorPosOnTerminal() const {
-        return _stringPos + printPromptImpl().length();
+        return _stringPos + (*_promptFunc)(this).length();
     }
     int getCursorPosOnString() const {
         return _stringPos;
@@ -404,6 +418,10 @@ protected:
     ModeMap _modeMap;
 
     std::string _consolePath;
+
+    // function-ptr for customize
+    ConsoleTitleFunc _titleFunc;
+    ConsolePromptFunc _promptFunc;
 };
 
 }

@@ -91,13 +91,15 @@ bool Console::initialize(int argc, char const* argv[]) {
     registMode(getCurrentMode());
     registMode(new LoggingMode());
     registMode(new ViMode());
+    setConsoleTitleFunction(clidevt::defaultTitle);
+    setConsolePromptFunction(clidevt::defaultPrompt);
 
     return true;
 }
 
 void Console::printPrompt() {
     printf("\r");
-    std::string str = printPromptImpl();
+    std::string str = (*_promptFunc)(this);
     Mode* mode = getCurrentMode();
     if(mode->getFlags() & PROMPT_DISPLAY_HOOK) {
         mode->hookPromptDisplay(str, this);
@@ -109,7 +111,7 @@ void Console::printPrompt() {
 }
 
 void Console::run() {
-    printTitle();
+    (*_titleFunc)();
     printPrompt();
     _inputString ="";
     _stringPos=0;
@@ -1227,6 +1229,15 @@ std::string Console::getCurrentDirectory() const {
     std::string ret(buf);
     delete[] buf;
     return ret;
+}
+
+void defaultTitle() {}
+
+std::string defaultPrompt(const Console* console) {
+    std::string dir = console->getCurrentDirectory();
+    std::string host = console->getHostName();
+    std::string prompt = "[" + console->getUserName() + "@" + host + " " + dir.substr(dir.rfind("/")+1) + "]$ ";
+    return prompt;
 }
 
 }
